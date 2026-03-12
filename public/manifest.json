@@ -1,0 +1,16 @@
+{
+  "name": "TCC-ASSIST™",
+  "short_name": "TCC-ASSIST",
+  "description": "Seu orientador IA para TCC. Faça seu TCC aprovado em 45min com IA, anti-plágio e normas ABNT aplicadas automaticamente.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F0F1A",
+  "theme_color": "#7C3AED",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}

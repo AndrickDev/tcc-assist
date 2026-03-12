@@ -1,0 +1,151 @@
+@import "tailwindcss";
+
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+
+  --font-sans: var(--font-inter);
+
+  /* Brand colors — fixed, same across themes */
+  --color-brand-purple: #7C3AED;
+  --color-brand-blue: #3B82F6;
+
+  /* Dynamic brand tokens using CSS vars set per theme */
+  --color-brand-bg: var(--brand-bg);
+  --color-brand-surface: var(--brand-surface);
+  --color-brand-border: var(--brand-border);
+  --color-brand-muted: var(--brand-muted);
+  --color-brand-text: var(--brand-text);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from { height: 0; }
+    to { height: var(--radix-accordion-content-height); }
+  }
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height); }
+    to { height: 0; }
+  }
+}
+
+/* ── Light mode (default) ───────────────────────────── */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 262 83% 58%;
+    --radius: 0.5rem;
+
+    --brand-bg: #ffffff;
+    --brand-surface: rgba(0, 0, 0, 0.03);
+    --brand-border: rgba(0, 0, 0, 0.08);
+    --brand-muted: #64748B;
+    --brand-text: #0F172A;
+  }
+
+  /* ── Dark mode ──────────────────────────────────────── */
+  .dark {
+    --background: 240 26% 8%;
+    --foreground: 210 40% 96%;
+    --card: 240 26% 8%;
+    --card-foreground: 210 40% 96%;
+    --popover: 240 26% 8%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 262 83% 58%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 240 10% 20%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 240 10% 20%;
+    --muted-foreground: 215 16% 65%;
+    --accent: 262 83% 58%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 0 0% 100% / 10%;
+    --input: 0 0% 100% / 8%;
+    --ring: 262 83% 58%;
+
+    --brand-bg: #0F0F1A;
+    --brand-surface: rgba(255, 255, 255, 0.05);
+    --brand-border: rgba(255, 255, 255, 0.10);
+    --brand-muted: #94A3B8;
+    --brand-text: #F1F5F9;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-brand-bg text-brand-text antialiased;
+    transition: background-color 0.3s ease, color 0.2s ease;
+  }
+}
+
+@layer utilities {
+  .bg-glass {
+    @apply bg-brand-surface backdrop-blur-[12px] border border-brand-border;
+  }
+
+  .shadow-brand {
+    box-shadow: 0 20px 60px rgba(124, 58, 237, 0.15);
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-purple to-brand-blue;
+  }
+
+  .custom-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(124, 58, 237, 0.3) transparent;
+  }
+  .custom-scroll::-webkit-scrollbar { width: 6px; }
+  .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+  .custom-scroll::-webkit-scrollbar-thumb {
+    background-color: rgba(124, 58, 237, 0.3);
+    border-radius: 3px;
+  }
+}
