@@ -8,7 +8,7 @@ export async function POST(
 ) {
   try {
     const session = await auth();
-    // @ts-ignore
+    // @ts-expect-error role is not in the default session type
     if (session?.user?.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

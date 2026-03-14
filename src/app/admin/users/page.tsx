@@ -4,8 +4,8 @@ import * as React from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
   Users, Search, Filter, RefreshCcw, 
-  Trash2, ShieldCheck, CreditCard, ChevronDown, 
-  CheckCircle2, XCircle, AlertCircle, Loader2,
+  CreditCard, ChevronDown, 
+  AlertCircle, Loader2,
   ArrowUpDown, ExternalLink, Ban, Shield
 } from "lucide-react"
 import { useSession } from "next-auth/react"
@@ -81,7 +81,7 @@ export default function AdminUsersPage() {
     return matchesSearch && matchesPlan
   })
 
-  // @ts-ignore
+  // @ts-expect-error role is not in the default session type
   if (session?.user?.role !== "ADMIN") {
     return (
       <div className="h-screen bg-[#0F0F1A] flex items-center justify-center p-4">
