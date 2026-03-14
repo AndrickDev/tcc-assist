@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ✦ TCC-ASSIST™
+> **Seu orientador IA para TCC. Aprovado em 45 minutos.**
 
-## Getting Started
+O **TCC-ASSIST™** é uma plataforma inovadora que utiliza Inteligência Artificial avançada para guiar estudantes na criação de Trabalhos de Conclusão de Curso (TCC) de alta qualidade, garantindo conformidade com as normas ABNT e originalidade acadêmica.
 
-First, run the development server:
+---
 
+## 🚀 Principais Funcionalidades
+
+- **Estrutura ABNT Automática**: Gere a estrutura completa do seu trabalho seguindo rigorosamente as normas da sua instituição.
+- **Referências Reais**: A IA busca e organiza referências bibliográficas reais (artigos, leis, jurisprudência) para fundamentar sua pesquisa.
+- **Escrita Assistida por IA**: Gere rascunhos de capítulos, reescreva trechos e refine seus argumentos com suporte inteligente.
+- **Relatório Anti-Plágio (Turnitin-like)**: Verificação de similaridade em tempo real com meta de <10% de similaridade.
+- **Exportação Profissional**: Gere seu PDF formatado em segundos, pronto para entrega.
+
+---
+
+## 🤖 Synkra AIOX Integration (Codex CLI)
+
+Este projeto é desenvolvido e mantido utilizando o framework **Synkra AIOX**, um ecossistema de agentes autônomos que garantem a qualidade e a agilidade do desenvolvimento.
+
+### Nossos Agentes Especialistas:
+Use o Codex CLI para interagir com o squad:
+- **@architect**: Decisões de arquitetura e design de sistema.
+- **@dev**: Implementação de código e novas funcionalidades.
+- **@qa**: Garantia de qualidade, testes e validação.
+- **@ux-design-expert**: Refinamento visual e experiência do usuário (WOW factor).
+- **@devops**: Gerenciamento de deploys, Git e infraestrutura.
+- **@pm / @po**: Gestão de requisitos e visão do produto.
+
+### Comandos Comuns de Desenvolvimento:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run dev          # Iniciar servidor de desenvolvimento
+npm run sync:ide     # Sincronizar contexto com IDE
+npm test             # Rodar bateria de testes
+npm run lint         # Verificar padrões de código
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Stack Tecnológica
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Frontend**: Next.js 15 (App Router), Tailwind CSS, Framer Motion.
+- **Backend**: API Routes (Node.js), Prisma ORM.
+- **IA**: Google Gemini 1.5 Flash (via `google-generative-ai`).
+- **DB**: PostgreSQL / Supabase.
+- **Auth**: NextAuth.js / Auth.js.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🌐 Deploy
+O projeto é otimizado para a plataforma **Vercel**, com CI/CD automatizado via GitHub na ramificação `main`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
+© 2026 TCC-ASSIST — *Acelerando o sucesso acadêmico com IA.*
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
