@@ -8,6 +8,7 @@ import { authConfig } from "@/lib/auth.config"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
+  secret: process.env.AUTH_SECRET,
 
   // Override providers with the full Node.js version (with authorize)
   providers: [

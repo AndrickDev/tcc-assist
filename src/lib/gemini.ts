@@ -43,11 +43,15 @@ export async function chatAgent(agent: 'bibliotecario' | 'arquiteto' | 'redator'
     - 3 subtítulos`
   }
 
+  return callGemini(prompts[agent]);
+}
+
+export async function callGemini(prompt: string) {
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${process.env.GOOGLE_API_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: prompts[agent] }] }],
+      contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.1,
         maxOutputTokens: 2000

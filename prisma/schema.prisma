@@ -58,6 +58,7 @@ model User {
   password      String?   // null for Google OAuth users
   role          Role      @default(USER)
   plan          Plan      @default(FREE)
+  planExpiresAt DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

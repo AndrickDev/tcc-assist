@@ -6,11 +6,15 @@ import {
   ArrowRight, Menu, Plus, UploadCloud, FileText, Settings, User,
   Paperclip, CheckCircle2, Search, Download as DownloadIcon, X,
   Maximize2, Bold, Italic, Underline, Heading1, Heading2, List,
-  Quote, LogOut, Loader2
+  Quote, LogOut, Loader2, ExternalLink, Zap
 } from "lucide-react"
 import { mockTemplates, mockRefs, ChatMessage } from "@/lib/mock-data"
 import { useSession, signOut } from "next-auth/react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
+import { RichEditor } from "@/components/RichEditor"
 import { INITIAL_CONTEXT } from "@/lib/constants"
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -31,6 +35,7 @@ const WELCOME_MSG: ChatMessage = {
 
 export default function DashboardPage() {
   const { data: session } = useSession()
+  const router = useRouter()
 
   const [leftOpen, setLeftOpen] = React.useState(true)
   const [rightOpen, setRightOpen] = React.useState(true)
@@ -50,6 +55,17 @@ export default function DashboardPage() {
   const [newCourse, setNewCourse] = React.useState("")
   const [newInstitution, setNewInstitution] = React.useState("")
   const [creatingTcc, setCreatingTcc] = React.useState(false)
+
+  // Config Modal
+  const [showConfig, setShowConfig] = React.useState(false)
+  const { theme, setTheme } = useTheme()
+  
+  // ── Limits ──────────────────────────────────────────────────────────────
+  const userPlan = (session?.user as any)?.plan || 'FREE'
+  const activeTccsCount = tccs.filter(t => t.status === 'IN_PROGRESS').length
+  const tccLimit = userPlan === 'VIP' ? 2 : 1
+  const isLimitReached = activeTccsCount >= tccLimit
+  const limitLabel = `[${activeTccsCount}/${tccLimit} TCC ativo]`
 
   // ── Responsive sidebar ────────────────────────────────────────────────────
   React.useEffect(() => {
@@ -133,23 +149,31 @@ export default function DashboardPage() {
   }
 
   // ── Agent call ────────────────────────────────────────────────────────────
-  const context = INITIAL_CONTEXT
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const callAgent = async (agent: string, ctx: any, input: string) => {
+  const callAgent = async (input: string) => {
     if (!input.trim()) return
+    
+    // Garantir que temos um TCC ativo para persistência e contextos do sistema
+    if (!activeTccId) {
+      setMessages(prev => [...prev, {
+        id: Date.now().toString() + "err",
+        role: "bot",
+        content: "⚠️ Por favor, selecione ou crie um TCC na barra lateral antes de começar a conversar.",
+      }])
+      return
+    }
+
     const userMsg: ChatMessage = { id: Date.now().toString(), role: "user", content: input }
     setMessages(prev => [...prev, userMsg])
     setInputVal("")
     setIsTyping(true)
 
-    if (activeTccId) await saveMessage(activeTccId, "user", input)
+    await saveMessage(activeTccId, "user", input)
 
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agent, context: ctx, input }),
+        body: JSON.stringify({ tccId: activeTccId, message: input }),
       })
       const data = await res.json()
       if (data.error) throw new Error(data.error)
@@ -158,14 +182,14 @@ export default function DashboardPage() {
         id: Date.now().toString() + "bot",
         role: "bot",
         content: data.content,
-        hasEditor: agent === "redator" || agent === "arquiteto",
-        chapterTitle: agent === "arquiteto" ? "Sumário Gerado" : "Capítulo Gerado",
+        hasEditor: true, // O orquestrador sempre gera conteúdo valioso
+        chapterTitle: "Conteúdo Gerado",
         editorContent: data.content,
         timestamp: data.timestamp,
       }
       setMessages(prev => [...prev, botMsg])
 
-      if (activeTccId) await saveMessage(activeTccId, "bot", data.content, agent)
+      // O backend já salva a mensagem do bot no Prisma dentro do runTccWorkflow
     } catch (error: unknown) {
       setMessages(prev => [...prev, {
         id: Date.now().toString() + "err",
@@ -179,14 +203,7 @@ export default function DashboardPage() {
 
   const handleSend = () => {
     if (!inputVal.trim()) return
-    const msgLower = inputVal.toLowerCase()
-    if (msgLower.includes("referência") || msgLower.includes("bibliografia")) {
-      callAgent("bibliotecario", context, inputVal)
-    } else if (msgLower.includes("sumário") || msgLower.includes("capítulo")) {
-      callAgent("arquiteto", context, inputVal)
-    } else {
-      callAgent("redator", context, inputVal)
-    }
+    callAgent(inputVal)
   }
 
   const exportPDF = async () => {
@@ -212,22 +229,58 @@ export default function DashboardPage() {
             <Menu size={20} />
           </button>
           <button
-            className="hidden sm:flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-white transition-colors"
+            disabled={isLimitReached}
+            className={cn(
+              "hidden sm:flex items-center gap-2 text-sm font-medium transition-colors",
+              isLimitReached ? "text-slate-600 cursor-not-allowed" : "text-slate-400 hover:text-white"
+            )}
             onClick={() => setShowNewTcc(true)}
           >
-            <Plus size={16} /> Novo TCC
+            {isLimitReached ? (
+              <>
+                <span className="text-brand-purple font-bold">👤 {userPlan}:</span> {limitLabel} ❌
+              </>
+            ) : (
+              <>
+                <Plus size={16} /> Novo TCC
+              </>
+            )}
           </button>
         </div>
 
-        <div className="font-extrabold text-sm sm:text-base tracking-tight text-gradient">✦ TCC-ASSIST</div>
+        <div className="flex items-center gap-3">
+          <Link href="/" className="font-extrabold text-sm sm:text-base tracking-tight text-gradient hover:opacity-80 transition-opacity">
+            ✦ TCC-ASSIST
+          </Link>
+        </div>
 
         <div className="flex items-center gap-3">
-          <button className="p-2 hover:bg-white/10 rounded-md hidden sm:block"><Settings size={18} /></button>
+          <button 
+            onClick={() => setShowConfig(true)}
+            className="p-2 hover:bg-white/10 rounded-md hidden sm:block transition-colors"
+          >
+            <Settings size={18} />
+          </button>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-purple to-brand-blue flex items-center justify-center cursor-pointer shadow-brand text-white font-bold text-sm">
+            <div 
+              onClick={() => router.push('/dashboard')}
+              className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-purple to-brand-blue flex items-center justify-center cursor-pointer shadow-brand text-white font-bold text-sm hover:scale-105 transition-transform"
+            >
               {session?.user?.name?.[0] || session?.user?.email?.[0]?.toUpperCase() || <User size={16} />}
             </div>
-            <button onClick={() => signOut()} className="p-2 text-slate-500 hover:text-red-500 transition-colors" title="Sair">
+            <div className="hidden md:flex flex-col -space-y-1">
+              <span className="text-[10px] font-bold text-white truncate max-w-[100px]">
+                {session?.user?.name || session?.user?.email?.split('@')[0]}
+              </span>
+              <span className="text-[9px] text-brand-purple font-black tracking-widest uppercase">
+                {userPlan}
+              </span>
+            </div>
+            <button 
+              onClick={() => signOut({ callbackUrl: '/' })} 
+              className="p-2 text-slate-500 hover:text-red-500 transition-colors" 
+              title="Trocar conta / Sair"
+            >
               <LogOut size={18} />
             </button>
           </div>
@@ -236,6 +289,80 @@ export default function DashboardPage() {
           </button>
         </div>
       </header>
+
+      {/* CONFIG MODAL */}
+      <AnimatePresence>
+        {showConfig && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setShowConfig(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md bg-[#13131F] border border-white/10 rounded-3xl p-8 shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="text-xl font-black tracking-tight">Configurações</h3>
+                <button onClick={() => setShowConfig(false)} className="p-2 hover:bg-white/10 rounded-full">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                  <div className="flex items-center gap-3">
+                    <Maximize2 size={18} className="text-brand-purple" />
+                    <span className="text-sm font-medium">Tema do Sistema</span>
+                  </div>
+                  <button 
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                    className="px-4 py-1.5 bg-brand-purple/20 text-brand-purple text-xs font-black rounded-lg uppercase tracking-widest hover:bg-brand-purple/30 transition-all"
+                  >
+                    {theme === 'dark' ? 'CLARO' : 'ESCURO'}
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                  <div className="flex items-center gap-3">
+                    <FileText size={18} className="text-brand-blue" />
+                    <span className="text-sm font-medium">Idioma</span>
+                  </div>
+                  <span className="text-xs font-bold text-slate-500">Português (Brasil)</span>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-brand-purple/5 rounded-2xl border border-brand-purple/20">
+                  <div className="flex items-center gap-3">
+                    <Zap size={18} className="text-brand-purple" />
+                    <div>
+                      <div className="text-sm font-bold leading-none mb-1">Plano Atual</div>
+                      <div className="text-[10px] text-brand-purple font-black tracking-widest uppercase">{userPlan}</div>
+                    </div>
+                  </div>
+                  {userPlan === 'FREE' && (
+                    <Link 
+                      href="/pricing"
+                      className="px-4 py-1.5 bg-brand-purple text-white text-xs font-black rounded-lg uppercase tracking-widest hover:bg-brand-purple/90 transition-all shadow-lg shadow-brand-purple/20"
+                    >
+                      UPGRADE
+                    </Link>
+                  )}
+                </div>
+              </div>
+
+              <button 
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="w-full mt-8 py-4 border border-red-500/20 bg-red-500/5 text-red-500 rounded-2xl font-bold text-sm hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2"
+              >
+                <LogOut size={18} /> Sair da conta
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <div className="flex-1 flex overflow-hidden relative">
         {/* LEFT SIDEBAR */}
@@ -247,12 +374,27 @@ export default function DashboardPage() {
               className="absolute md:static top-0 left-0 bottom-0 w-[250px] bg-[#0F0F1A] border-r border-white/5 flex flex-col z-10"
             >
               <div className="p-4 flex-1 overflow-y-auto custom-scroll space-y-6">
-                <button
-                  onClick={() => setShowNewTcc(true)}
-                  className="w-full py-2.5 px-4 bg-brand-purple/20 text-brand-purple hover:bg-brand-purple/30 rounded-xl font-medium text-sm border border-brand-purple/30 transition-colors flex items-center gap-2"
-                >
-                  <Plus size={16} /> Novo TCC
-                </button>
+                <div className="space-y-2">
+                  <button
+                    disabled={isLimitReached}
+                    onClick={() => setShowNewTcc(true)}
+                    className={cn(
+                      "w-full py-2.5 px-4 rounded-xl font-medium text-sm border transition-colors flex items-center gap-2",
+                      isLimitReached
+                        ? "bg-slate-800/50 text-slate-500 border-white/5 cursor-not-allowed"
+                        : "bg-brand-purple/20 text-brand-purple hover:bg-brand-purple/30 border-brand-purple/30"
+                    )}
+                  >
+                    <Plus size={16} /> {isLimitReached ? "Limite atingido" : "Novo TCC"}
+                  </button>
+                  {isLimitReached && (
+                    <p className="text-[10px] text-center text-slate-500 px-2 leading-tight">
+                      {userPlan === 'FREE' && "Complete seu TCC atual ou upgrade PRO (R$200)"}
+                      {userPlan === 'PRO' && "Complete seu TCC atual ou upgrade VIP"}
+                      {userPlan === 'VIP' && "Limite máximo de 2 TCCs ativos atingido"}
+                    </p>
+                  )}
+                </div>
 
                 {/* TCC History */}
                 <div>
@@ -263,18 +405,26 @@ export default function DashboardPage() {
                       : tccs.length === 0
                         ? <div className="px-3 py-2 text-xs text-slate-500">Nenhum TCC ainda.</div>
                         : tccs.map(tcc => (
-                          <button
-                            key={tcc.id}
-                            onClick={() => selectTcc(tcc)}
-                            className={cn(
-                              "w-full text-left py-2 px-3 rounded-lg text-sm truncate transition-colors",
-                              activeTccId === tcc.id
-                                ? "bg-brand-purple/20 text-brand-purple border border-brand-purple/30"
-                                : "text-slate-300 hover:bg-white/5"
-                            )}
-                          >
-                            💬 {tcc.title}
-                          </button>
+                          <div key={tcc.id} className="group/tcc relative">
+                            <button
+                              onClick={() => selectTcc(tcc)}
+                              className={cn(
+                                "w-full text-left py-2 px-3 rounded-lg text-sm truncate transition-colors pr-8",
+                                activeTccId === tcc.id
+                                  ? "bg-brand-purple/20 text-brand-purple border border-brand-purple/30"
+                                  : "text-slate-300 hover:bg-white/5"
+                              )}
+                            >
+                              💬 {tcc.title}
+                            </button>
+                            <button 
+                              onClick={() => router.push(`/tcc/${tcc.id}`)}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-500 hover:text-brand-purple opacity-0 group-hover/tcc:opacity-100 transition-opacity"
+                              title="Abrir Workspace"
+                            >
+                              <ExternalLink size={14} />
+                            </button>
+                          </div>
                         ))
                     }
                   </div>
@@ -309,6 +459,29 @@ export default function DashboardPage() {
 
         {/* MAIN CHAT */}
         <main className="flex-1 flex flex-col relative min-w-0 bg-[#0F0F1A]">
+          {(session?.user as any)?.plan === 'FREE' && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="m-4 p-4 rounded-2xl bg-gradient-to-r from-brand-purple/10 to-brand-blue/10 border border-brand-purple/20 flex items-center justify-between"
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-brand-purple/20 text-brand-purple">
+                  <Zap size={20} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm">Plano FREE: 1 página/dia</h4>
+                  <p className="text-xs text-slate-400 leading-tight">Remova os limites e finalize seu TCC agora mesmo.</p>
+                </div>
+              </div>
+              <Link 
+                href="/pricing"
+                className="px-6 py-2.5 bg-brand-purple text-white rounded-xl text-xs font-black tracking-widest uppercase hover:bg-brand-purple/90 transition-all shadow-lg shadow-brand-purple/20 text-center"
+              >
+                UPGRADE PRO
+              </Link>
+            </motion.div>
+          )}
           <div className="flex-1 overflow-y-auto custom-scroll p-4 pb-20 space-y-6 max-w-4xl mx-auto w-full">
             <AnimatePresence>
               {messages.map((m) => (
@@ -328,45 +501,11 @@ export default function DashboardPage() {
                   </div>
 
                   {m.hasEditor && (
-                    <motion.div
-                      id="editor-content"
-                      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-                      className="mt-4 w-full bg-[#13131F] border border-white/10 rounded-2xl overflow-hidden shadow-brand"
-                    >
-                      <div className="bg-white/5 px-4 py-2 flex items-center justify-between border-b border-white/5">
-                        <div className="flex items-center gap-2 text-sm font-medium text-slate-200">
-                          <FileText size={16} className="text-brand-purple" /> {m.chapterTitle}
-                        </div>
-                        <div className="flex gap-2">
-                          <button className="text-slate-400 hover:text-white" title="Expandir"><Maximize2 size={16} /></button>
-                          <button className="text-slate-400 hover:text-white" title="Fechar"><X size={16} /></button>
-                        </div>
-                      </div>
-                      <div className="px-4 py-2 bg-black/20 border-b border-white/5 flex gap-3 text-slate-400">
-                        <Bold size={16} className="hover:text-white cursor-pointer" />
-                        <Italic size={16} className="hover:text-white cursor-pointer" />
-                        <Underline size={16} className="hover:text-white cursor-pointer" />
-                        <div className="w-px h-4 bg-white/10" />
-                        <Heading1 size={16} className="hover:text-white cursor-pointer" />
-                        <Heading2 size={16} className="hover:text-white cursor-pointer" />
-                        <div className="w-px h-4 bg-white/10" />
-                        <List size={16} className="hover:text-white cursor-pointer" />
-                        <Quote size={16} className="hover:text-white cursor-pointer" />
-                      </div>
-                      <textarea
-                        className="w-full min-h-[250px] bg-transparent p-4 text-slate-300 resize-y focus:outline-none text-[15px] leading-relaxed custom-scroll"
-                        defaultValue={m.editorContent || ""}
-                      />
-                      <div className="text-xs text-slate-500 flex justify-between px-4 py-3 bg-white/[0.02] border-t border-white/5 items-center">
-                        <div>Palavras: 487 / 800</div>
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-1.5 bg-green-500/10 text-green-500 px-2 py-1 rounded-md font-medium">
-                            <CheckCircle2 size={14} /> Turnitin: 4%
-                          </div>
-                          <button className="text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-md transition-colors font-medium">Salvar rascunho</button>
-                        </div>
-                      </div>
-                    </motion.div>
+                    <RichEditor 
+                      content={m.editorContent || ""} 
+                      title={m.chapterTitle || "Capítulo do TCC"} 
+                      isFree={userPlan === 'FREE'}
+                    />
                   )}
                 </motion.div>
               ))}

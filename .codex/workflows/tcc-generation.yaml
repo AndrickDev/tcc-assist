@@ -1,0 +1,50 @@
+workflow:
+  id: tcc-generation
+  name: TCC Generation Workflow
+  description: Orquestra agentes para geração de TCC conforme plano do usuário
+  version: "1.0"
+
+  metadata:
+    elicit: true
+    confirmation_required: false
+
+  phases:
+    - phase_1: Validation & Selection
+    - phase_2: Content Generation
+    - phase_3: Quality & Integrity
+
+  sequence:
+    - phase: 1
+      name: Validation & Selection
+
+    - id: orchestrator-validate
+      agent: orchestrator
+      action: validate-limits
+      tools: [prisma-validator]
+      notes: "Validar se o usuário tem saldo no plano para gerar conteúdo."
+
+    - id: orchestrator-route
+      agent: orchestrator
+      action: route-agent
+      notes: "Selecionar o redator (free/pro/vip) baseado no plano."
+
+    - phase: 2
+      name: Content Generation
+
+    - id: generate-content
+      agent: dynamic # O orquestrador define qual agente de escrita usar
+      action: generate-content
+      notes: "Geração do conteúdo acadêmico."
+
+    - phase: 3
+      name: Quality & Integrity
+
+    - id: check-plagiarism
+      agent: anti-plagio
+      action: check-originality
+      notes: "Verificar se o texto gerado é original."
+
+    - id: orchestrator-finalize
+      agent: orchestrator
+      action: calculate-progress
+      notes: "Atualizar progresso do TCC e preparar para salvar."
