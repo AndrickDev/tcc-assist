@@ -21,21 +21,24 @@ type Motto = {
   byline: string
 }
 
-function getDayPeriodLabel(now: Date) {
-  const h = now.getHours()
-  if (h >= 5 && h < 12) return "Manhã de escrita"
-  if (h >= 12 && h < 18) return "Reflexões ao entardecer"
-  if (h >= 18 && h < 23) return "Silêncio da noite"
-  return "Coruja da madrugada"
-}
+const TITLES = [
+  "Reflexões ao entardecer",
+  "Coruja da madrugada",
+  "Sol da meia-noite",
+  "Entre linhas e silêncio",
+  "Caderno aberto",
+  "Ritmo de trabalho",
+  "Manhã de escrita",
+]
 
-const MOTTOS: Motto[] = [
-  { title: "Reflexões ao entardecer", byline: "Uma boa página começa com uma boa pergunta." },
-  { title: "Coruja da madrugada", byline: "Quando a casa dorme, as ideias acordam." },
-  { title: "Sol da meia-noite", byline: "Disciplina é gentileza com o seu futuro." },
-  { title: "Entre linhas e silêncio", byline: "Escrever é organizar o caos com calma." },
-  { title: "Caderno aberto", byline: "O rascunho é o caminho mais curto para o texto final." },
-  { title: "Ritmo de trabalho", byline: "Pouco por dia vence muito de vez em quando." },
+const BYLINES = [
+  "Uma boa página começa com uma boa pergunta.",
+  "Quando a casa dorme, as ideias acordam.",
+  "Disciplina é gentileza com o seu futuro.",
+  "Escrever é organizar o caos com calma.",
+  "O rascunho é o caminho mais curto para o texto final.",
+  "Pouco por dia vence muito de vez em quando.",
+  "Clareza primeiro; o resto acompanha.",
 ]
 
 const WRITERS = [
@@ -50,25 +53,37 @@ const WRITERS = [
 ]
 
 function pickMotto() {
-  const now = new Date()
-  const baseTitle = getDayPeriodLabel(now)
+  const lastKey = "teseo.dashboard.motto.last"
+  const last = typeof window !== "undefined" ? window.sessionStorage.getItem(lastKey) : null
+  const lastParsed = last ? safeParseInt(last) : null
 
-  const indexSeed = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`
-  const prevKey = "teseo.dashboard.motto.seed"
-  const prev = typeof window !== "undefined" ? window.localStorage.getItem(prevKey) : null
-
-  let idx = Math.abs(hashString(indexSeed)) % MOTTOS.length
-  if (prev === indexSeed) {
-    idx = (idx + 1) % MOTTOS.length
+  let titleIndex = randIndex(TITLES.length)
+  if (lastParsed !== null && TITLES.length > 1 && titleIndex === lastParsed) {
+    titleIndex = (titleIndex + 1) % TITLES.length
   }
 
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(prevKey, indexSeed)
+    window.sessionStorage.setItem(lastKey, String(titleIndex))
   }
 
-  const writer = WRITERS[Math.abs(hashString(`${indexSeed}-writer`)) % WRITERS.length]
-  const picked = MOTTOS[idx]
-  return { title: picked.title === "Reflexões ao entardecer" ? baseTitle : picked.title, byline: `${picked.byline} — ${writer}` }
+  const bylineIndex = randIndex(BYLINES.length)
+  const writer = WRITERS[randIndex(WRITERS.length)]
+  return { title: TITLES[titleIndex], byline: `${BYLINES[bylineIndex]} — ${writer}` }
+}
+
+function safeParseInt(value: string) {
+  const n = Number.parseInt(value, 10)
+  return Number.isFinite(n) ? n : null
+}
+
+function randIndex(maxExclusive: number) {
+  if (maxExclusive <= 1) return 0
+  if (typeof crypto !== "undefined" && "getRandomValues" in crypto) {
+    const buf = new Uint32Array(1)
+    crypto.getRandomValues(buf)
+    return buf[0] % maxExclusive
+  }
+  return Math.floor(Math.random() * maxExclusive)
 }
 
 function hashString(input: string) {
@@ -131,6 +146,12 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 transition-colors"
+            >
+              Voltar ao site
+            </Link>
             <Link
               href="/dashboard/new-tcc"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-black text-sm font-semibold hover:bg-white/90 transition-colors"
