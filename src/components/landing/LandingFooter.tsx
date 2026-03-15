@@ -37,7 +37,6 @@ export function LandingFooter() {
             <div className="space-y-2">
               <FooterLink href="/dashboard">Dashboard</FooterLink>
               <FooterLink href="/pricing">Planos</FooterLink>
-              <FooterLink href="/onboarding">Onboarding</FooterLink>
             </div>
           </div>
 
@@ -63,4 +62,3 @@ export function LandingFooter() {
     </footer>
   )
 }
-
