@@ -71,20 +71,20 @@ const ITEMS: Item[] = [
 
 function PreviewCard() {
   return (
-    <div className="rounded-2xl border border-[color:var(--color-brand-border)] bg-[color:var(--color-brand-surface)] shadow-brand overflow-hidden">
-      <div className="h-10 border-b border-[color:var(--color-brand-border)] bg-[color:var(--color-brand-hover)] flex items-center px-4">
-        <div className="text-xs text-[color:var(--color-brand-muted)]">Preview do fluxo</div>
+    <div className="rounded-2xl border border-white/10 bg-[#0F0F0E] shadow-brand overflow-hidden">
+      <div className="h-10 border-b border-white/10 bg-white/5 flex items-center px-4">
+        <div className="text-xs text-white/70">Preview do fluxo</div>
       </div>
       <div className="p-5 space-y-3">
-        <div className="rounded-xl border border-[color:var(--color-brand-border)] p-4 bg-[color:var(--color-brand-bg)]/40">
-          <div className="text-xs font-semibold text-[color:var(--color-brand-muted)]">Capitulo 2</div>
+        <div className="rounded-xl border border-white/10 p-4 bg-white/5">
+          <div className="text-xs font-semibold text-white/60">Capitulo 2</div>
           <div className="mt-1 text-sm font-semibold">Referencial teorico</div>
-          <div className="mt-2 h-2 rounded-full bg-[color:var(--color-brand-border)] overflow-hidden">
+          <div className="mt-2 h-2 rounded-full bg-white/10 overflow-hidden">
             <div className="h-full w-[62%] bg-white/35" />
           </div>
         </div>
-        <div className="rounded-xl border border-[color:var(--color-brand-border)] p-4">
-          <div className="text-xs font-semibold text-[color:var(--color-brand-muted)]">Similaridade</div>
+        <div className="rounded-xl border border-white/10 p-4 bg-white/5">
+          <div className="text-xs font-semibold text-white/60">Similaridade</div>
           <div className="mt-1 text-sm font-semibold">4.2% (baixo risco)</div>
         </div>
       </div>
@@ -98,23 +98,23 @@ export function WorkflowSection() {
 
   return (
     <section className="py-16 md:py-20 bg-[#141413] text-white border-t border-white/10">
-      <div className="max-w-6xl mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-5 sm:px-6">
         <div className="space-y-2">
-          <div className="text-xs font-semibold tracking-widest text-[color:var(--color-brand-muted)]">COMO FUNCIONA</div>
+          <div className="text-xs font-semibold tracking-widest text-white/60">COMO FUNCIONA</div>
         </div>
 
         <div className="mt-10 grid grid-cols-1 md:grid-cols-[0.95fr_1.05fr] gap-10 items-start">
           <div className="space-y-4">
             <PreviewCard />
-            <div className="text-sm text-[color:var(--color-brand-muted)] leading-relaxed">
+            <div className="text-sm text-white/60 leading-relaxed">
               Clique nos itens ao lado para entender como cada etapa ajuda a sair do zero com segurança e controle.
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[color:var(--color-brand-border)] bg-[color:var(--color-brand-surface)] shadow-brand overflow-hidden">
-            <div className="p-5 border-b border-[color:var(--color-brand-border)] bg-[color:var(--color-brand-hover)]">
+          <div className="rounded-2xl border border-white/10 bg-[#0F0F0E] shadow-brand overflow-hidden">
+            <div className="p-5 border-b border-white/10 bg-white/5">
               <div className="text-sm font-semibold">Etapas do workspace</div>
-              <div className="text-sm text-[color:var(--color-brand-muted)] mt-1">Do planejamento a entrega final.</div>
+              <div className="text-sm text-white/60 mt-1">Do planejamento a entrega final.</div>
             </div>
 
             <div className="p-2">
@@ -128,8 +128,8 @@ export function WorkflowSection() {
                     className={cn(
                       "w-full text-left rounded-xl p-4 transition-colors",
                       isActive
-                        ? "bg-[color:var(--color-brand-bg)]/40 border border-[color:var(--color-brand-border)]"
-                        : "hover:bg-[color:var(--color-brand-hover)]"
+                        ? "bg-white/5 border border-white/10"
+                        : "hover:bg-white/5"
                     )}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -137,18 +137,18 @@ export function WorkflowSection() {
                         <div className={cn("font-semibold")}>
                           {item.title}
                         </div>
-                        <div className="text-sm text-[color:var(--color-brand-muted)]">{item.blurb}</div>
+                        <div className="text-sm text-white/60">{item.blurb}</div>
                       </div>
                       <div
                         className={cn(
                           "mt-1 w-2 h-2 rounded-full",
-                          isActive ? "bg-white/55" : "bg-[color:var(--color-brand-border)]"
+                          isActive ? "bg-white/55" : "bg-white/10"
                         )}
                       />
                     </div>
 
                     {isActive && (
-                      <div className="mt-3 text-sm leading-relaxed text-[color:var(--color-brand-muted)]">
+                      <div className="mt-3 text-sm leading-relaxed text-white/60">
                         {active.details}
                       </div>
                     )}

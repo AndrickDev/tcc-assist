@@ -17,15 +17,15 @@ export function AboutSection() {
           </p>
         </div>
 
-        <div className="mt-12 grid grid-cols-1 lg:grid-cols-[0.95fr_1.05fr] gap-10 lg:gap-14 items-start">
+        <div className="mt-12 grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-14 items-start">
           <div className="w-full flex justify-center lg:justify-start">
-            <div className="w-full max-w-[640px]">
+            <div className="w-full max-w-[720px]">
               <div className="aspect-video">
                 <AboutVideo className="h-full w-full" />
               </div>
             </div>
           </div>
-          <div className="w-full max-w-[520px] mx-auto lg:mx-0">
+          <div className="w-full max-w-[560px] mx-auto lg:mx-0">
             <AboutFeatureList />
           </div>
         </div>
