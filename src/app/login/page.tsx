@@ -16,12 +16,25 @@ export default function LoginPage() {
 
   const mode = searchParams.get("mode")
   const isEmailMode = mode === "email"
+  const authError = searchParams.get("error")
+  const shouldAutoGoogle = !isEmailMode && !authError
 
   useEffect(() => {
-    if (!isEmailMode) {
+    if (shouldAutoGoogle) {
       signIn("google", { callbackUrl: "/dashboard" })
     }
-  }, [isEmailMode])
+  }, [shouldAutoGoogle])
+
+  const errorMessage =
+    authError === "Configuration"
+      ? "Configuração de login inválida (variáveis de ambiente)."
+      : authError === "OAuthCallback"
+        ? "Falha no retorno do Google (callback)."
+        : authError === "AccessDenied"
+          ? "Acesso negado."
+          : authError
+            ? `Erro de autenticação: ${authError}`
+            : null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -76,7 +89,11 @@ export default function LoginPage() {
 
           {!isEmailMode ? (
             <div className="space-y-4">
-              <p className="text-sm text-white/60 text-center">Redirecionando para o login do Google…</p>
+              {errorMessage ? (
+                <p className="text-sm text-red-300 text-center">{errorMessage}</p>
+              ) : (
+                <p className="text-sm text-white/60 text-center">Redirecionando para o login do Google…</p>
+              )}
               <button
                 onClick={handleGoogleLogin}
                 type="button"
