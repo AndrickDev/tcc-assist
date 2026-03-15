@@ -44,19 +44,19 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] flex items-center justify-center bg-[#0F0F1A] text-slate-100 p-4">
+    <div className="min-h-[100dvh] flex items-center justify-center bg-[#141413] text-white p-4">
       <div className="w-full max-w-md">
         <div className="relative mb-8 flex flex-col items-center">
-          <Link href="/" className="absolute left-0 top-1 text-slate-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-medium">
+          <Link href="/" className="absolute left-0 top-1 text-white/60 hover:text-white transition-colors flex items-center gap-2 text-sm font-medium">
             <ArrowLeft size={18} /> <span className="hidden sm:inline">Voltar</span>
           </Link>
-          <Link href="/" className="inline-block font-extrabold text-2xl tracking-tight text-gradient mb-2">
-            TCC-ASSIST™
+          <Link href="/" className="inline-block font-extrabold text-2xl tracking-tight mb-2">
+            Teseo
           </Link>
-          <h1 className="text-xl font-medium text-slate-300">Crie sua conta</h1>
+          <h1 className="text-xl font-medium text-white/70">Crie sua conta</h1>
         </div>
 
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
+        <div className="bg-[#0F0F0E] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl">
           {error && (
             <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm p-3 rounded-lg mb-5 flex items-center gap-2">
               <AlertCircle size={16} className="shrink-0" />
@@ -66,46 +66,46 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1">Nome completo</label>
+              <label className="block text-sm font-medium text-white/60 mb-1">Nome completo</label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" size={18} />
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple transition-all text-white placeholder:text-slate-600"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/10 transition-all text-white placeholder:text-white/30"
                   placeholder="Seu nome"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1">E-mail</label>
+              <label className="block text-sm font-medium text-white/60 mb-1">E-mail</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" size={18} />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple transition-all text-white placeholder:text-slate-600"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/10 transition-all text-white placeholder:text-white/30"
                   placeholder="seu@email.com"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1">Senha</label>
+              <label className="block text-sm font-medium text-white/60 mb-1">Senha</label>
               <div className="relative">
-                <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" size={18} />
                 <input
                   type="password"
                   required
                   minLength={6}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple transition-all text-white placeholder:text-slate-600"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/10 transition-all text-white placeholder:text-white/30"
                   placeholder="••••••••"
                 />
               </div>
@@ -114,16 +114,16 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 bg-gradient-to-r from-brand-purple to-brand-blue rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50 mt-6"
+              className="w-full py-3 bg-white text-black rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-white/90 transition-colors disabled:opacity-50 mt-6"
             >
               {isLoading ? "Criando conta..." : "Criar conta"} <ArrowRight size={18} />
             </button>
           </form>
         </div>
 
-        <div className="text-center mt-6 text-sm text-slate-400">
+        <div className="text-center mt-6 text-sm text-white/60">
           Já tem uma conta?{" "}
-          <Link href="/login" className="text-brand-purple hover:text-brand-purple/80 font-medium">
+          <Link href="/login" className="text-white hover:text-white/80 font-medium">
             Faça login
           </Link>
         </div>
