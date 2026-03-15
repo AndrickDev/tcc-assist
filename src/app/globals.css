@@ -29,10 +29,11 @@
   --radius-lg: var(--radius);
 
   --font-sans: var(--font-inter);
+  --font-serif: var(--font-lora);
 
   /* Brand colors — fixed, same across themes */
-  --color-brand-purple: #7C3AED;
-  --color-brand-blue: #3B82F6;
+  --color-brand-purple: #D97757;
+  --color-brand-blue: #D97757;
 
   /* Dynamic brand tokens using CSS vars set per theme */
   --color-brand-bg: var(--brand-bg);
@@ -40,6 +41,9 @@
   --color-brand-border: var(--brand-border);
   --color-brand-muted: var(--brand-muted);
   --color-brand-text: var(--brand-text);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-accent-hover: var(--brand-accent-hover);
 
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
@@ -57,13 +61,13 @@
 /* ── Light mode (default) ───────────────────────────── */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --background: 60 6% 96%;
+    --foreground: 0 0% 100%;
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 262 83% 58%;
+    --primary: 14 58% 59%;
     --primary-foreground: 0 0% 98%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
@@ -75,25 +79,29 @@
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 262 83% 58%;
+    --ring: 14 58% 59%;
     --radius: 0.5rem;
 
-    --brand-bg: #ffffff;
-    --brand-surface: rgba(0, 0, 0, 0.03);
-    --brand-border: rgba(0, 0, 0, 0.08);
-    --brand-muted: #64748B;
-    --brand-text: #0F172A;
+    /* Brand tokens (light) - calm, academic, lots of whitespace */
+    --brand-bg: #FAF9F5;
+    --brand-surface: #FFFFFF;
+    --brand-border: #E7E2DA;
+    --brand-muted: #6B7280;
+    --brand-text: #262624;
+    --brand-hover: #F0EEE6;
+    --brand-accent: #d97757;
+    --brand-accent-hover: #e88b6c;
   }
 
   /* ── Dark mode ──────────────────────────────────────── */
   .dark {
-    --background: 240 26% 8%;
-    --foreground: 210 40% 96%;
+    --background: 0 0% 8%;
+    --foreground: 0 0% 100%;
     --card: 240 26% 8%;
     --card-foreground: 210 40% 96%;
     --popover: 240 26% 8%;
     --popover-foreground: 210 40% 96%;
-    --primary: 262 83% 58%;
+    --primary: 14 58% 59%;
     --primary-foreground: 210 40% 98%;
     --secondary: 240 10% 20%;
     --secondary-foreground: 210 40% 98%;
@@ -105,13 +113,16 @@
     --destructive-foreground: 210 40% 98%;
     --border: 0 0% 100% / 10%;
     --input: 0 0% 100% / 8%;
-    --ring: 262 83% 58%;
+    --ring: 14 58% 59%;
 
-    --brand-bg: #0F0F1A;
-    --brand-surface: rgba(255, 255, 255, 0.05);
-    --brand-border: rgba(255, 255, 255, 0.10);
-    --brand-muted: #94A3B8;
-    --brand-text: #F1F5F9;
+    --brand-bg: #262624;
+    --brand-surface: #2F2F2C;
+    --brand-border: #3A3A37;
+    --brand-muted: #9CA3AF;
+    --brand-text: #FFFFFF;
+    --brand-hover: #141413;
+    --brand-accent: #d97757;
+    --brand-accent-hover: #e88b6c;
   }
 }
 
@@ -123,29 +134,38 @@
     @apply bg-brand-bg text-brand-text antialiased;
     transition: background-color 0.3s ease, color 0.2s ease;
   }
+
+  /* Serif titles, sans body */
+  h1, h2, h3 {
+    font-family: var(--font-serif);
+    letter-spacing: -0.01em;
+  }
 }
 
 @layer utilities {
   .bg-glass {
-    @apply bg-brand-surface backdrop-blur-[12px] border border-brand-border;
+    @apply bg-brand-surface border border-brand-border;
   }
 
   .shadow-brand {
-    box-shadow: 0 20px 60px rgba(124, 58, 237, 0.15);
+    box-shadow:
+      0 10px 28px rgba(0, 0, 0, 0.08),
+      0 1px 0 rgba(255, 255, 255, 0.6) inset;
   }
 
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-purple to-brand-blue;
+    @apply text-brand-purple;
   }
 
   .custom-scroll {
     scrollbar-width: thin;
-    scrollbar-color: rgba(124, 58, 237, 0.3) transparent;
+    scrollbar-color: rgba(217, 119, 87, 0.35) transparent;
   }
   .custom-scroll::-webkit-scrollbar { width: 6px; }
   .custom-scroll::-webkit-scrollbar-track { background: transparent; }
   .custom-scroll::-webkit-scrollbar-thumb {
-    background-color: rgba(124, 58, 237, 0.3);
+    background-color: rgba(217, 119, 87, 0.35);
     border-radius: 3px;
   }
+
 }

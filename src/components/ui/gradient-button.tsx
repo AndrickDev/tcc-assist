@@ -8,9 +8,9 @@ export const GradientButton = React.forwardRef<HTMLButtonElement, React.Componen
       <Button
         ref={ref}
         className={cn(
-          "bg-gradient-to-br from-brand-purple to-brand-blue text-white",
-          "hover:opacity-90 hover:-translate-y-[1px] active:scale-95",
-          "transition-all duration-200 border-none shadow-brand",
+          "bg-[color:var(--color-brand-accent)] text-white",
+          "hover:bg-[color:var(--color-brand-accent-hover)] active:scale-[0.99]",
+          "transition-all duration-200 border border-[color:var(--color-brand-border)] shadow-brand",
           className
         )}
         {...props}

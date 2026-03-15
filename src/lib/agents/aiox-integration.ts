@@ -68,8 +68,9 @@ export async function runTccWorkflow(userId: string, tccId: string, message: str
       agent: agentId,
       timestamp: savedMessage.createdAt
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error in TCC workflow:', error);
-    throw new Error(error.message || 'Falha na geração assistida por IA');
+    const message = error instanceof Error ? error.message : String(error)
+    throw new Error(message || 'Falha na geração assistida por IA');
   }
 }

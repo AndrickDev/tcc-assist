@@ -20,8 +20,9 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ url: result.url });
-  } catch (error: any) {
-    console.error('Stripe Checkout Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    console.error("Stripe Checkout Error:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

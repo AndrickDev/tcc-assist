@@ -79,6 +79,7 @@ model Tcc {
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages Message[]
+  attachments Attachment[]
 }
 
 model Message {
@@ -88,6 +89,18 @@ model Message {
   content   String      @db.Text
   agent     String?     // 'bibliotecario' | 'arquiteto' | 'redator'
   createdAt DateTime    @default(now())
+
+  tcc Tcc @relation(fields: [tccId], references: [id], onDelete: Cascade)
+}
+
+model Attachment {
+  id        String   @id @default(cuid())
+  tccId     String
+  fileName  String
+  fileUrl   String
+  fileSize  Int
+  mimeType  String
+  createdAt DateTime @default(now())
 
   tcc Tcc @relation(fields: [tccId], references: [id], onDelete: Cascade)
 }

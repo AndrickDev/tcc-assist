@@ -1,674 +1,659 @@
 "use client"
 
 import * as React from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import {
-  ArrowRight, Menu, Plus, UploadCloud, FileText, Settings, User,
-  Paperclip, CheckCircle2, Search, Download as DownloadIcon, X,
-  Maximize2, Bold, Italic, Underline, Heading1, Heading2, List,
-  Quote, LogOut, Loader2, ExternalLink, Zap
-} from "lucide-react"
-import { mockTemplates, mockRefs, ChatMessage } from "@/lib/mock-data"
-import { useSession, signOut } from "next-auth/react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
+import { signOut } from "next-auth/react"
+import { AnimatePresence, motion } from "framer-motion"
+import {
+  ArrowUpRight,
+  FileText,
+  Plus,
+  Settings,
+  X,
+  LayoutDashboard,
+  PieChart,
+  Target,
+  Paperclip,
+  Crown,
+  Sun,
+  Moon,
+  Globe,
+  LogOut,
+  Download,
+  Loader2,
+} from "lucide-react"
 import { useTheme } from "next-themes"
+import { useI18n } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
-import { RichEditor } from "@/components/RichEditor"
-import { INITIAL_CONTEXT } from "@/lib/constants"
 
-// ── Types ──────────────────────────────────────────────────────────────────────
+type Plan = "FREE" | "PRO" | "VIP"
+
 interface Tcc {
   id: string
   title: string
   course: string
   institution: string
   status: string
+  createdAt: string
   updatedAt: string
 }
 
-const WELCOME_MSG: ChatMessage = {
-  id: "bot-welcome",
-  role: "bot",
-  content: "Olá! Qual é o tema do seu TCC?",
+interface TccStats {
+  progress: number
+  plagiarism: number
+  humanAuthorship: number
+  totalPages: number
+  status: string
+}
+
+function planLabel(plan: Plan) {
+  return plan ?? "FREE"
+}
+
+function getAttachmentLimit(plan: Plan) {
+  if (plan === "VIP") return 50
+  if (plan === "PRO") return 20
+  return 5
+}
+
+function turnitinColor(plagiarism: number) {
+  if (plagiarism <= 10) return "text-green-500"
+  if (plagiarism <= 25) return "text-amber-500"
+  return "text-red-500"
+}
+
+function dotColor(plagiarism: number) {
+  if (plagiarism <= 10) return "bg-green-500"
+  if (plagiarism <= 25) return "bg-amber-500"
+  return "bg-red-500"
+}
+
+function round1(n: number) {
+  return Math.round(n * 10) / 10
+}
+
+function ProgressRing({ value }: { value: number }) {
+  const v = Math.max(0, Math.min(100, value))
+  return (
+    <div
+      className="w-16 h-16 rounded-full grid place-items-center"
+      style={{
+        background: `conic-gradient(rgb(168 85 247) ${v}%, rgba(255,255,255,0.08) 0)`,
+      }}
+    >
+      <div className="w-12 h-12 rounded-full bg-brand-bg border border-brand-border grid place-items-center">
+        <span className="text-xs font-black">{v}%</span>
+      </div>
+    </div>
+  )
+}
+
+function ModalShell({
+  title,
+  onClose,
+  children,
+}: {
+  title: string
+  onClose: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <motion.button
+        type="button"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        aria-label="Fechar"
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: 10 }}
+        className="relative w-full max-w-lg bg-brand-bg border border-brand-border rounded-3xl p-7 shadow-brand"
+        role="dialog"
+        aria-modal="true"
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-black tracking-tight text-white">{title}</h3>
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full">
+            <X size={18} />
+          </button>
+        </div>
+        {children}
+      </motion.div>
+    </div>
+  )
 }
 
 export default function DashboardPage() {
-  const { data: session } = useSession()
   const router = useRouter()
+  const { data: session, status } = useSession()
+  const userPlan = planLabel((((session?.user as { plan?: Plan } | undefined)?.plan ?? "FREE") as Plan))
 
-  const [leftOpen, setLeftOpen] = React.useState(true)
-  const [rightOpen, setRightOpen] = React.useState(true)
-  const [messages, setMessages] = React.useState<ChatMessage[]>([WELCOME_MSG])
-  const [inputVal, setInputVal] = React.useState("")
-  const [isTyping, setIsTyping] = React.useState(false)
-  const chatEndRef = React.useRef<HTMLDivElement>(null)
+  const { theme, setTheme } = useTheme()
+  const { language, setLanguage, t } = useI18n()
 
-  // TCC state
+  const [loadingTccs, setLoadingTccs] = React.useState(true)
   const [tccs, setTccs] = React.useState<Tcc[]>([])
   const [activeTccId, setActiveTccId] = React.useState<string | null>(null)
-  const [loadingTccs, setLoadingTccs] = React.useState(true)
 
-  // New TCC modal
+  const [statsById, setStatsById] = React.useState<Record<string, TccStats | undefined>>({})
+  const [attachmentsById, setAttachmentsById] = React.useState<Record<string, { count: number; limit: number } | undefined>>({})
+
   const [showNewTcc, setShowNewTcc] = React.useState(false)
-  const [newTitle, setNewTitle] = React.useState("")
-  const [newCourse, setNewCourse] = React.useState("")
-  const [newInstitution, setNewInstitution] = React.useState("")
-  const [creatingTcc, setCreatingTcc] = React.useState(false)
+  const [newStep, setNewStep] = React.useState<1 | 2 | 3>(1)
+  const [creating, setCreating] = React.useState(false)
+  const [newForm, setNewForm] = React.useState({ title: "", course: "", institution: "" })
 
-  // Config Modal
   const [showConfig, setShowConfig] = React.useState(false)
-  const { theme, setTheme } = useTheme()
-  
-  // ── Limits ──────────────────────────────────────────────────────────────
-  const userPlan = (session?.user as any)?.plan || 'FREE'
-  const activeTccsCount = tccs.filter(t => t.status === 'IN_PROGRESS').length
-  const tccLimit = userPlan === 'VIP' ? 2 : 1
-  const isLimitReached = activeTccsCount >= tccLimit
-  const limitLabel = `[${activeTccsCount}/${tccLimit} TCC ativo]`
 
-  // ── Responsive sidebar ────────────────────────────────────────────────────
-  React.useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 1024) setRightOpen(false)
-      if (window.innerWidth < 768) setLeftOpen(false)
-      if (window.innerWidth >= 1024) { setLeftOpen(true); setRightOpen(true) }
+  const loadTccs = React.useCallback(async () => {
+    setLoadingTccs(true)
+    try {
+      const res = await fetch("/api/tcc", { cache: "no-store" })
+      const data = await res.json()
+      if (Array.isArray(data)) {
+        setTccs(data)
+        if (!activeTccId && data[0]?.id) setActiveTccId(data[0].id)
+      }
+    } finally {
+      setLoadingTccs(false)
     }
-    window.addEventListener("resize", handleResize)
-    handleResize()
-    return () => window.removeEventListener("resize", handleResize)
+  }, [activeTccId])
+
+  const loadStats = React.useCallback(async (tccId: string) => {
+    const res = await fetch(`/api/tcc/${tccId}/stats`, { cache: "no-store" })
+    const data = await res.json()
+    if (!data?.error) {
+      setStatsById((prev) => ({ ...prev, [tccId]: data }))
+    }
   }, [])
 
-  React.useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages, isTyping])
-
-  // ── Load TCCs ─────────────────────────────────────────────────────────────
-  React.useEffect(() => {
-    if (!session?.user?.id) return
-    setLoadingTccs(true)
-    fetch("/api/tcc")
-      .then(r => r.json())
-      .then((data: Tcc[]) => { setTccs(data); setLoadingTccs(false) })
-      .catch(() => setLoadingTccs(false))
-  }, [session?.user?.id])
-
-  // ── Select TCC & load its messages ───────────────────────────────────────
-  const selectTcc = async (tcc: Tcc) => {
-    setActiveTccId(tcc.id)
-    setMessages([{ id: "loading", role: "bot", content: "Carregando histórico..." }])
-    try {
-      const res = await fetch(`/api/tcc/${tcc.id}/messages`)
-      const data = await res.json()
-      setMessages(
-        data.length > 0
-          ? data.map((m: { id: string; role: "user" | "bot"; content: string; createdAt: string }) => ({
-              id: m.id,
-              role: m.role,
-              content: m.content,
-              timestamp: m.createdAt,
-            }))
-          : [WELCOME_MSG]
-      )
-    } catch {
-      setMessages([WELCOME_MSG])
+  const loadAttachmentsMeta = React.useCallback(async (tccId: string) => {
+    const res = await fetch(`/api/tcc/${tccId}/attachments`, { cache: "no-store" })
+    const data = await res.json()
+    if (!data?.error) {
+      setAttachmentsById((prev) => ({ ...prev, [tccId]: { count: data.count ?? 0, limit: data.limit ?? getAttachmentLimit(userPlan) } }))
     }
-  }
+  }, [userPlan])
 
-  // ── Create new TCC ────────────────────────────────────────────────────────
+  React.useEffect(() => {
+    if (status !== "authenticated") return
+    loadTccs()
+  }, [status, loadTccs])
+
+  React.useEffect(() => {
+    if (!activeTccId) return
+    loadStats(activeTccId)
+    loadAttachmentsMeta(activeTccId)
+    const interval = setInterval(() => loadStats(activeTccId), 5000)
+    return () => clearInterval(interval)
+  }, [activeTccId, loadStats, loadAttachmentsMeta])
+
+  React.useEffect(() => {
+    if (!tccs.length) return
+    // Preload stats quickly for the visible cards
+    tccs.slice(0, 6).forEach((t) => {
+      if (!statsById[t.id]) loadStats(t.id)
+    })
+  }, [tccs, statsById, loadStats])
+
+  const activeStats = activeTccId ? statsById[activeTccId] : undefined
+  const activeAttachments = activeTccId ? attachmentsById[activeTccId] : undefined
+
+  const avgTurnitin = React.useMemo(() => {
+    const values = tccs
+      .map((t) => statsById[t.id]?.plagiarism)
+      .filter((v): v is number => typeof v === "number")
+    if (!values.length) return 0
+    return round1(values.reduce((a, b) => a + b, 0) / values.length)
+  }, [tccs, statsById])
+
+  const avgProgress = React.useMemo(() => {
+    const values = tccs
+      .map((t) => statsById[t.id]?.progress)
+      .filter((v): v is number => typeof v === "number")
+    if (!values.length) return 0
+    return Math.round(values.reduce((a, b) => a + b, 0) / values.length)
+  }, [tccs, statsById])
+
   const createTcc = async () => {
-    if (!newTitle || !newCourse || !newInstitution) return
-    setCreatingTcc(true)
+    setCreating(true)
     try {
       const res = await fetch("/api/tcc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: newTitle, course: newCourse, institution: newInstitution }),
-      })
-      const tcc: Tcc = await res.json()
-      setTccs(prev => [tcc, ...prev])
-      setShowNewTcc(false)
-      setNewTitle(""); setNewCourse(""); setNewInstitution("")
-      await selectTcc(tcc)
-    } finally {
-      setCreatingTcc(false)
-    }
-  }
-
-  // ── Save message to DB ────────────────────────────────────────────────────
-  const saveMessage = async (tccId: string, role: "user" | "bot", content: string, agent?: string) => {
-    try {
-      await fetch(`/api/tcc/${tccId}/messages`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role, content, agent }),
-      })
-    } catch (e) {
-      console.warn("Could not persist message:", e)
-    }
-  }
-
-  // ── Agent call ────────────────────────────────────────────────────────────
-  const callAgent = async (input: string) => {
-    if (!input.trim()) return
-    
-    // Garantir que temos um TCC ativo para persistência e contextos do sistema
-    if (!activeTccId) {
-      setMessages(prev => [...prev, {
-        id: Date.now().toString() + "err",
-        role: "bot",
-        content: "⚠️ Por favor, selecione ou crie um TCC na barra lateral antes de começar a conversar.",
-      }])
-      return
-    }
-
-    const userMsg: ChatMessage = { id: Date.now().toString(), role: "user", content: input }
-    setMessages(prev => [...prev, userMsg])
-    setInputVal("")
-    setIsTyping(true)
-
-    await saveMessage(activeTccId, "user", input)
-
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tccId: activeTccId, message: input }),
+        body: JSON.stringify(newForm),
       })
       const data = await res.json()
-      if (data.error) throw new Error(data.error)
-
-      const botMsg: ChatMessage = {
-        id: Date.now().toString() + "bot",
-        role: "bot",
-        content: data.content,
-        hasEditor: true, // O orquestrador sempre gera conteúdo valioso
-        chapterTitle: "Conteúdo Gerado",
-        editorContent: data.content,
-        timestamp: data.timestamp,
+      if (data?.id) {
+        setShowNewTcc(false)
+        setNewStep(1)
+        setNewForm({ title: "", course: "", institution: "" })
+        await loadTccs()
+        setActiveTccId(data.id)
+      } else if (data?.error) {
+        alert(data.error)
+      } else {
+        alert("Falha ao criar TCC.")
       }
-      setMessages(prev => [...prev, botMsg])
-
-      // O backend já salva a mensagem do bot no Prisma dentro do runTccWorkflow
-    } catch (error: unknown) {
-      setMessages(prev => [...prev, {
-        id: Date.now().toString() + "err",
-        role: "bot",
-        content: `❌ Erro: ${error instanceof Error ? error.message : String(error)}`,
-      }])
     } finally {
-      setIsTyping(false)
+      setCreating(false)
     }
   }
 
-  const handleSend = () => {
-    if (!inputVal.trim()) return
-    callAgent(inputVal)
+  const downloadPdf = async (tcc: Tcc) => {
+    const stats = statsById[tcc.id]
+    try {
+      const jsPDF = (await import("jspdf")).default
+      const doc = new jsPDF({ unit: "pt", format: "a4" })
+      const margin = 48
+      const pageWidth = doc.internal.pageSize.getWidth()
+      const pageHeight = doc.internal.pageSize.getHeight()
+
+      const title = `TCC: ${tcc.title}`
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(18)
+      doc.text(title, margin, 72, { maxWidth: pageWidth - margin * 2 })
+      doc.setFont("helvetica", "normal")
+      doc.setFontSize(11)
+      doc.text(`${tcc.course} • ${tcc.institution}`, margin, 96)
+      doc.text(`Progresso: ${stats?.progress ?? 0}% • Turnitin: ${stats?.plagiarism ?? 0}%`, margin, 114)
+
+      // Pull content: last bot messages (simple compile)
+      const msgRes = await fetch(`/api/tcc/${tcc.id}/messages`, { cache: "no-store" })
+      const msgs = await msgRes.json()
+      const body = Array.isArray(msgs)
+        ? (msgs as Array<{ role?: string; content?: unknown }>)
+            .filter((m) => m.role === "bot")
+            .slice(-8)
+            .map((m) => String(m.content ?? ""))
+            .join("\n\n")
+        : ""
+
+      let y = 150
+      const textWidth = pageWidth - margin * 2
+      doc.setFontSize(11)
+      const lines = doc.splitTextToSize(body || "Sem conteúdo ainda. Gere um capítulo no workspace.", textWidth)
+      for (const line of lines) {
+        if (y > pageHeight - margin) {
+          doc.addPage()
+          y = margin
+        }
+        doc.text(line, margin, y)
+        y += 14
+      }
+
+      if (userPlan === "FREE") {
+        doc.setTextColor(150, 150, 150)
+        doc.setFontSize(44)
+        doc.setFont("helvetica", "bold")
+        doc.text(
+          "TCC-ASSIST FREE",
+          pageWidth / 2,
+          pageHeight / 2,
+          ({ align: "center", angle: 35 } as unknown as Record<string, unknown>)
+        )
+        doc.setTextColor(0, 0, 0)
+      } else {
+        doc.setFontSize(9)
+        doc.setFont("helvetica", "normal")
+        doc.setTextColor(120, 120, 120)
+        doc.text("Gerado por TCC-ASSIST", pageWidth / 2, pageHeight - 18, { align: "center" })
+        doc.setTextColor(0, 0, 0)
+      }
+
+      doc.save(`${tcc.title.slice(0, 40) || "TCC"}.pdf`)
+    } catch (e) {
+      console.error(e)
+      alert("Falha ao gerar PDF (verifique se o pacote jspdf está instalado).")
+    }
   }
 
-  const exportPDF = async () => {
-    try {
-      const html2canvas = (await import("html2canvas")).default
-      const jsPDF = (await import("jspdf")).default
-      const el = document.getElementById("editor-content")
-      if (!el) return
-      const canvas = await html2canvas(el)
-      const imgData = canvas.toDataURL("image/png")
-      const pdf = new jsPDF("p", "mm", "a4")
-      pdf.addImage(imgData, "PNG", 10, 10, 190, (canvas.height * 190) / canvas.width)
-      pdf.save("TCC-Capitulo.pdf")
-    } catch (e) { console.error("PDF Export failed", e) }
+  if (status === "loading") {
+    return <div className="min-h-[100dvh] bg-brand-bg text-brand-text grid place-items-center">Carregando...</div>
+  }
+
+  if (status !== "authenticated") {
+    router.push("/login")
+    return null
   }
 
   return (
-    <div className="h-[100dvh] bg-[#0F0F1A] text-[#F1F5F9] overflow-hidden flex flex-col">
-      {/* HEADER */}
-      <header className="h-[56px] shrink-0 bg-[#0F0F1A]/80 backdrop-blur-md border-b border-white/5 px-4 flex items-center justify-between z-20">
-        <div className="flex items-center gap-3">
-          <button onClick={() => setLeftOpen(!leftOpen)} className="p-2 hover:bg-white/10 rounded-md xl:hidden">
-            <Menu size={20} />
-          </button>
-          <button
-            disabled={isLimitReached}
-            className={cn(
-              "hidden sm:flex items-center gap-2 text-sm font-medium transition-colors",
-              isLimitReached ? "text-slate-600 cursor-not-allowed" : "text-slate-400 hover:text-white"
-            )}
-            onClick={() => setShowNewTcc(true)}
-          >
-            {isLimitReached ? (
-              <>
-                <span className="text-brand-purple font-bold">👤 {userPlan}:</span> {limitLabel} ❌
-              </>
-            ) : (
-              <>
-                <Plus size={16} /> Novo TCC
-              </>
-            )}
-          </button>
-        </div>
+    <div className="min-h-[100dvh] bg-brand-bg text-brand-text">
+      <header className="h-[62px] sticky top-0 z-20 bg-brand-bg/80 backdrop-blur-md border-b border-brand-border px-4">
+        <div className="h-full max-w-6xl mx-auto flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-2xl bg-brand-surface border border-brand-border grid place-items-center shadow-brand">
+              <LayoutDashboard size={18} className="text-brand-purple" />
+            </div>
+            <div className="leading-tight">
+              <div className="text-sm font-black tracking-tight">{t("dashboard.title")}</div>
+              <div className="text-[11px] text-[color:var(--color-brand-muted)]">{tccs.length} TCC(s) • Plano {userPlan}</div>
+            </div>
+          </div>
 
-        <div className="flex items-center gap-3">
-          <Link href="/" className="font-extrabold text-sm sm:text-base tracking-tight text-gradient hover:opacity-80 transition-opacity">
-            ✦ TCC-ASSIST
-          </Link>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setShowConfig(true)}
-            className="p-2 hover:bg-white/10 rounded-md hidden sm:block transition-colors"
-          >
-            <Settings size={18} />
-          </button>
           <div className="flex items-center gap-2">
-            <div 
-              onClick={() => router.push('/dashboard')}
-              className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-purple to-brand-blue flex items-center justify-center cursor-pointer shadow-brand text-white font-bold text-sm hover:scale-105 transition-transform"
+            <Link
+              href="/"
+              className="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-brand-bg border border-brand-border hover:bg-black/5 dark:hover:bg-white/10 text-xs font-black shadow-brand"
+              title={t("nav.back_to_site")}
             >
-              {session?.user?.name?.[0] || session?.user?.email?.[0]?.toUpperCase() || <User size={16} />}
-            </div>
-            <div className="hidden md:flex flex-col -space-y-1">
-              <span className="text-[10px] font-bold text-white truncate max-w-[100px]">
-                {session?.user?.name || session?.user?.email?.split('@')[0]}
-              </span>
-              <span className="text-[9px] text-brand-purple font-black tracking-widest uppercase">
-                {userPlan}
-              </span>
-            </div>
-            <button 
-              onClick={() => signOut({ callbackUrl: '/' })} 
-              className="p-2 text-slate-500 hover:text-red-500 transition-colors" 
-              title="Trocar conta / Sair"
+              {t("nav.back_to_site")}
+            </Link>
+            <button
+              onClick={() => setShowNewTcc(true)}
+              className="px-3.5 py-2 rounded-xl bg-brand-purple text-white font-extrabold text-xs shadow-brand hover:brightness-95 active:scale-[0.99] transition"
             >
+              <span className="inline-flex items-center gap-2">
+                <Plus size={16} /> {t("dashboard.new_tcc")}
+              </span>
+            </button>
+            <button onClick={() => setShowConfig(true)} className="p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 border border-brand-border">
+              <Settings size={18} />
+            </button>
+            <button onClick={() => signOut({ callbackUrl: "/" })} className="p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 border border-brand-border">
               <LogOut size={18} />
             </button>
           </div>
-          <button onClick={() => setRightOpen(!rightOpen)} className="p-2 hover:bg-white/10 rounded-md lg:hidden">
-            <Menu size={20} />
-          </button>
         </div>
       </header>
 
-      {/* CONFIG MODAL */}
-      <AnimatePresence>
-        {showConfig && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setShowConfig(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-md bg-[#13131F] border border-white/10 rounded-3xl p-8 shadow-2xl"
-            >
-              <div className="flex items-center justify-between mb-8">
-                <h3 className="text-xl font-black tracking-tight">Configurações</h3>
-                <button onClick={() => setShowConfig(false)} className="p-2 hover:bg-white/10 rounded-full">
-                  <X size={20} />
-                </button>
+      <main className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 px-4 py-6">
+        <section className="space-y-4">
+          {loadingTccs ? (
+            <div className="p-6 rounded-3xl border border-brand-border bg-brand-surface shadow-brand">
+              <div className="flex items-center gap-3 text-[color:var(--color-brand-muted)]">
+                <Loader2 className="animate-spin" size={18} /> {t("dashboard.loading")}
               </div>
-
-              <div className="space-y-6">
-                <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                  <div className="flex items-center gap-3">
-                    <Maximize2 size={18} className="text-brand-purple" />
-                    <span className="text-sm font-medium">Tema do Sistema</span>
-                  </div>
-                  <button 
-                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                    className="px-4 py-1.5 bg-brand-purple/20 text-brand-purple text-xs font-black rounded-lg uppercase tracking-widest hover:bg-brand-purple/30 transition-all"
+            </div>
+          ) : tccs.length === 0 ? (
+            <div className="p-10 rounded-3xl border border-brand-border bg-brand-surface shadow-brand">
+              <div className="text-xl font-black">{t("dashboard.empty_title")}</div>
+              <div className="text-sm text-[color:var(--color-brand-muted)] mt-2">{t("dashboard.empty_desc")}</div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {tccs.map((tcc) => {
+                const stats = statsById[tcc.id]
+                const progress = stats?.progress ?? 0
+                const plagiarism = stats?.plagiarism ?? 0
+                const selected = activeTccId === tcc.id
+                return (
+                  <div
+                    key={tcc.id}
+                    onClick={() => setActiveTccId(tcc.id)}
+                    className={cn(
+                      "text-left p-5 rounded-3xl border bg-brand-surface hover:brightness-[0.99] transition shadow-brand",
+                      selected ? "border-brand-purple/50" : "border-brand-border"
+                    )}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") setActiveTccId(tcc.id)
+                    }}
                   >
-                    {theme === 'dark' ? 'CLARO' : 'ESCURO'}
-                  </button>
-                </div>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <FileText size={16} className="text-brand-purple" />
+                          <div className="font-black truncate">TCC: {tcc.title}</div>
+                        </div>
+                        <div className="text-xs text-[color:var(--color-brand-muted)] mt-1 truncate">
+                          {tcc.course} • {tcc.institution}
+                        </div>
+                      </div>
+                      <ProgressRing value={progress} />
+                    </div>
 
-                <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                  <div className="flex items-center gap-3">
-                    <FileText size={18} className="text-brand-blue" />
-                    <span className="text-sm font-medium">Idioma</span>
-                  </div>
-                  <span className="text-xs font-bold text-slate-500">Português (Brasil)</span>
-                </div>
+                    <div className="mt-4 flex items-center justify-between gap-2">
+                      <div className="text-xs text-[color:var(--color-brand-muted)]">
+                        Cap 1: {Math.min(100, Math.round(progress * 0.67))}% • Turnitin:{" "}
+                        <span className={cn("font-black", turnitinColor(plagiarism))}>{round1(plagiarism)}%</span>{" "}
+                        <span className={cn("inline-block w-2 h-2 rounded-full ml-1 align-middle", dotColor(plagiarism))} />
+                      </div>
+                    </div>
 
-                <div className="flex items-center justify-between p-4 bg-brand-purple/5 rounded-2xl border border-brand-purple/20">
-                  <div className="flex items-center gap-3">
-                    <Zap size={18} className="text-brand-purple" />
-                    <div>
-                      <div className="text-sm font-bold leading-none mb-1">Plano Atual</div>
-                      <div className="text-[10px] text-brand-purple font-black tracking-widest uppercase">{userPlan}</div>
+                    <div className="mt-4 flex items-center gap-2">
+                      <Link
+                        href={`/tcc/${tcc.id}`}
+                        className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-brand-bg border border-brand-border hover:bg-black/5 dark:hover:bg-white/10 text-xs font-bold"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {t("dashboard.open_workspace")} <ArrowUpRight size={14} />
+                      </Link>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-brand-bg border border-brand-border hover:bg-black/5 dark:hover:bg-white/10 text-xs font-bold"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          downloadPdf(tcc)
+                        }}
+                      >
+                        {t("dashboard.pdf")} <Download size={14} />
+                      </button>
                     </div>
                   </div>
-                  {userPlan === 'FREE' && (
-                    <Link 
-                      href="/pricing"
-                      className="px-4 py-1.5 bg-brand-purple text-white text-xs font-black rounded-lg uppercase tracking-widest hover:bg-brand-purple/90 transition-all shadow-lg shadow-brand-purple/20"
-                    >
-                      UPGRADE
-                    </Link>
-                  )}
-                </div>
-              </div>
-
-              <button 
-                onClick={() => signOut({ callbackUrl: '/' })}
-                className="w-full mt-8 py-4 border border-red-500/20 bg-red-500/5 text-red-500 rounded-2xl font-bold text-sm hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2"
-              >
-                <LogOut size={18} /> Sair da conta
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      <div className="flex-1 flex overflow-hidden relative">
-        {/* LEFT SIDEBAR */}
-        <AnimatePresence>
-          {leftOpen && (
-            <motion.aside
-              initial={{ x: -250 }} animate={{ x: 0 }} exit={{ x: -250 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              className="absolute md:static top-0 left-0 bottom-0 w-[250px] bg-[#0F0F1A] border-r border-white/5 flex flex-col z-10"
-            >
-              <div className="p-4 flex-1 overflow-y-auto custom-scroll space-y-6">
-                <div className="space-y-2">
-                  <button
-                    disabled={isLimitReached}
-                    onClick={() => setShowNewTcc(true)}
-                    className={cn(
-                      "w-full py-2.5 px-4 rounded-xl font-medium text-sm border transition-colors flex items-center gap-2",
-                      isLimitReached
-                        ? "bg-slate-800/50 text-slate-500 border-white/5 cursor-not-allowed"
-                        : "bg-brand-purple/20 text-brand-purple hover:bg-brand-purple/30 border-brand-purple/30"
-                    )}
-                  >
-                    <Plus size={16} /> {isLimitReached ? "Limite atingido" : "Novo TCC"}
-                  </button>
-                  {isLimitReached && (
-                    <p className="text-[10px] text-center text-slate-500 px-2 leading-tight">
-                      {userPlan === 'FREE' && "Complete seu TCC atual ou upgrade PRO (R$200)"}
-                      {userPlan === 'PRO' && "Complete seu TCC atual ou upgrade VIP"}
-                      {userPlan === 'VIP' && "Limite máximo de 2 TCCs ativos atingido"}
-                    </p>
-                  )}
-                </div>
-
-                {/* TCC History */}
-                <div>
-                  <div className="text-xs font-bold text-slate-500 mb-3 px-2">RECENTES</div>
-                  <div className="space-y-1">
-                    {loadingTccs
-                      ? <div className="px-3 py-2 text-xs text-slate-500 flex items-center gap-2"><Loader2 size={12} className="animate-spin" /> Carregando...</div>
-                      : tccs.length === 0
-                        ? <div className="px-3 py-2 text-xs text-slate-500">Nenhum TCC ainda.</div>
-                        : tccs.map(tcc => (
-                          <div key={tcc.id} className="group/tcc relative">
-                            <button
-                              onClick={() => selectTcc(tcc)}
-                              className={cn(
-                                "w-full text-left py-2 px-3 rounded-lg text-sm truncate transition-colors pr-8",
-                                activeTccId === tcc.id
-                                  ? "bg-brand-purple/20 text-brand-purple border border-brand-purple/30"
-                                  : "text-slate-300 hover:bg-white/5"
-                              )}
-                            >
-                              💬 {tcc.title}
-                            </button>
-                            <button 
-                              onClick={() => router.push(`/tcc/${tcc.id}`)}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-500 hover:text-brand-purple opacity-0 group-hover/tcc:opacity-100 transition-opacity"
-                              title="Abrir Workspace"
-                            >
-                              <ExternalLink size={14} />
-                            </button>
-                          </div>
-                        ))
-                    }
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-xs font-bold text-slate-500 mb-3 px-2">UPLOAD NORMAS</div>
-                  <div className="border border-dashed border-white/15 rounded-xl p-4 text-center text-xs text-slate-500 hover:border-brand-purple/60 hover:bg-brand-purple/5 transition-colors cursor-pointer group">
-                    <UploadCloud size={24} className="mx-auto mb-2 group-hover:text-brand-purple transition-colors" />
-                    Arraste o PDF de normas da sua faculdade
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-xs font-bold text-slate-500 mb-3 px-2">TEMPLATES</div>
-                  <div className="flex flex-wrap gap-2">
-                    {mockTemplates.map(t => (
-                      <button
-                        key={t}
-                        onClick={() => setInputVal(`Quero fazer um TCC na área de ${t}.`)}
-                        className="bg-white/5 hover:bg-white/10 border border-white/10 text-xs px-3 py-1.5 rounded-full text-slate-300 transition-colors hover:border-brand-purple/50 focus:outline-none"
-                      >
-                        {t}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </motion.aside>
+                )
+              })}
+            </div>
           )}
-        </AnimatePresence>
+        </section>
 
-        {/* MAIN CHAT */}
-        <main className="flex-1 flex flex-col relative min-w-0 bg-[#0F0F1A]">
-          {(session?.user as any)?.plan === 'FREE' && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="m-4 p-4 rounded-2xl bg-gradient-to-r from-brand-purple/10 to-brand-blue/10 border border-brand-purple/20 flex items-center justify-between"
-            >
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-brand-purple/20 text-brand-purple">
-                  <Zap size={20} />
-                </div>
-                <div>
-                  <h4 className="font-bold text-sm">Plano FREE: 1 página/dia</h4>
-                  <p className="text-xs text-slate-400 leading-tight">Remova os limites e finalize seu TCC agora mesmo.</p>
+        <aside className="h-fit rounded-3xl border border-brand-border bg-brand-surface p-6 space-y-6 sticky top-[86px] shadow-brand">
+          <div className="flex items-center justify-between">
+            <div className="text-[10px] font-black text-[color:var(--color-brand-muted)] tracking-widest">{t("dashboard.summary")}</div>
+            <div className="text-[10px] font-black text-brand-purple tracking-widest uppercase">{userPlan}</div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-brand-text">
+              <PieChart size={16} className="text-brand-purple" />
+              <div className="text-xs font-bold">{t("dashboard.progress")}</div>
+            </div>
+            <div className="text-sm font-black">{avgProgress}%</div>
+          </div>
+          <div className="h-2 bg-black/5 dark:bg-white/10 rounded-full overflow-hidden">
+            <motion.div initial={{ width: 0 }} animate={{ width: `${avgProgress}%` }} className="h-full bg-brand-purple" />
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-brand-bg border border-brand-border rounded-2xl shadow-brand">
+            <div className="flex items-center gap-2">
+              <Target size={16} className="text-brand-blue" />
+              <div>
+                <div className="text-[10px] text-[color:var(--color-brand-muted)] font-black leading-none">{t("dashboard.turnitin_avg")}</div>
+                <div className="text-[11px] text-[color:var(--color-brand-muted)] font-medium mt-1">{t("dashboard.realtime")}</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className={cn("w-2 h-2 rounded-full animate-pulse", dotColor(avgTurnitin))} />
+              <div className={cn("text-sm font-black", turnitinColor(avgTurnitin))}>{avgTurnitin}%</div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-brand-bg border border-brand-border rounded-2xl shadow-brand">
+            <div className="flex items-center gap-2">
+              <Paperclip size={16} className="text-[color:var(--color-brand-muted)]" />
+              <div>
+                <div className="text-[10px] text-[color:var(--color-brand-muted)] font-black leading-none">{t("dashboard.attachments")}</div>
+                <div className="text-[11px] text-[color:var(--color-brand-muted)] font-medium mt-1">
+                  {activeTccId ? t("dashboard.attachments_selected") : t("dashboard.attachments_select")}
                 </div>
               </div>
-              <Link 
-                href="/pricing"
-                className="px-6 py-2.5 bg-brand-purple text-white rounded-xl text-xs font-black tracking-widest uppercase hover:bg-brand-purple/90 transition-all shadow-lg shadow-brand-purple/20 text-center"
-              >
-                UPGRADE PRO
+            </div>
+            <div className="text-sm font-black text-white">
+              {activeTccId ? `${activeAttachments?.count ?? 0}/${activeAttachments?.limit ?? getAttachmentLimit(userPlan)}` : "--/--"}
+            </div>
+          </div>
+
+          <div className="p-4 rounded-2xl border border-brand-purple/20 bg-brand-purple/5 flex items-center justify-between gap-3">
+            <div>
+              <div className="text-[10px] text-[color:var(--color-brand-muted)] font-black tracking-widest uppercase">{t("dashboard.plan")}</div>
+              <div className="text-sm font-black">{userPlan}</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link href="/pricing" className="px-3 py-2 rounded-xl bg-brand-bg border border-brand-border text-xs font-black hover:bg-black/5 dark:hover:bg-white/10">
+                PRO R$200
               </Link>
-            </motion.div>
-          )}
-          <div className="flex-1 overflow-y-auto custom-scroll p-4 pb-20 space-y-6 max-w-4xl mx-auto w-full">
-            <AnimatePresence>
-              {messages.map((m) => (
-                <motion.div
-                  key={m.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={cn("flex flex-col w-full", m.role === "user" ? "items-end" : "items-start")}
-                >
-                  <div className={cn(
-                    "max-w-[85%] sm:max-w-[75%] p-4 text-[15px] leading-relaxed",
-                    m.role === "user"
-                      ? "bg-gradient-to-br from-brand-purple/40 to-brand-blue/40 border border-brand-purple/30 rounded-[1rem_0_1rem_1rem] text-white"
-                      : "bg-white/[0.06] border border-white/[0.09] rounded-[0_1rem_1rem_1rem] text-slate-200"
-                  )}>
-                    {m.content}
-                  </div>
-
-                  {m.hasEditor && (
-                    <RichEditor 
-                      content={m.editorContent || ""} 
-                      title={m.chapterTitle || "Capítulo do TCC"} 
-                      isFree={userPlan === 'FREE'}
-                    />
-                  )}
-                </motion.div>
-              ))}
-
-              {isTyping && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-start max-w-[75%]">
-                  <div className="bg-white/[0.06] border border-white/[0.09] rounded-[0_1rem_1rem_1rem] p-4 flex gap-1">
-                    <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "300ms" }} />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <div ref={chatEndRef} />
+              <Link href="/pricing" className="px-3 py-2 rounded-xl bg-brand-bg border border-brand-border text-xs font-black hover:bg-black/5 dark:hover:bg-white/10">
+                VIP R$1000
+              </Link>
+            </div>
           </div>
 
-          {/* Input Area */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 pt-0 bg-gradient-to-t from-[#0F0F1A] via-[#0F0F1A] to-transparent">
-            {!activeTccId && (
-              <div className="max-w-4xl mx-auto mb-3">
-                <div className="bg-brand-purple/10 border border-brand-purple/30 rounded-xl p-3 flex items-center gap-3 text-sm text-brand-purple">
-                  <Plus size={16} className="shrink-0" />
-                  <span>Crie ou selecione um TCC na barra lateral para salvar o histórico automaticamente.</span>
+          <button onClick={() => setShowConfig(true)} className="w-full px-4 py-3 rounded-2xl border border-brand-border bg-brand-bg hover:bg-black/5 dark:hover:bg-white/10 text-left shadow-brand">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Settings size={16} className="text-[color:var(--color-brand-muted)]" />
+                <div className="text-xs font-black">{t("dashboard.config")}</div>
+              </div>
+              <div className="text-[11px] text-[color:var(--color-brand-muted)]">
+                {theme === "dark" ? "Dark" : "Light"} • {language} • Sair
+              </div>
+            </div>
+          </button>
+        </aside>
+      </main>
+
+      <AnimatePresence>
+        {showNewTcc && (
+          <ModalShell title={t("newtcc.title")} onClose={() => setShowNewTcc(false)}>
+            <div className="flex items-center justify-between mb-5">
+              <div className="text-[10px] text-[color:var(--color-brand-muted)] font-black tracking-widest">{t("newtcc.step")} {newStep}/3</div>
+              <div className="h-1.5 w-32 bg-white/5 rounded-full overflow-hidden">
+                <motion.div className="h-full bg-brand-purple" animate={{ width: `${(newStep / 3) * 100}%` }} />
+              </div>
+            </div>
+
+            {newStep === 1 && (
+              <div className="space-y-3">
+                <div className="text-sm font-black">{t("newtcc.step1")}</div>
+                <textarea
+                  autoFocus
+                  value={newForm.title}
+                  onChange={(e) => setNewForm((p) => ({ ...p, title: e.target.value }))}
+                  placeholder="Ex: IA na Saúde"
+                  className="w-full min-h-[120px] bg-brand-bg border border-brand-border rounded-2xl p-4 text-sm text-brand-text focus:outline-none focus:border-brand-purple shadow-brand"
+                />
+              </div>
+            )}
+
+            {newStep === 2 && (
+              <div className="space-y-3">
+                <div className="text-sm font-black">{t("newtcc.step2")}</div>
+                <input
+                  value={newForm.course}
+                  onChange={(e) => setNewForm((p) => ({ ...p, course: e.target.value }))}
+                  placeholder="Curso (ex: Engenharia)"
+                  className="w-full bg-brand-bg border border-brand-border rounded-2xl px-4 py-3 text-sm text-brand-text focus:outline-none focus:border-brand-purple shadow-brand"
+                />
+                <input
+                  value={newForm.institution}
+                  onChange={(e) => setNewForm((p) => ({ ...p, institution: e.target.value }))}
+                  placeholder="Instituição (ex: USP)"
+                  className="w-full bg-brand-bg border border-brand-border rounded-2xl px-4 py-3 text-sm text-brand-text focus:outline-none focus:border-brand-purple shadow-brand"
+                />
+              </div>
+            )}
+
+            {newStep === 3 && (
+              <div className="space-y-3">
+                <div className="text-sm font-black">{t("newtcc.step3")}</div>
+                <div className="p-4 rounded-2xl border border-brand-border bg-brand-surface shadow-brand">
+                  <div className="text-[10px] text-[color:var(--color-brand-muted)] font-black tracking-widest uppercase">Resumo</div>
+                  <div className="text-white font-black mt-2">&quot;{newForm.title}&quot;</div>
+                  <div className="text-sm text-[color:var(--color-brand-muted)] mt-1">
+                    {newForm.course} • {newForm.institution}
+                  </div>
                 </div>
               </div>
             )}
-            <div className="max-w-4xl mx-auto">
-              <div className="flex items-center gap-4 px-2 mb-2 text-xs text-slate-500">
-                <button className="hover:text-white flex items-center gap-1.5 transition-colors"><Paperclip size={14} /> Anexar PDF</button>
-                <button className="hover:text-white flex items-center gap-1.5 transition-colors"><Search size={14} /> 4% Turnitin</button>
-                <button onClick={exportPDF} className="hover:text-white flex items-center gap-1.5 transition-colors ml-auto text-brand-purple hover:text-brand-purple/80 font-medium">
-                  <DownloadIcon size={14} /> Export PDF
-                </button>
-              </div>
-              <div className="relative">
-                <textarea
-                  value={inputVal}
-                  onChange={(e) => setInputVal(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend() } }}
-                  placeholder="Mensagem ou /comando..."
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-4 pr-12 py-4 text-[15px] focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple text-slate-200 resize-none overflow-hidden max-h-[150px] custom-scroll shadow-lg"
-                  rows={Math.min(6, inputVal.split("\n").length)}
-                />
-                <button
-                  onClick={handleSend}
-                  disabled={!inputVal.trim() || isTyping}
-                  className="absolute right-3 bottom-3 p-2 bg-brand-purple text-white rounded-xl hover:bg-brand-purple/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ArrowRight size={18} />
-                </button>
-              </div>
+
+            <div className="mt-6 flex items-center justify-between">
+              <button
+                onClick={() => setNewStep((s) => (s === 1 ? 1 : ((s - 1) as 1 | 2 | 3)))}
+                disabled={creating || newStep === 1}
+                className="px-4 py-2 rounded-xl border border-brand-border hover:bg-black/5 dark:hover:bg-white/10 text-xs font-black disabled:opacity-40 shadow-brand"
+              >
+                {t("newtcc.back")}
+              </button>
+              <button
+                onClick={() => {
+                  if (newStep < 3) setNewStep((s) => ((s + 1) as 1 | 2 | 3))
+                  else createTcc()
+                }}
+                disabled={
+                  creating ||
+                  (newStep === 1 && !newForm.title.trim()) ||
+                  (newStep === 2 && (!newForm.course.trim() || !newForm.institution.trim()))
+                }
+                className="px-5 py-2.5 rounded-xl bg-brand-purple text-white text-xs font-black shadow-brand disabled:opacity-50"
+              >
+                {creating ? <span className="inline-flex items-center gap-2"><Loader2 className="animate-spin" size={14} /> {t("newtcc.creating")}</span> : newStep === 3 ? t("newtcc.confirm") : t("newtcc.continue")}
+              </button>
             </div>
-          </div>
-        </main>
+          </ModalShell>
+        )}
+      </AnimatePresence>
 
-        {/* RIGHT SIDEBAR */}
-        <AnimatePresence>
-          {rightOpen && (
-            <motion.aside
-              initial={{ x: 250 }} animate={{ x: 0 }} exit={{ x: 250 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              className="absolute lg:static top-0 right-0 bottom-0 w-[250px] bg-[#0F0F1A] border-l border-white/5 flex flex-col z-10"
-            >
-              <div className="p-4 flex-1 overflow-y-auto custom-scroll space-y-8">
-                <div>
-                  <div className="text-xs font-bold text-slate-500 mb-4 px-2 tracking-wider flex items-center gap-2"><CheckCircle2 size={14} /> PROGRESSO TCC</div>
-                  <div className="space-y-4 px-2">
-                    {[{ name: "Cap 1 Intro", p: 80 }, { name: "Cap 2 Desenv", p: 20 }, { name: "Cap 3 Conc", p: 0 }, { name: "Cap 4 Refs", p: 0 }].map(cap => (
-                      <div key={cap.name} className="space-y-1.5">
-                        <div className="flex justify-between text-xs text-slate-300">
-                          <span>{cap.name}</span><span className="font-medium">{cap.p}%</span>
-                        </div>
-                        <div className="h-1.5 bg-white/[0.08] rounded-full overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }} animate={{ width: `${cap.p}%` }} transition={{ duration: 0.8, ease: "easeOut" }}
-                            className="h-full bg-gradient-to-r from-brand-purple to-brand-blue"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-xs font-bold text-slate-500 mb-4 px-2 tracking-wider flex items-center gap-2"><FileText size={14} /> BIBLIOGRAFIA</div>
-                  <ul className="space-y-2 px-2">
-                    {mockRefs.map(r => (
-                      <li key={r.id} className="flex items-center gap-2 group p-2 hover:bg-white/5 rounded-md cursor-grab active:cursor-grabbing text-xs text-slate-300">
-                        <Menu size={14} className="text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <span className="truncate flex-1">{r.author} ({r.year})</span>
-                        <X size={14} className="text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 cursor-pointer" />
-                      </li>
-                    ))}
-                  </ul>
-                  <button className="mt-3 ml-2 text-xs text-brand-purple font-medium hover:text-brand-purple/80 transition-colors flex items-center gap-1"><Plus size={14} /> Adicionar ref</button>
-                </div>
-
-                <div className="px-2">
-                  <div className="text-xs font-bold text-slate-500 mb-4 tracking-wider flex items-center gap-2"><Search size={14} /> TURNITIN LIVE</div>
-                  <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-center">
-                    <div className="text-3xl font-extrabold text-green-500 mb-1">4%</div>
-                    <div className="text-xs text-slate-400 mb-3">Meta: ≤ 10%</div>
-                    <button className="w-full py-1.5 bg-white/5 hover:bg-white/10 rounded-md text-xs font-medium text-slate-300 transition-colors">Ver relatório</button>
-                  </div>
-                </div>
-              </div>
-            </motion.aside>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* NEW TCC MODAL */}
       <AnimatePresence>
-        {showNewTcc && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={(e) => e.target === e.currentTarget && setShowNewTcc(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#13131F] border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl"
-            >
-              <h2 className="text-lg font-bold mb-5 flex items-center gap-2"><Plus size={18} className="text-brand-purple" /> Novo TCC</h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm text-slate-400 mb-1">Tema / Título</label>
-                  <input
-                    className="w-full bg-black/30 border border-white/10 rounded-xl py-2.5 px-4 text-white text-sm focus:outline-none focus:border-brand-purple"
-                    placeholder="Ex: O impacto da IA no Direito Penal"
-                    value={newTitle} onChange={e => setNewTitle(e.target.value)}
-                  />
+        {showConfig && (
+          <ModalShell title={t("config.title")} onClose={() => setShowConfig(false)}>
+            <div className="space-y-3">
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="w-full flex items-center justify-between p-4 bg-brand-surface rounded-2xl border border-brand-border hover:bg-black/5 dark:hover:bg-white/10 shadow-brand"
+              >
+                <div className="flex items-center gap-3">
+                  {theme === "dark" ? <Moon size={18} className="text-brand-purple" /> : <Sun size={18} className="text-brand-purple" />}
+                  <div className="text-sm font-bold">{t("config.theme")}</div>
                 </div>
-                <div>
-                  <label className="block text-sm text-slate-400 mb-1">Curso</label>
-                  <input
-                    className="w-full bg-black/30 border border-white/10 rounded-xl py-2.5 px-4 text-white text-sm focus:outline-none focus:border-brand-purple"
-                    placeholder="Ex: Direito"
-                    value={newCourse} onChange={e => setNewCourse(e.target.value)}
-                  />
+                <div className="text-xs font-black text-[color:var(--color-brand-muted)]">{theme === "dark" ? "Dark" : "Light"}</div>
+              </button>
+
+              <button
+                onClick={() => setLanguage(language === "PT" ? "EN" : "PT")}
+                className="w-full flex items-center justify-between p-4 bg-brand-surface rounded-2xl border border-brand-border hover:bg-black/5 dark:hover:bg-white/10 shadow-brand"
+              >
+                <div className="flex items-center gap-3">
+                  <Globe size={18} className="text-brand-blue" />
+                  <div className="text-sm font-bold">{t("config.language")}</div>
                 </div>
-                <div>
-                  <label className="block text-sm text-slate-400 mb-1">Instituição</label>
-                  <input
-                    className="w-full bg-black/30 border border-white/10 rounded-xl py-2.5 px-4 text-white text-sm focus:outline-none focus:border-brand-purple"
-                    placeholder="Ex: USP"
-                    value={newInstitution} onChange={e => setNewInstitution(e.target.value)}
-                  />
+                <div className="text-xs font-black text-[color:var(--color-brand-muted)]">{language}</div>
+              </button>
+
+              <div className="flex items-center justify-between p-4 bg-brand-purple/5 rounded-2xl border border-brand-purple/20">
+                <div className="flex items-center gap-3">
+                  <Crown size={18} className="text-brand-purple" />
+                  <div>
+                    <div className="text-sm font-bold leading-none">Plano</div>
+                    <div className="text-[10px] text-brand-purple font-black tracking-widest uppercase mt-1">{userPlan}</div>
+                  </div>
                 </div>
+                <Link href="/pricing" className="px-4 py-2 bg-brand-purple text-white text-xs font-black rounded-xl shadow-brand">
+                  {t("config.upgrade")}
+                </Link>
               </div>
-              <div className="flex gap-3 mt-6">
-                <button onClick={() => setShowNewTcc(false)} className="flex-1 py-2.5 rounded-xl border border-white/10 text-slate-400 hover:bg-white/5 text-sm transition-colors">Cancelar</button>
-                <button
-                  onClick={createTcc}
-                  disabled={creatingTcc || !newTitle || !newCourse || !newInstitution}
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-brand-purple to-brand-blue text-white font-bold text-sm hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center justify-center gap-2"
-                >
-                  {creatingTcc ? <><Loader2 size={16} className="animate-spin" /> Criando...</> : "Criar TCC"}
-                </button>
+
+              <div className="p-4 bg-brand-surface rounded-2xl border border-brand-border shadow-brand">
+                <div className="text-[10px] text-[color:var(--color-brand-muted)] font-black tracking-widest">{t("config.account")}</div>
+              <div className="text-sm font-black mt-2">{session?.user?.name ?? session?.user?.email}</div>
+                <div className="text-xs text-[color:var(--color-brand-muted)] mt-1">{session?.user?.email}</div>
               </div>
-            </motion.div>
-          </motion.div>
+
+              <button
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="w-full flex items-center justify-center gap-2 p-4 bg-red-500/10 rounded-2xl border border-red-500/20 hover:bg-red-500/15 text-red-300 font-black text-sm"
+              >
+                <LogOut size={18} /> {t("config.signout")}
+              </button>
+            </div>
+          </ModalShell>
         )}
       </AnimatePresence>
     </div>

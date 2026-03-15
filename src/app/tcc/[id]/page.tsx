@@ -6,12 +6,15 @@ import {
   ArrowLeft, Search, CheckCircle2, FileText, Menu, X, 
   Maximize2, Bold, Italic, Underline, Heading1, Heading2, 
   List, Quote, Loader2, Plus, AlertCircle, MessageSquare,
-  ArrowRight
+  ArrowRight, Paperclip, Upload
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { useParams, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { TccSidebar } from "@/components/TccSidebar"
+import { EditableRichText } from "@/components/EditableRichText"
+import Link from "next/link"
+import { BrandLogo } from "@/components/brand/BrandLogo"
 
 interface ChatMessage {
     id: string
@@ -20,12 +23,14 @@ interface ChatMessage {
     hasEditor?: boolean
     chapterTitle?: string
     editorContent?: string
+    originalContent?: string
     timestamp?: string
 }
 
 interface Stats {
-    progress: { name: string; p: number }[]
+    progress: number
     plagiarism: number
+    humanAuthorship: number
     totalPages: number
     status: string
 }
@@ -34,6 +39,13 @@ export default function TccWorkspacePage() {
   const { data: session } = useSession()
   const { id } = useParams()
   const router = useRouter()
+
+  const displayName = React.useMemo(() => {
+    const base = (session?.user?.name || session?.user?.email || "").toString().trim()
+    if (base) return base.split(" ")[0]
+    const writers = ["Clarice", "Machado", "Cecília", "Drummond", "Pessoa", "Saramago", "Kafka", "Woolf", "Borges", "Camus"]
+    return writers[Math.floor(Math.random() * writers.length)]
+  }, [session?.user?.email, session?.user?.name])
   
   const [messages, setMessages] = React.useState<ChatMessage[]>([])
   const [inputVal, setInputVal] = React.useState("")
@@ -41,38 +53,52 @@ export default function TccWorkspacePage() {
   const [stats, setStats] = React.useState<Stats | null>(null)
   const [loading, setLoading] = React.useState(true)
   const [rightOpen, setRightOpen] = React.useState(true)
+  const [uploading, setUploading] = React.useState(false)
+  const [attachmentsMeta, setAttachmentsMeta] = React.useState<{ count: number; limit: number } | null>(null)
+  const [editedPercent, setEditedPercent] = React.useState(0)
+  const dirtyRef = React.useRef<Record<string, { content: string; lastSent: string }>>({})
   
   const chatEndRef = React.useRef<HTMLDivElement>(null)
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
 
-  const fetchStats = async () => {
+  const fetchStats = React.useCallback(async () => {
     try {
       const res = await fetch(`/api/tcc/${id}/stats`)
       const data = await res.json()
       if (!data.error) setStats(data)
     } catch (e) { console.error(e) }
-  }
+  }, [id])
 
-  const fetchMessages = async () => {
+  const fetchMessages = React.useCallback(async () => {
     try {
       const res = await fetch(`/api/tcc/${id}/messages`)
       const data = await res.json()
-      setMessages(data.map((m: any) => ({
+      setMessages(data.map((m: { id: string; role: "user" | "bot"; content: string; createdAt: string }) => ({
           id: m.id,
           role: m.role,
           content: m.content,
           timestamp: m.createdAt,
           hasEditor: m.role === "bot" && m.content.length > 500,
           chapterTitle: "Conteúdo Gerado",
-          editorContent: m.content
+          editorContent: m.content,
+          originalContent: m.content
       })))
     } catch (e) { console.error(e) }
-  }
+  }, [id])
+
+  const fetchAttachments = React.useCallback(async () => {
+    try {
+      const res = await fetch(`/api/tcc/${id}/attachments`, { cache: "no-store" })
+      const data = await res.json()
+      if (!data?.error) setAttachmentsMeta({ count: data.count ?? 0, limit: data.limit ?? 5 })
+    } catch (e) { console.error(e) }
+  }, [id])
 
   React.useEffect(() => {
     if (!id) return
     const init = async () => {
       setLoading(true)
-      await Promise.all([fetchMessages(), fetchStats()])
+      await Promise.all([fetchMessages(), fetchStats(), fetchAttachments()])
       setLoading(false)
     }
     init()
@@ -103,12 +129,13 @@ export default function TccWorkspacePage() {
       const data = await res.json()
       
       const botMsg: ChatMessage = {
-        id: Date.now().toString() + "bot",
+        id: data.id || (Date.now().toString() + "bot"),
         role: "bot",
         content: data.content,
         hasEditor: true,
         chapterTitle: "Novo Conteúdo",
         editorContent: data.content,
+        originalContent: data.content,
         timestamp: data.timestamp,
       }
       setMessages(prev => [...prev, botMsg])
@@ -120,7 +147,88 @@ export default function TccWorkspacePage() {
     }
   }
 
-  const userPlan = (session?.user as any)?.plan || 'FREE'
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (attachmentsMeta && attachmentsMeta.count >= attachmentsMeta.limit) {
+      alert(`Limite de anexos atingido (${attachmentsMeta.count}/${attachmentsMeta.limit}).`)
+      if (fileInputRef.current) fileInputRef.current.value = ""
+      return
+    }
+
+    setUploading(true)
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+        const res = await fetch(`/api/tcc/${id}/attachments`, {
+            method: 'POST',
+            body: formData
+        })
+        const data = await res.json()
+        if (data.error) {
+            alert(`Erro: ${data.error}`)
+        } else {
+            const uploadMsg: ChatMessage = {
+                id: Date.now().toString(),
+                role: "bot",
+                content: `📎 Arquivo "${file.name}" anexado com sucesso! Agora posso usá-lo como referência para seu TCC.`
+            }
+            setMessages(prev => [...prev, uploadMsg])
+            fetchAttachments()
+        }
+    } catch (err) {
+        console.error(err)
+    } finally {
+        setUploading(false)
+        if (fileInputRef.current) fileInputRef.current.value = ""
+    }
+  }
+
+  const computeEditedPercent = React.useCallback((original: string, edited: string) => {
+    const toWords = (s: string) =>
+      (s || "")
+        .toLowerCase()
+        .replace(/<[^>]*>/g, " ")
+        .match(/[a-zA-ZÀ-ÿ0-9_]+/g) ?? []
+
+    const a = new Set(toWords(original))
+    const b = new Set(toWords(edited))
+    if (a.size === 0 && b.size === 0) return 0
+    const union = new Set([...a, ...b]).size
+    let inter = 0
+    for (const w of a) if (b.has(w)) inter++
+    const similarity = union ? inter / union : 1
+    const pct = Math.round((1 - similarity) * 100)
+    return Math.max(0, Math.min(100, pct))
+  }, [])
+
+  React.useEffect(() => {
+    if (!id) return
+    const interval = setInterval(async () => {
+      const dirty = dirtyRef.current
+      const entries = Object.entries(dirty).filter(([, v]) => v.content !== v.lastSent)
+      if (!entries.length) return
+      for (const [messageId, { content }] of entries) {
+        try {
+          const res = await fetch(`/api/tcc/${id}/content`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messageId, content }),
+          })
+          const data = await res.json()
+          if (!data?.error && dirtyRef.current[messageId]) dirtyRef.current[messageId].lastSent = content
+        } catch (e) {
+          console.error(e)
+        }
+      }
+      fetchStats()
+    }, 10000)
+    return () => clearInterval(interval)
+  }, [id, fetchStats])
+
+  const userPlan = (session?.user as { plan?: string } | undefined)?.plan || 'FREE'
   const isOverLimit = userPlan === 'FREE' && (stats?.totalPages || 0) >= 1
   const isAuthLow = (100 - (stats?.plagiarism || 0)) < 50 // Se originalidade < 50%
 
@@ -164,11 +272,20 @@ export default function TccWorkspacePage() {
       <div className="flex-1 flex overflow-hidden relative">
         {/* MAIN AREA */}
         <main className="flex-1 flex flex-col relative min-w-0">
-            <div className="flex-1 overflow-y-auto custom-scroll p-4 pb-24 space-y-6 max-w-4xl mx-auto w-full">
+            <div className="flex-1 overflow-y-auto custom-scroll p-4 pb-32 space-y-6 max-w-4xl mx-auto w-full">
                 {messages.length === 0 && (
-                    <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-40">
-                        <MessageSquare size={48} className="text-brand-purple" />
-                        <p className="text-sm">Comece a conversar para gerar o conteúdo do seu TCC.</p>
+                    <div className="h-full flex flex-col items-center justify-center text-center space-y-5">
+                        <div className="text-xs px-3 py-1.5 rounded-full border border-black/10 dark:border-white/10 bg-[#F0EEE6] dark:bg-[#141413] text-black/70 dark:text-white/70">
+                            Plano {userPlan === "FREE" ? "Gratuito" : userPlan} ·{" "}
+                            <Link href="/pricing" className="underline hover:no-underline">Fazer upgrade</Link>
+                        </div>
+
+                        <div className="flex items-center justify-center gap-3">
+                            <BrandLogo variant="icon" tone="dark" size="large" />
+                            <h2 className="text-3xl md:text-4xl font-extrabold font-serif text-white/90">Olá, {displayName}</h2>
+                        </div>
+
+                        <p className="text-sm text-white/60 max-w-md">Como posso ajudar você hoje?</p>
                     </div>
                 )}
                 <AnimatePresence>
@@ -201,10 +318,24 @@ export default function TccWorkspacePage() {
                                 <div className="flex items-center gap-2 text-sm font-medium text-slate-200">
                                 <FileText size={16} className="text-brand-purple" /> {m.chapterTitle}
                                 </div>
+                                <div className="text-[10px] font-black tracking-widest text-slate-500">
+                                    AUTORIA: {editedPercent}%
+                                </div>
                             </div>
-                            <textarea
-                                className="w-full min-h-[300px] bg-transparent p-6 text-slate-300 resize-y focus:outline-none text-[15px] leading-relaxed custom-scroll"
-                                defaultValue={m.editorContent || ""}
+                            <EditableRichText
+                                value={m.editorContent || ""}
+                                onChange={(val) => {
+                                    const original = m.originalContent || m.content || ""
+                                    setMessages((prev) =>
+                                      prev.map((msg) =>
+                                        msg.id === m.id ? { ...msg, editorContent: val } : msg
+                                      )
+                                    )
+                                    const pct = computeEditedPercent(original, val)
+                                    setEditedPercent(pct)
+                                    const curr = dirtyRef.current[m.id]
+                                    dirtyRef.current[m.id] = { content: val, lastSent: curr?.lastSent ?? (m.editorContent || "") }
+                                }}
                             />
                         </div>
                     )}
@@ -232,8 +363,22 @@ export default function TccWorkspacePage() {
                             onChange={(e) => setInputVal(e.target.value)}
                             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend() } }}
                             placeholder="Descreva o que deseja escrever ou alterar..."
-                            className="w-full bg-[#1A1A2E]/90 backdrop-blur-xl border border-white/10 rounded-2xl pl-4 pr-12 py-4 text-[15px] focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple text-slate-200 resize-none overflow-hidden shadow-2xl"
+                            className="w-full bg-[#1A1A2E]/90 backdrop-blur-xl border border-white/10 rounded-2xl pl-12 pr-12 py-4 text-[15px] focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple text-slate-200 resize-none overflow-hidden shadow-2xl"
                             rows={1}
+                        />
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={uploading}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 p-2 text-slate-500 hover:text-brand-purple transition-colors"
+                        >
+                            {uploading ? <Loader2 size={20} className="animate-spin" /> : <Paperclip size={20} />}
+                        </button>
+                        <input 
+                            type="file" 
+                            ref={fileInputRef}
+                            onChange={handleUpload}
+                            accept=".pdf,.doc,.docx"
+                            className="hidden" 
                         />
                         <button
                             onClick={handleSend}
@@ -255,7 +400,7 @@ export default function TccWorkspacePage() {
                     transition={{ type: "spring", damping: 25 }}
                     className="w-[300px] border-l border-white/5 bg-[#0F0F1A] flex flex-col z-10"
                 >
-                    <TccSidebar stats={stats} userPlan={userPlan} />
+                    <TccSidebar stats={stats} userPlan={userPlan} tccId={String(id)} humanAuthorshipOverride={editedPercent} />
                 </motion.aside>
             )}
         </AnimatePresence>

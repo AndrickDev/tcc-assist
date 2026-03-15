@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
     // O plano do usuário deve vir do banco/sessão (definido no schema Prisma como Role/Plan)
     // Se não estiver na sessão, assumimos FREE por segurança.
-    const userPlan = (session.user as any).plan || 'FREE'
+    const userPlan = (session.user as { plan?: string }).plan || 'FREE'
 
     const result = await runTccWorkflow(
       session.user.id!, 
@@ -28,11 +28,12 @@ export async function POST(req: NextRequest) {
     )
 
     return NextResponse.json(result)
-  } catch (error: any) {
+  } catch (error) {
     console.error('Chat API Error:', error)
+    const message = error instanceof Error ? error.message : String(error)
     return NextResponse.json({
       error: 'Erro no processamento da IA',
-      details: error.message
+      details: message
     }, { status: 500 })
   }
 }

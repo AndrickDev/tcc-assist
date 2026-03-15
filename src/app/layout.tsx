@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Inter, Lora } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { I18nProvider } from "@/lib/i18n"
@@ -11,28 +11,31 @@ const inter = Inter({
   display: "swap",
 })
 
+const lora = Lora({
+  variable: "--font-lora",
+  subsets: ["latin"],
+  display: "swap",
+})
+
 export const metadata: Metadata = {
-  title: "TCC-ASSIST™ | Seu orientador IA para TCC",
-  description: "Faça seu TCC aprovado em 45min com IA, anti-plágio e normas ABNT aplicadas automaticamente.",
+  title: "Teseo | Seu orientador IA para TCC",
+  description: "Faça seu TCC com IA, revisão e normas ABNT aplicadas automaticamente.",
   manifest: "/manifest.json",
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning className="selection:bg-brand-purple selection:text-white">
-      <body className={`${inter.variable} font-sans antialiased min-h-[100dvh] custom-scroll relative overflow-x-hidden`}>
+      <body
+        className={`${inter.variable} ${lora.variable} font-sans antialiased min-h-[100dvh] custom-scroll relative overflow-x-hidden`}
+      >
         <SessionProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <I18nProvider>
-              {children}
-            </I18nProvider>
+            <I18nProvider>{children}</I18nProvider>
           </ThemeProvider>
         </SessionProvider>
       </body>
     </html>
   )
 }
+

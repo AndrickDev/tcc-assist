@@ -4,13 +4,14 @@ import * as React from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
   CheckCircle2, FileText, Search, AlertCircle, 
-  Download as DownloadIcon, Loader2
+  Download as DownloadIcon, Loader2, BarChart3, Fingerprint, Upload, Crown
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface Stats {
-    progress: { name: string; p: number }[]
+    progress: number
     plagiarism: number
+    humanAuthorship: number
     totalPages: number
     status: string
 }
@@ -18,100 +19,174 @@ interface Stats {
 interface TccSidebarProps {
     stats: Stats | null
     userPlan: string
+    tccId?: string
+    humanAuthorshipOverride?: number
 }
 
-export function TccSidebar({ stats, userPlan }: TccSidebarProps) {
+export function TccSidebar({ stats: initialStats, userPlan, tccId, humanAuthorshipOverride }: TccSidebarProps) {
+    const [stats, setStats] = React.useState<Stats | null>(initialStats)
+    const [progress, setProgress] = React.useState(initialStats?.progress || 0)
+    const [turnitin, setTurnitin] = React.useState(initialStats?.plagiarism || 0)
+    const [humanAuthorship, setHumanAuthorship] = React.useState(67)
+
+    const [attachmentsCount, setAttachmentsCount] = React.useState(0)
+    const [attachmentsLimit, setAttachmentsLimit] = React.useState(userPlan === "VIP" ? 50 : userPlan === "PRO" ? 20 : 5)
+    const [uploading, setUploading] = React.useState(false)
+    const fileRef = React.useRef<HTMLInputElement>(null)
+
+    React.useEffect(() => {
+        setStats(initialStats)
+        if (initialStats?.progress !== undefined) setProgress(initialStats.progress)
+        if (initialStats?.plagiarism !== undefined) setTurnitin(initialStats.plagiarism)
+        if (initialStats?.humanAuthorship !== undefined) setHumanAuthorship(initialStats.humanAuthorship)
+    }, [initialStats])
+
+    React.useEffect(() => {
+        if (typeof humanAuthorshipOverride === "number" && !Number.isNaN(humanAuthorshipOverride)) {
+            setHumanAuthorship(Math.max(0, Math.min(100, Math.round(humanAuthorshipOverride))))
+        }
+    }, [humanAuthorshipOverride])
+
+    const refreshAttachments = React.useCallback(async () => {
+        if (!tccId) return
+        try {
+            const res = await fetch(`/api/tcc/${tccId}/attachments`, { cache: "no-store" })
+            const data = await res.json()
+            if (!data?.error) {
+                setAttachmentsCount(data.count ?? 0)
+                setAttachmentsLimit(data.limit ?? attachmentsLimit)
+            }
+        } catch (e) {
+            console.error(e)
+        }
+    }, [tccId, attachmentsLimit])
+
+    React.useEffect(() => {
+        refreshAttachments()
+    }, [refreshAttachments])
+
+    const handleSidebarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!tccId) return
+        const file = e.target.files?.[0]
+        if (!file) return
+        setUploading(true)
+        const formData = new FormData()
+        formData.append("file", file)
+        try {
+            const res = await fetch(`/api/tcc/${tccId}/attachments`, { method: "POST", body: formData })
+            const data = await res.json()
+            if (data?.error) alert(`Erro: ${data.error}`)
+            await refreshAttachments()
+        } catch (err) {
+            console.error(err)
+        } finally {
+            setUploading(false)
+            if (fileRef.current) fileRef.current.value = ""
+        }
+    }
+
     const isOverLimit = userPlan === 'FREE' && (stats?.totalPages || 0) >= 1
-    const isAuthLow = userPlan === 'PRO' && (100 - (stats?.plagiarism || 0)) < 50
+    const isAuthLow = turnitin > 50 // Se plágio > 50%, autoria é baixa (exemplo invertido p/ lógica)
 
     return (
-        <div className="flex flex-col h-full space-y-8 p-6">
+        <div className="flex flex-col h-full space-y-6 p-6">
             {/* PROGRESS SECTION */}
-            <div className={cn(
-                "transition-all duration-1000 p-1 rounded-2xl",
-                isOverLimit ? "bg-red-500/20 animate-pulse" : ""
-            )}>
-                <div className="text-[10px] font-bold text-slate-500 mb-4 tracking-widest flex items-center justify-between">
-                    <span>PROGRESSO ABNT</span>
-                    {isOverLimit && <span className="text-red-500 flex items-center gap-1"><AlertCircle size={10} /> LIMITE ATINGIDO</span>}
-                </div>
-                <div className="space-y-4">
-                    {stats?.progress.map(cap => (
-                        <div key={cap.name} className="space-y-1.5">
-                            <div className="flex justify-between text-[11px] text-slate-400">
-                                <span>{cap.name}</span><span className="font-bold">{cap.p}%</span>
-                            </div>
-                            <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                                <motion.div 
-                                    initial={{ width: 0 }} 
-                                    animate={{ width: `${cap.p}%` }} 
-                                    className="h-full bg-gradient-to-r from-brand-purple to-brand-blue" 
-                                />
-                            </div>
-                        </div>
-                    )) || <div className="text-xs text-slate-600 animate-pulse">Carregando métricas...</div>}
-                </div>
-            </div>
-
-            {/* PLAGIARISM & AUTHORSHIP SECTION */}
             <div className="space-y-4">
                 <div className="text-[10px] font-bold text-slate-500 mb-2 tracking-widest flex items-center justify-between">
-                    <span>MÉTRICAS TURNITIN</span>
-                    <span className="text-xs text-slate-300">{stats?.totalPages || 0}/60 pgs</span>
+                    <span>MÉTRICAS DO TCC</span>
+                    {isOverLimit && <span className="text-red-500 flex items-center gap-1 font-bold animate-pulse"><AlertCircle size={10} /> LIMITE FREE</span>}
                 </div>
-                
-                <div className="grid grid-cols-2 gap-3">
-                    <div className={cn(
-                        "rounded-2xl p-4 text-center border transition-all",
-                        (stats?.plagiarism || 0) > 10 
-                            ? "bg-red-500/10 border-red-500/20 text-red-500" 
-                            : "bg-green-500/10 border-green-500/20 text-green-500"
-                    )}>
-                        <div className="text-2xl font-extrabold mb-1">{stats?.plagiarism || 0}%</div>
-                        <div className="text-[9px] opacity-60 font-bold uppercase tracking-widest">Plágio</div>
-                    </div>
 
-                    <div className="rounded-2xl p-4 text-center border border-white/5 bg-white/5 text-brand-blue">
-                        <div className="text-2xl font-extrabold mb-1">{(stats as any)?.humanAuthorship || 67}%</div>
-                        <div className="text-[9px] opacity-60 font-bold uppercase tracking-widest">Autoria</div>
-                    </div>
-                </div>
-            </div>
-
-            {/* UPGRADE MESSAGES */}
-            <div className="space-y-3">
-                {userPlan === 'FREE' && (
-                    <div className="bg-brand-blue/10 border border-brand-blue/20 rounded-xl p-3 text-center">
-                        <p className="text-[10px] text-brand-blue font-bold leading-tight">
-                            1p/dia usada. PRO R$200 = ilimitado
-                        </p>
-                    </div>
-                )}
-                {userPlan === 'PRO' && (
-                    <div className="bg-brand-purple/10 border border-brand-purple/20 rounded-xl p-3 text-center">
-                        <p className="text-[10px] text-brand-purple font-bold leading-tight">
-                            1 TCC ativo. VIP R$1000 = 2 TCCs
-                        </p>
-                    </div>
-                )}
-
-                {userPlan === 'PRO' && isAuthLow && (
-                    <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3">
-                        <div className="text-[10px] font-bold text-red-500 flex items-center gap-2 mb-1">
-                            <AlertCircle size={12} /> BLOQUEIO DE PDF
+                <div className="space-y-5">
+                    {/* Progress */}
+                    <div className="space-y-2">
+                        <div className="flex justify-between items-end">
+                            <div className="flex items-center gap-2 text-slate-400">
+                                <BarChart3 size={14} className="text-brand-purple" />
+                                <span className="text-[11px] font-medium">Progresso Total</span>
+                            </div>
+                            <span className="text-sm font-bold text-white">{progress}%</span>
                         </div>
-                        <p className="text-[9px] text-red-400">
-                            Autoria abaixo de 50%. Edite o texto para liberar o download.
-                        </p>
+                        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                            <motion.div 
+                                initial={{ width: 0 }} 
+                                animate={{ width: `${progress}%` }} 
+                                className="h-full bg-brand-purple" 
+                            />
+                        </div>
                     </div>
-                )}
+
+                    {/* Turnitin */}
+                    <div className="flex items-center justify-between p-3 bg-white/[0.03] border border-white/5 rounded-xl">
+                        <div className="flex items-center gap-2">
+                            <span className="text-lg">🎯</span>
+                            <div>
+                                <div className="text-[10px] text-slate-500 font-bold leading-none">TURNITIN</div>
+                                <div className="text-[11px] text-slate-300 font-medium mt-1">Real-time API</div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className={cn(
+                                "w-2 h-2 rounded-full animate-pulse",
+                                turnitin <= 10 ? "bg-green-500" : turnitin <= 25 ? "bg-amber-500" : "bg-red-500"
+                            )} />
+                            <span className={cn(
+                                "text-sm font-bold",
+                                turnitin <= 10 ? "text-green-500" : turnitin <= 25 ? "text-amber-500" : "text-red-500"
+                            )}>{turnitin}%</span>
+                        </div>
+                    </div>
+
+                    {/* Authorship */}
+                    <div className="flex items-center justify-between p-3 bg-white/[0.03] border border-white/5 rounded-xl">
+                        <div className="flex items-center gap-2">
+                            <Fingerprint size={18} className="text-brand-blue" />
+                            <div>
+                                <div className="text-[10px] text-slate-500 font-bold leading-none">AUTORIA</div>
+                                <div className="text-[11px] text-slate-300 font-medium mt-1">Human Check</div>
+                            </div>
+                        </div>
+                        <span className="text-sm font-bold text-brand-blue">{humanAuthorship}%</span>
+                    </div>
+                </div>
             </div>
 
-            {/* ACTION */}
-            <div className="mt-auto">
+            {/* ATTACHMENTS ACTION */}
+            <div className="space-y-3">
                 <button 
-                    disabled={(userPlan === 'PRO' && isAuthLow) || isOverLimit}
-                    className="w-full py-3 bg-brand-purple text-white rounded-xl font-bold text-sm shadow-brand hover:bg-brand-purple/90 disabled:opacity-30 disabled:grayscale transition-all flex items-center justify-center gap-2"
+                    onClick={() => fileRef.current?.click()}
+                    disabled={!tccId || uploading || attachmentsCount >= attachmentsLimit}
+                    className="w-full flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all group"
+                >
+                    <div className="flex items-center gap-2 text-slate-300">
+                        <Upload size={16} className="group-hover:text-brand-purple transition-colors" />
+                        <span className="text-xs font-bold">Anexar PDF/DOC</span>
+                    </div>
+                    <span className="text-[10px] text-slate-500">
+                        {uploading ? "Enviando..." : `${attachmentsCount}/${attachmentsLimit} ${userPlan}`}
+                    </span>
+                </button>
+                <input
+                    ref={fileRef}
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.doc,.docx"
+                    onChange={handleSidebarUpload}
+                />
+            </div>
+
+            {/* UPGRADE BUTTON */}
+            {userPlan === 'FREE' && (
+                <button className="w-full py-4 bg-gradient-to-r from-brand-purple to-brand-blue text-white rounded-xl font-extrabold text-xs shadow-brand hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                    <Crown size={14} /> UPGRADE PRO R$200
+                </button>
+            )}
+
+            {/* EXPORT ACTION */}
+            <div className="mt-auto pt-4 border-t border-white/5">
+                <button 
+                    disabled={isAuthLow || isOverLimit}
+                    className="w-full py-3 border border-white/10 text-slate-300 rounded-xl font-bold text-sm hover:bg-white/5 disabled:opacity-30 transition-all flex items-center justify-center gap-2"
                 >
                     <DownloadIcon size={16} /> Exportar Completo
                 </button>

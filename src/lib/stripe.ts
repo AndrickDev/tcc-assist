@@ -1,8 +1,6 @@
 import Stripe from 'stripe';
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-01-27-acacia' as any, // Using a stable version
-});
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {});
 
 export async function createCheckoutSession({
   userId,
@@ -32,8 +30,9 @@ export async function createCheckoutSession({
     });
 
     return { url: session.url };
-  } catch (err: any) {
-    console.error('❌ Stripe SDK Error:', err.message);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Stripe SDK Error:", message);
     throw err;
   }
 }
