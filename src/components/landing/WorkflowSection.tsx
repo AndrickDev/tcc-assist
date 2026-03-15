@@ -97,7 +97,7 @@ export function WorkflowSection() {
   const active = React.useMemo(() => ITEMS.find((i) => i.id === activeId) ?? ITEMS[0], [activeId])
 
   return (
-    <section className="py-16 md:py-20 border-t border-[color:var(--color-brand-border)]">
+    <section className="py-16 md:py-20 bg-[#141413] text-white border-t border-white/10">
       <div className="max-w-6xl mx-auto px-4">
         <div className="space-y-2">
           <div className="text-xs font-semibold tracking-widest text-[color:var(--color-brand-muted)]">COMO FUNCIONA</div>

@@ -6,7 +6,7 @@ import { AboutFeatureList } from "@/components/landing/AboutFeatureList"
 export function AboutSection() {
   return (
     <section id="conheca" className="pt-28 pb-16 md:pt-32 md:pb-20 bg-[#141413] text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      <div className="max-w-6xl mx-auto px-5 sm:px-6">
         <div className="text-center space-y-4">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold font-serif tracking-tight">
             Conheça o Teseo
@@ -17,13 +17,15 @@ export function AboutSection() {
           </p>
         </div>
 
-        <div className="mt-12 grid grid-cols-1 lg:grid-cols-[1.6fr_0.4fr] gap-10 lg:gap-12 items-start">
-          <div className="w-full">
-            <div className="aspect-video">
-              <AboutVideo className="h-full w-full" />
+        <div className="mt-12 grid grid-cols-1 lg:grid-cols-[0.95fr_1.05fr] gap-10 lg:gap-14 items-start">
+          <div className="w-full flex justify-center lg:justify-start">
+            <div className="w-full max-w-[640px]">
+              <div className="aspect-video">
+                <AboutVideo className="h-full w-full" />
+              </div>
             </div>
           </div>
-          <div className="w-full">
+          <div className="w-full max-w-[520px] mx-auto lg:mx-0">
             <AboutFeatureList />
           </div>
         </div>
