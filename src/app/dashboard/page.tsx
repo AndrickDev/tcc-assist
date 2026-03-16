@@ -134,7 +134,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-[100dvh] bg-[#141413] text-white">
       <header className="h-[76px] border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-5 sm:px-6 h-full flex items-center justify-between">
+        <div className="w-full px-5 sm:px-6 h-full flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 grid place-items-center">
               <FileText size={18} className="text-white/70" />
@@ -168,7 +168,7 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-5 sm:px-6 py-10">
+      <main className="w-full px-5 sm:px-6 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8 items-start">
           <aside className="rounded-2xl bg-[#0F0F0E] border border-white/10 overflow-hidden">
             <div className="px-4 py-3 border-b border-white/10">
@@ -214,16 +214,16 @@ export default function DashboardPage() {
             </div>
           </aside>
 
-          <section className="min-h-[520px] rounded-2xl bg-[#0F0F0E] border border-white/10 flex items-center justify-center px-6">
-            <div className="max-w-2xl w-full text-center space-y-4">
-              <div className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight font-serif">
+          <section className="min-h-[520px] flex items-center justify-center px-6">
+            <div className="max-w-3xl w-full text-center space-y-5">
+              <div className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight font-serif mx-auto">
                 {motto.title}
               </div>
-              <div className="text-base sm:text-lg text-white/60 leading-relaxed">
+              <div className="text-base sm:text-lg text-white/60 leading-relaxed mx-auto">
                 {motto.byline}
               </div>
 
-              <div className="pt-6 text-sm text-white/60">
+              <div className="pt-8 text-sm text-white/55">
                 Selecione um TCC no histórico à esquerda para abrir o workspace.
               </div>
             </div>
