@@ -5,12 +5,12 @@ import GoogleProvider from "next-auth/providers/google"
 // This config is edge-compatible (NO Prisma, no Node.js-only modules).
 // Used by middleware to check session without DB access.
 export const authConfig: NextAuthConfig = {
-  secret: process.env.AUTH_SECRET,
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
 
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientId: process.env.GOOGLE_CLIENT_ID ?? process.env.AUTH_GOOGLE_ID ?? process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? process.env.AUTH_GOOGLE_SECRET,
     }),
     // Credentials provider — authorize callback lives only in auth.ts (Node.js)
     CredentialsProvider({

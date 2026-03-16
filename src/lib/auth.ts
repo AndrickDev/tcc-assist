@@ -6,15 +6,27 @@ import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { authConfig } from "@/lib/auth.config"
 
+function requireEnv(name: string) {
+  const value = process.env[name]
+  if (!value) {
+    // Safe diagnostic for server logs (does not print secrets).
+    console.error(`[auth] Missing environment variable: ${name}`)
+  }
+  return value
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
-  secret: process.env.AUTH_SECRET,
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
 
   // Override providers with the full Node.js version (with authorize)
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientId:
+        requireEnv("GOOGLE_CLIENT_ID") ??
+        requireEnv("AUTH_GOOGLE_ID") ??
+        requireEnv("NEXT_PUBLIC_GOOGLE_CLIENT_ID"),
+      clientSecret: requireEnv("GOOGLE_CLIENT_SECRET") ?? requireEnv("AUTH_GOOGLE_SECRET"),
     }),
     CredentialsProvider({
       name: "Credentials",
