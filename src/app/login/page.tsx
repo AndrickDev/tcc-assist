@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { signIn } from "next-auth/react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowRight, ArrowLeft, Mail, Key } from "lucide-react"
 
-export default function LoginPage() {
+function LoginInner() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -190,7 +190,10 @@ export default function LoginPage() {
 
         <div className="text-center mt-6 text-sm text-white/60">
           Não tem uma conta?{" "}
-          <Link href="/register" className="text-white hover:text-white/80 font-medium">
+          <Link
+            href="/register"
+            className="font-medium text-white/80 hover:text-white visited:text-white/80"
+          >
             Cadastre-se
           </Link>
         </div>
@@ -198,5 +201,14 @@ export default function LoginPage() {
 
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-brand-purple/10 via-transparent to-transparent"></div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  // Next.js requires `useSearchParams()` usage to be inside a Suspense boundary.
+  return (
+    <Suspense>
+      <LoginInner />
+    </Suspense>
   )
 }
