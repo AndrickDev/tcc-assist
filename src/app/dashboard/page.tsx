@@ -168,8 +168,8 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="w-full px-5 sm:px-6 py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8 items-start">
+      <main className="w-full px-5 sm:px-6 py-10 min-h-[calc(100dvh-76px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8 items-start min-h-[calc(100dvh-76px-80px)]">
           <aside className="rounded-2xl bg-[#0F0F0E] border border-white/10 overflow-hidden">
             <div className="px-4 py-3 border-b border-white/10">
               <div className="text-xs font-semibold tracking-widest text-white/60">HISTÓRICO DO TCC</div>
@@ -214,8 +214,8 @@ export default function DashboardPage() {
             </div>
           </aside>
 
-          <section className="min-h-[520px] flex items-center justify-center px-6">
-            <div className="max-w-3xl w-full text-center space-y-5">
+          <section className="min-h-[520px] lg:min-h-[calc(100dvh-76px-80px)] flex items-center justify-center px-6">
+            <div className="max-w-3xl w-full text-center space-y-5 mx-auto">
               <div className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight font-serif mx-auto">
                 {motto.title}
               </div>
@@ -224,7 +224,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="pt-8 text-sm text-white/55">
-                Selecione um TCC no histórico à esquerda para abrir o workspace.
+                Selecione um TCC no histórico à esquerda para abrir o workspace ou crie um novo.
               </div>
             </div>
           </section>
