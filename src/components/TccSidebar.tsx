@@ -1,10 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { 
-  CheckCircle2, FileText, Search, AlertCircle, 
-  Download as DownloadIcon, Loader2, BarChart3, Fingerprint, Upload, Crown
+import { motion } from "framer-motion"
+import {
+  AlertCircle, Download as DownloadIcon, BarChart3, Fingerprint, Upload, Crown
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -21,9 +20,11 @@ interface TccSidebarProps {
     userPlan: string
     tccId?: string
     humanAuthorshipOverride?: number
+    onUpgrade?: () => void
+    onExport?: () => void
 }
 
-export function TccSidebar({ stats: initialStats, userPlan, tccId, humanAuthorshipOverride }: TccSidebarProps) {
+export function TccSidebar({ stats: initialStats, userPlan, tccId, humanAuthorshipOverride, onUpgrade, onExport }: TccSidebarProps) {
     const [stats, setStats] = React.useState<Stats | null>(initialStats)
     const [progress, setProgress] = React.useState(initialStats?.progress || 0)
     const [turnitin, setTurnitin] = React.useState(initialStats?.plagiarism || 0)
@@ -86,7 +87,8 @@ export function TccSidebar({ stats: initialStats, userPlan, tccId, humanAuthorsh
     }
 
     const isOverLimit = userPlan === 'FREE' && (stats?.totalPages || 0) >= 1
-    const isAuthLow = turnitin > 50 // Se plágio > 50%, autoria é baixa (exemplo invertido p/ lógica)
+    // Only block export for PRO/VIP with very low authorship — FREE always opens the watermark modal
+    const isAuthLow = userPlan !== 'FREE' && turnitin > 50
 
     return (
         <div className="flex flex-col h-full space-y-6 p-6">
@@ -102,7 +104,7 @@ export function TccSidebar({ stats: initialStats, userPlan, tccId, humanAuthorsh
                     <div className="space-y-2">
                         <div className="flex justify-between items-end">
                             <div className="flex items-center gap-2 text-slate-400">
-                                <BarChart3 size={14} className="text-brand-purple" />
+                                <BarChart3 size={14} className="text-white/40" />
                                 <span className="text-[11px] font-medium">Progresso Total</span>
                             </div>
                             <span className="text-sm font-bold text-white">{progress}%</span>
@@ -111,7 +113,7 @@ export function TccSidebar({ stats: initialStats, userPlan, tccId, humanAuthorsh
                             <motion.div 
                                 initial={{ width: 0 }} 
                                 animate={{ width: `${progress}%` }} 
-                                className="h-full bg-brand-purple" 
+                                className="h-full bg-white/30"
                             />
                         </div>
                     </div>
@@ -140,13 +142,13 @@ export function TccSidebar({ stats: initialStats, userPlan, tccId, humanAuthorsh
                     {/* Authorship */}
                     <div className="flex items-center justify-between p-3 bg-white/[0.03] border border-white/5 rounded-xl">
                         <div className="flex items-center gap-2">
-                            <Fingerprint size={18} className="text-brand-blue" />
+                            <Fingerprint size={18} className="text-white/40" />
                             <div>
                                 <div className="text-[10px] text-slate-500 font-bold leading-none">AUTORIA</div>
                                 <div className="text-[11px] text-slate-300 font-medium mt-1">Human Check</div>
                             </div>
                         </div>
-                        <span className="text-sm font-bold text-brand-blue">{humanAuthorship}%</span>
+                        <span className="text-sm font-bold text-white/70">{humanAuthorship}%</span>
                     </div>
                 </div>
             </div>
@@ -177,15 +179,18 @@ export function TccSidebar({ stats: initialStats, userPlan, tccId, humanAuthorsh
 
             {/* UPGRADE BUTTON */}
             {userPlan === 'FREE' && (
-                <button className="w-full py-4 bg-gradient-to-r from-brand-purple to-brand-blue text-white rounded-xl font-extrabold text-xs shadow-brand hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-                    <Crown size={14} /> UPGRADE PRO R$200
+                <button
+                    onClick={onUpgrade}
+                    className="w-full py-3 bg-white/[0.08] border border-white/10 text-white/80 rounded-xl font-bold text-xs hover:bg-white/[0.12] transition-colors flex items-center justify-center gap-2">
+                    <Crown size={14} /> Upgrade para PRO
                 </button>
             )}
 
             {/* EXPORT ACTION */}
             <div className="mt-auto pt-4 border-t border-white/5">
-                <button 
-                    disabled={isAuthLow || isOverLimit}
+                <button
+                    onClick={onExport}
+                    disabled={isAuthLow}
                     className="w-full py-3 border border-white/10 text-slate-300 rounded-xl font-bold text-sm hover:bg-white/5 disabled:opacity-30 transition-all flex items-center justify-center gap-2"
                 >
                     <DownloadIcon size={16} /> Exportar Completo

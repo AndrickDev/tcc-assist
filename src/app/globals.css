@@ -32,8 +32,8 @@
   --font-serif: var(--font-lora);
 
   /* Brand colors — fixed, same across themes */
-  --color-brand-purple: #D97757;
-  --color-brand-blue: #D97757;
+  --color-brand-purple: #8a8680;
+  --color-brand-blue: #8a8680;
 
   /* Dynamic brand tokens using CSS vars set per theme */
   --color-brand-bg: var(--brand-bg);
@@ -158,14 +158,10 @@
   }
 
   .custom-scroll {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(217, 119, 87, 0.35) transparent;
+    scrollbar-width: none;
   }
-  .custom-scroll::-webkit-scrollbar { width: 6px; }
-  .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-  .custom-scroll::-webkit-scrollbar-thumb {
-    background-color: rgba(217, 119, 87, 0.35);
-    border-radius: 3px;
+  .custom-scroll::-webkit-scrollbar {
+    display: none;
   }
 
 }

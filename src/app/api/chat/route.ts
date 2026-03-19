@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { runTccWorkflow } from '@/lib/agents/aiox-integration'
+import { resolvePlan } from '@/lib/plan'
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,9 +17,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Dados insuficientes (tccId e message são obrigatórios)' }, { status: 400 })
     }
 
-    // O plano do usuário deve vir do banco/sessão (definido no schema Prisma como Role/Plan)
-    // Se não estiver na sessão, assumimos FREE por segurança.
-    const userPlan = (session.user as { plan?: string }).plan || 'FREE'
+    const userPlan = resolvePlan((session.user as { plan?: string }).plan)
 
     const result = await runTccWorkflow(
       session.user.id!, 

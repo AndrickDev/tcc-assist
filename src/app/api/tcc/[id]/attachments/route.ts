@@ -3,15 +3,9 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import path from "path"
 import { mkdir, writeFile } from "fs/promises"
+import { resolvePlan, getAttachmentLimit } from "@/lib/plan"
 
 export const dynamic = "force-dynamic"
-
-function getAttachmentLimit(plan: string) {
-  // Requirement: FREE = 5 attachments
-  if (plan === "VIP") return 50
-  if (plan === "PRO") return 20
-  return 5
-}
 
 function safeFileName(originalName: string) {
   const base = path.basename(originalName).replace(/[^\w.\-()+\s]/g, "_")
@@ -59,7 +53,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     }),
   ])
 
-  const plan = user?.plan ?? "FREE"
+  const plan = resolvePlan(user?.plan)
   const limit = getAttachmentLimit(plan)
 
   return NextResponse.json({ plan, limit, count: attachments.length, attachments })
@@ -93,7 +87,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       where: { id: userId },
       select: { plan: true },
     })
-    const plan = user?.plan ?? "FREE"
+    const plan = resolvePlan(user?.plan)
     const limit = getAttachmentLimit(plan)
     const count = await prisma.attachment.count({ where: { tccId } })
     if (count >= limit) {
