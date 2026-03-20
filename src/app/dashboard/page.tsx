@@ -425,7 +425,7 @@ function NewTccModal({
                         </div>
                         <div className="bg-[color:var(--color-brand-bg)] border border-[color:var(--color-brand-border)] rounded-xl p-5 space-y-3">
                           <div className="text-[10px] font-bold text-[color:var(--color-brand-muted)] uppercase tracking-widest">Resumo do projeto</div>
-                          <p className="font-semibold text-[color:var(--color-brand-text)] leading-snug">"{form.title}"</p>
+                          <p className="font-semibold text-[color:var(--color-brand-text)] leading-snug">&ldquo;{form.title}&rdquo;</p>
                           <div className="space-y-1 text-sm text-[color:var(--color-brand-muted)]">
                             <div>{form.course} · {form.institution}</div>
                             <div>{form.workType} · Norma {form.norma}</div>

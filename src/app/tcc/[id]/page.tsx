@@ -584,7 +584,7 @@ ${meta ? `<div class="meta">${meta}</div>` : ""}
                     <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">
                       Contexto do projeto
                     </div>
-                    <p className="text-sm font-medium text-white/80 leading-snug">"{tccMeta.title}"</p>
+                    <p className="text-sm font-medium text-white/80 leading-snug">&ldquo;{tccMeta.title}&rdquo;</p>
                     <p className="text-xs text-white/40">{tccMeta.course} · {tccMeta.institution}</p>
                     {tccMeta.objective && (
                       <p className="text-xs text-white/40 pt-1 line-clamp-2">{tccMeta.objective}</p>
