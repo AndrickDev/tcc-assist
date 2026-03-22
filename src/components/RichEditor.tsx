@@ -3,15 +3,13 @@
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
-import Bold from '@tiptap/extension-bold'
 import * as React from 'react'
 import { 
   Bold as BoldIcon, 
   Maximize2, 
   Minimize2, 
   FileDown, 
-  CheckCircle2,
-  X
+  CheckCircle2
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import html2canvas from 'html2canvas'
@@ -30,7 +28,6 @@ export function RichEditor({ content, title, isFree }: RichEditorProps) {
     const editor = useEditor({
         extensions: [
             StarterKit,
-            Bold,
             Placeholder.configure({
                 placeholder: 'Comece a escrever seu TCC...',
             }),

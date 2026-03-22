@@ -77,6 +77,7 @@ model Tcc {
   norma       String?   // ABNT | APA | Vancouver | Chicago | Outra
   deadline    DateTime?
   objective   String?   @db.Text
+  content     String?   @db.Text
   status      TccStatus @default(IN_PROGRESS)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

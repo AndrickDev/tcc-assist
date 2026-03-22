@@ -11,13 +11,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    const { tccId, message } = await req.json()
+    const { tccId, message, devPlanOverride } = await req.json()
 
     if (!tccId || !message) {
       return NextResponse.json({ error: 'Dados insuficientes (tccId e message são obrigatórios)' }, { status: 400 })
     }
 
-    const userPlan = resolvePlan((session.user as { plan?: string }).plan)
+    let userPlan = resolvePlan((session.user as { plan?: string }).plan)
+    if (process.env.NODE_ENV === 'development' && devPlanOverride) {
+      userPlan = devPlanOverride
+    }
 
     const result = await runTccWorkflow(
       session.user.id!, 

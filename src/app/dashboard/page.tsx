@@ -10,11 +10,13 @@ import { DevPlanSwitcher } from "@/components/DevPlanSwitcher"
 import { AnimatePresence, motion } from "framer-motion"
 import {
   ArrowRight, LogOut, Plus, X, ArrowLeft, Sparkles, Loader2,
-  Book, School, Calendar, Target, FileCheck, ChevronRight, Trash2, Crown,
+  Book, School, Calendar, Target, FileCheck, Trash2, Crown,
+  BookOpen, Layers, GraduationCap, Clock,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { trackEvent } from "@/lib/analytics"
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type Tcc = {
   id: string
@@ -23,6 +25,7 @@ type Tcc = {
   institution: string
   workType?: string | null
   norma?: string | null
+  deadline?: string | null
   status: string
   createdAt: string
   updatedAt: string
@@ -38,78 +41,14 @@ type FormData = {
   objective: string
 }
 
-// ─── Mottos ──────────────────────────────────────────────────────────────────
-
-const TITLES = [
-  "Reflexões ao entardecer",
-  "Coruja da madrugada",
-  "Sol da meia-noite",
-  "Entre linhas e silêncio",
-  "Caderno aberto",
-  "Ritmo de trabalho",
-  "Manhã de escrita",
-]
-
-const BYLINES = [
-  "Uma boa página começa com uma boa pergunta.",
-  "Quando a casa dorme, as ideias acordam.",
-  "Disciplina é gentileza com o seu futuro.",
-  "Escrever é organizar o caos com calma.",
-  "O rascunho é o caminho mais curto para o texto final.",
-  "Pouco por dia vence muito de vez em quando.",
-  "Clareza primeiro; o resto acompanha.",
-]
-
-const WRITERS = [
-  "Clarice Lispector",
-  "Machado de Assis",
-  "Fernando Pessoa",
-  "Virginia Woolf",
-  "Jorge Luis Borges",
-  "Franz Kafka",
-  "Cecília Meireles",
-  "Carlos Drummond de Andrade",
-]
-
-function safeParseInt(value: string) {
-  const n = Number.parseInt(value, 10)
-  return Number.isFinite(n) ? n : null
-}
-
-function randIndex(maxExclusive: number) {
-  if (maxExclusive <= 1) return 0
-  if (typeof crypto !== "undefined" && "getRandomValues" in crypto) {
-    const buf = new Uint32Array(1)
-    crypto.getRandomValues(buf)
-    return buf[0] % maxExclusive
-  }
-  return Math.floor(Math.random() * maxExclusive)
-}
-
-function pickMotto() {
-  const lastKey = "teseo.dashboard.motto.last"
-  const last = typeof window !== "undefined" ? window.sessionStorage.getItem(lastKey) : null
-  const lastParsed = last ? safeParseInt(last) : null
-
-  let titleIndex = randIndex(TITLES.length)
-  if (lastParsed !== null && TITLES.length > 1 && titleIndex === lastParsed) {
-    titleIndex = (titleIndex + 1) % TITLES.length
-  }
-  if (typeof window !== "undefined") window.sessionStorage.setItem(lastKey, String(titleIndex))
-
-  const bylineIndex = randIndex(BYLINES.length)
-  const writer = WRITERS[randIndex(WRITERS.length)]
-  return { title: TITLES[titleIndex], byline: `${BYLINES[bylineIndex]} — ${writer}` }
-}
-
-// ─── Plan badge ───────────────────────────────────────────────────────────────
+// ─── Plan Badge ───────────────────────────────────────────────────────────────
 
 function PlanBadge({ plan }: { plan: string }) {
   const cls =
     plan === "VIP"
       ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20"
       : plan === "PRO"
-      ? "bg-[#fdf0eb] text-[#c4663a] border-[#c4663a]/20 dark:bg-[#c4663a]/10 dark:text-[#e88b6c] dark:border-[#c4663a]/20"
+      ? "bg-[color:var(--color-brand-accent)]/10 text-[color:var(--color-brand-accent)] border-[color:var(--color-brand-accent)]/20"
       : "bg-[color:var(--color-brand-hover)] text-[color:var(--color-brand-muted)] border-[color:var(--color-brand-border)]"
   return (
     <span className={cn("px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide border", cls)}>
@@ -118,11 +57,202 @@ function PlanBadge({ plan }: { plan: string }) {
   )
 }
 
-// ─── NewTccModal ─────────────────────────────────────────────────────────────
+// ─── Status Dot ───────────────────────────────────────────────────────────────
+
+function StatusDot({ status }: { status: string }) {
+  const color =
+    status === "COMPLETED" ? "bg-slate-400" :
+    status === "ARCHIVED"  ? "bg-slate-300" :
+    "bg-emerald-400"
+  return <span className={cn("w-1.5 h-1.5 rounded-full shrink-0 inline-block", color)} />
+}
+
+// ─── TCC Project Card ────────────────────────────────────────────────────────
+
+function TccCard({
+  tcc,
+  confirmDeleteId,
+  deletingId,
+  onConfirmDelete,
+  onCancelDelete,
+  onDelete,
+}: {
+  tcc: Tcc
+  confirmDeleteId: string | null
+  deletingId: string | null
+  onConfirmDelete: (id: string) => void
+  onCancelDelete: () => void
+  onDelete: (id: string) => void
+}) {
+  const isConfirming = confirmDeleteId === tcc.id
+  const isDeleting   = deletingId === tcc.id
+
+  const updatedLabel = React.useMemo(() => {
+    try {
+      return new Date(tcc.updatedAt).toLocaleDateString("pt-BR", {
+        day: "2-digit", month: "short", year: "numeric",
+      })
+    } catch { return "" }
+  }, [tcc.updatedAt])
+
+  const deadlineLabel = React.useMemo(() => {
+    if (!tcc.deadline) return null
+    try {
+      return new Date(tcc.deadline).toLocaleDateString("pt-BR", {
+        day: "2-digit", month: "short", year: "numeric",
+      })
+    } catch { return null }
+  }, [tcc.deadline])
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.97 }}
+      transition={{ duration: 0.18 }}
+      className="group bg-[color:var(--color-brand-surface)] border border-[color:var(--color-brand-border)] rounded-2xl p-5 flex flex-col gap-4 hover:border-[color:var(--color-brand-text)]/20 hover:shadow-sm transition-all"
+    >
+      {/* Header row */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
+            <StatusDot status={tcc.status} />
+            {tcc.workType && (
+              <span className="px-2 py-0.5 rounded-md bg-[color:var(--color-brand-accent)]/10 text-[10px] font-semibold text-[color:var(--color-brand-accent)] tracking-wide">
+                {tcc.workType}
+              </span>
+            )}
+            {tcc.norma && (
+              <span className="text-[10px] text-[color:var(--color-brand-muted)]">{tcc.norma}</span>
+            )}
+          </div>
+          <h3 className="text-[15px] font-semibold text-[color:var(--color-brand-text)] leading-snug line-clamp-2">
+            {tcc.title}
+          </h3>
+        </div>
+        <button
+          onClick={() => onConfirmDelete(tcc.id)}
+          className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 text-[color:var(--color-brand-muted)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all shrink-0"
+          title="Excluir projeto"
+        >
+          <Trash2 size={13} />
+        </button>
+      </div>
+
+      {/* Metadata */}
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-1.5 text-xs text-[color:var(--color-brand-muted)]">
+          <GraduationCap size={11} className="shrink-0" />
+          <span className="truncate">{tcc.course} · {tcc.institution}</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-[color:var(--color-brand-muted)]">
+          {deadlineLabel ? (
+            <>
+              <Calendar size={11} className="shrink-0" />
+              <span>Prazo: {deadlineLabel}</span>
+            </>
+          ) : (
+            <>
+              <Clock size={11} className="shrink-0" />
+              <span>Atualizado {updatedLabel}</span>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Footer */}
+      {isConfirming ? (
+        <div className="flex items-center gap-2 pt-3 border-t border-[color:var(--color-brand-border)]">
+          <span className="text-xs text-[color:var(--color-brand-muted)] flex-1">Excluir este projeto?</span>
+          <button
+            onClick={() => onDelete(tcc.id)}
+            disabled={isDeleting}
+            className="text-xs font-semibold text-red-500 hover:text-red-600 transition-colors disabled:opacity-50"
+          >
+            {isDeleting ? <Loader2 size={11} className="animate-spin" /> : "Confirmar"}
+          </button>
+          <button
+            onClick={onCancelDelete}
+            className="text-[color:var(--color-brand-muted)] hover:text-[color:var(--color-brand-text)] transition-colors"
+          >
+            <X size={13} />
+          </button>
+        </div>
+      ) : (
+        <Link
+          href={`/tcc/${tcc.id}`}
+          className="mt-auto flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-[color:var(--color-brand-text)] hover:opacity-80 text-[color:var(--color-brand-bg)] text-sm font-semibold rounded-xl transition-opacity"
+        >
+          Abrir workspace <ArrowRight size={14} />
+        </Link>
+      )}
+    </motion.div>
+  )
+}
+
+// ─── Empty State ──────────────────────────────────────────────────────────────
+
+function EmptyState({ onNew }: { onNew: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="flex flex-col items-center justify-center text-center px-4 py-20 max-w-sm mx-auto w-full"
+    >
+      <div className="w-16 h-16 rounded-2xl bg-[color:var(--color-brand-accent)]/10 flex items-center justify-center mb-6">
+        <BookOpen className="w-7 h-7 text-[color:var(--color-brand-accent)]" />
+      </div>
+
+      <h2 className="text-2xl sm:text-3xl font-bold font-serif text-[color:var(--color-brand-text)] leading-snug mb-3">
+        Seu próximo capítulo começa aqui
+      </h2>
+      <p className="text-sm text-[color:var(--color-brand-muted)] leading-relaxed mb-8">
+        O Teseo te acompanha do tema à entrega — estruturando, revisando e orientando cada etapa do seu trabalho acadêmico.
+      </p>
+
+      <div className="grid grid-cols-3 gap-2.5 w-full mb-8">
+        {([
+          { Icon: Layers,      label: "Estrutura guiada"  },
+          { Icon: FileCheck,   label: "Revisão e ABNT"    },
+          { Icon: Sparkles,    label: "IA especializada"  },
+        ] as const).map(({ Icon, label }) => (
+          <div
+            key={label}
+            className="bg-[color:var(--color-brand-surface)] border border-[color:var(--color-brand-border)] rounded-xl p-3 flex flex-col items-center gap-1.5"
+          >
+            <Icon className="w-4 h-4 text-[color:var(--color-brand-accent)]" />
+            <span className="text-[11px] font-medium text-[color:var(--color-brand-text)] text-center leading-tight">
+              {label}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <button
+        onClick={onNew}
+        className="inline-flex items-center gap-2 px-6 py-3 bg-[color:var(--color-brand-text)] hover:opacity-80 text-[color:var(--color-brand-bg)] text-sm font-semibold rounded-xl transition-opacity"
+      >
+        <Plus size={16} /> Criar primeiro TCC
+      </button>
+    </motion.div>
+  )
+}
+
+// ─── NewTccModal ──────────────────────────────────────────────────────────────
 
 const TOTAL_STEPS = 5
-const WORK_TYPES = ["TCC", "Monografia", "Dissertação de Mestrado", "Tese de Doutorado", "Artigo Científico", "Relatório de Estágio"]
+const WORK_TYPES = [
+  "TCC",
+  "Monografia",
+  "Dissertação de Mestrado",
+  "Tese de Doutorado",
+  "Artigo Científico",
+  "Relatório de Estágio",
+]
 const NORMAS = ["ABNT", "APA", "Vancouver", "Chicago", "Outra"]
+const STEP_NAMES = ["Tema", "Dados acadêmicos", "Tipo e norma", "Prazo e objetivo", "Confirmar"]
 
 const INPUT_CLS =
   "w-full bg-[color:var(--color-brand-bg)] border border-[color:var(--color-brand-border)] rounded-xl px-4 py-3 text-sm text-[color:var(--color-brand-text)] placeholder:text-[color:var(--color-brand-muted)] focus:outline-none focus:border-[color:var(--color-brand-text)] transition-colors"
@@ -140,17 +270,13 @@ function NewTccModal({
   userPlan: string
   tccCount: number
 }) {
-  const [step, setStep] = React.useState(1)
-  const [loading, setLoading] = React.useState(false)
+  const [step, setStep]         = React.useState(1)
+  const [loading, setLoading]   = React.useState(false)
   const [slotError, setSlotError] = React.useState("")
-  const [form, setForm] = React.useState<FormData>({
-    title: "",
-    course: "",
-    institution: "",
-    workType: "TCC",
-    norma: "ABNT",
-    deadline: "",
-    objective: "",
+  const [form, setForm]         = React.useState<FormData>({
+    title: "", course: "", institution: "",
+    workType: "TCC", norma: "ABNT",
+    deadline: "", objective: "",
   })
 
   const patch = (key: keyof FormData, val: string) =>
@@ -165,6 +291,7 @@ function NewTccModal({
   }, [step, form])
 
   const handleNext = () => {
+    trackEvent('ONBOARDING_STEP', { step, name: STEP_NAMES[step - 1], plan: userPlan })
     if (step < TOTAL_STEPS) setStep(s => s + 1)
     else handleCreate()
   }
@@ -194,7 +321,15 @@ function NewTccModal({
         return
       }
       if (!res.ok) return
-      if (data?.id) onCreated(data.id)
+      if (data?.id) {
+        trackEvent('TCC_CREATED', {
+          plan: userPlan,
+          workType: form.workType,
+          norma: form.norma,
+          hasDeadline: !!form.deadline,
+        })
+        onCreated(data.id)
+      }
     } catch (e) {
       console.error(e)
     } finally {
@@ -207,8 +342,21 @@ function NewTccModal({
     setTimeout(() => { setStep(1); setSlotError("") }, 300)
   }
 
-  const slotLimit = userPlan === "VIP" ? 2 : 1
+  const slotLimit   = userPlan === "VIP" ? 2 : 1
   const atSlotLimit = tccCount >= slotLimit
+
+  // Summary rows for step 5
+  const summaryRows = [
+    { label: "Tema",   value: form.title },
+    { label: "Curso",  value: `${form.course} · ${form.institution}` },
+    { label: "Tipo",   value: `${form.workType} · ${form.norma}` },
+    ...(form.deadline ? [{
+      label: "Prazo",
+      value: new Date(form.deadline + "T00:00:00").toLocaleDateString("pt-BR"),
+    }] : []),
+  ]
+
+  const showCta = !(step === TOTAL_STEPS && (slotError || atSlotLimit))
 
   return (
     <AnimatePresence>
@@ -218,27 +366,27 @@ function NewTccModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-[2px]"
           onClick={e => { if (e.target === e.currentTarget) handleClose() }}
         >
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
+            initial={{ opacity: 0, y: 14, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.97 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
             className="relative w-full max-w-lg bg-[color:var(--color-brand-surface)] rounded-2xl shadow-2xl overflow-hidden border border-[color:var(--color-brand-border)]"
           >
-            {/* Progress bar */}
-            <div className="h-0.5 bg-[color:var(--color-brand-border)]">
+            {/* Accent progress bar */}
+            <div className="h-[3px] bg-[color:var(--color-brand-border)]">
               <motion.div
-                className="h-full bg-[color:var(--color-brand-text)]"
+                className="h-full bg-[color:var(--color-brand-accent)]"
                 animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
               />
             </div>
 
             <div className="p-7">
-              {/* Modal nav */}
+              {/* Nav */}
               <div className="flex items-center justify-between mb-7">
                 <button
                   onClick={() => (step > 1 ? setStep(s => s - 1) : handleClose())}
@@ -247,9 +395,16 @@ function NewTccModal({
                   <ArrowLeft size={15} />
                   {step === 1 ? "Cancelar" : "Voltar"}
                 </button>
-                <span className="text-xs text-[color:var(--color-brand-muted)] tabular-nums">
-                  {step} / {TOTAL_STEPS}
-                </span>
+
+                <div className="text-center">
+                  <div className="text-xs font-semibold text-[color:var(--color-brand-text)]">
+                    {STEP_NAMES[step - 1]}
+                  </div>
+                  <div className="text-[10px] text-[color:var(--color-brand-muted)] tabular-nums">
+                    {step} de {TOTAL_STEPS}
+                  </div>
+                </div>
+
                 <button
                   onClick={handleClose}
                   className="p-1.5 rounded-lg hover:bg-[color:var(--color-brand-hover)] transition-colors"
@@ -258,30 +413,52 @@ function NewTccModal({
                 </button>
               </div>
 
-              {/* Steps */}
+              {/* Step content */}
               <AnimatePresence mode="wait">
 
                 {step === 1 && (
-                  <motion.div key="s1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="space-y-4">
+                  <motion.div
+                    key="s1"
+                    initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }}
+                    transition={{ duration: 0.15 }}
+                    className="space-y-4"
+                  >
                     <div>
-                      <h2 className="text-lg font-bold text-[color:var(--color-brand-text)]">Qual é o tema do seu TCC?</h2>
-                      <p className="mt-1 text-sm text-[color:var(--color-brand-muted)]">Pode ser uma ideia inicial ou um título provisório.</p>
+                      <h2 className="text-lg font-bold text-[color:var(--color-brand-text)]">
+                        Qual é o tema do seu TCC?
+                      </h2>
+                      <p className="mt-1 text-sm text-[color:var(--color-brand-muted)]">
+                        Pode ser uma ideia inicial ou um título provisório — você refina depois.
+                      </p>
                     </div>
                     <textarea
                       autoFocus
                       value={form.title}
                       onChange={e => patch("title", e.target.value)}
-                      placeholder="Ex: O impacto da inteligência artificial na educação básica brasileira..."
+                      placeholder="Ex: O impacto da inteligência artificial na educação básica brasileira…"
                       className={cn(INPUT_CLS, "min-h-[110px] resize-none")}
+                      onKeyDown={e => { if (e.key === "Enter" && e.ctrlKey && canNext) handleNext() }}
                     />
+                    <p className="text-[11px] text-[color:var(--color-brand-muted)]">
+                      Dica: quanto mais específico o tema, mais focada fica a orientação da IA.
+                    </p>
                   </motion.div>
                 )}
 
                 {step === 2 && (
-                  <motion.div key="s2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="space-y-4">
+                  <motion.div
+                    key="s2"
+                    initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }}
+                    transition={{ duration: 0.15 }}
+                    className="space-y-4"
+                  >
                     <div>
-                      <h2 className="text-lg font-bold text-[color:var(--color-brand-text)]">Dados acadêmicos</h2>
-                      <p className="mt-1 text-sm text-[color:var(--color-brand-muted)]">Ajudam a IA a adaptar o tom e as normas corretas.</p>
+                      <h2 className="text-lg font-bold text-[color:var(--color-brand-text)]">
+                        Dados acadêmicos
+                      </h2>
+                      <p className="mt-1 text-sm text-[color:var(--color-brand-muted)]">
+                        Essenciais para a IA adaptar o tom, a estrutura e as normas ao seu contexto.
+                      </p>
                     </div>
                     <div className="space-y-3">
                       <div>
@@ -314,10 +491,19 @@ function NewTccModal({
                 )}
 
                 {step === 3 && (
-                  <motion.div key="s3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="space-y-4">
+                  <motion.div
+                    key="s3"
+                    initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }}
+                    transition={{ duration: 0.15 }}
+                    className="space-y-4"
+                  >
                     <div>
-                      <h2 className="text-lg font-bold text-[color:var(--color-brand-text)]">Tipo de trabalho e norma</h2>
-                      <p className="mt-1 text-sm text-[color:var(--color-brand-muted)]">Define a estrutura e o estilo de citação que a IA vai usar.</p>
+                      <h2 className="text-lg font-bold text-[color:var(--color-brand-text)]">
+                        Tipo de trabalho e norma
+                      </h2>
+                      <p className="mt-1 text-sm text-[color:var(--color-brand-muted)]">
+                        Define a estrutura de capítulos e o estilo de citação que a IA vai adotar.
+                      </p>
                     </div>
                     <div className="space-y-4">
                       <div>
@@ -359,15 +545,25 @@ function NewTccModal({
                 )}
 
                 {step === 4 && (
-                  <motion.div key="s4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="space-y-4">
+                  <motion.div
+                    key="s4"
+                    initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }}
+                    transition={{ duration: 0.15 }}
+                    className="space-y-4"
+                  >
                     <div>
-                      <h2 className="text-lg font-bold text-[color:var(--color-brand-text)]">Prazo e objetivo</h2>
-                      <p className="mt-1 text-sm text-[color:var(--color-brand-muted)]">Quanto mais claro o objetivo, mais focado fica o workspace.</p>
+                      <h2 className="text-lg font-bold text-[color:var(--color-brand-text)]">
+                        Prazo e objetivo
+                      </h2>
+                      <p className="mt-1 text-sm text-[color:var(--color-brand-muted)]">
+                        Com um objetivo claro, o Teseo orienta cada capítulo com mais precisão.
+                      </p>
                     </div>
                     <div className="space-y-3">
                       <div>
                         <label className="flex items-center gap-1.5 text-[11px] font-semibold text-[color:var(--color-brand-muted)] uppercase tracking-wider mb-1.5">
-                          <Calendar size={11} /> Prazo de entrega <span className="normal-case font-normal">(opcional)</span>
+                          <Calendar size={11} /> Prazo de entrega{" "}
+                          <span className="normal-case font-normal">(opcional)</span>
                         </label>
                         <input
                           type="date"
@@ -384,7 +580,7 @@ function NewTccModal({
                           autoFocus
                           value={form.objective}
                           onChange={e => patch("objective", e.target.value)}
-                          placeholder="Ex: Analisar como modelos de linguagem podem reduzir o tempo de produção sem comprometer a qualidade acadêmica..."
+                          placeholder="Ex: Analisar como modelos de linguagem podem reduzir o tempo de produção sem comprometer a qualidade acadêmica…"
                           className={cn(INPUT_CLS, "min-h-[100px] resize-none")}
                         />
                       </div>
@@ -393,15 +589,21 @@ function NewTccModal({
                 )}
 
                 {step === 5 && (
-                  <motion.div key="s5" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="space-y-5">
-                    {/* Slot limit error state */}
+                  <motion.div
+                    key="s5"
+                    initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }}
+                    transition={{ duration: 0.15 }}
+                    className="space-y-5"
+                  >
                     {(slotError || atSlotLimit) ? (
                       <div className="text-center space-y-4">
                         <div className="w-12 h-12 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto">
                           <Crown className="w-5 h-5 text-amber-500" />
                         </div>
                         <div>
-                          <h2 className="text-lg font-bold text-[color:var(--color-brand-text)]">Limite de projetos atingido</h2>
+                          <h2 className="text-lg font-bold text-[color:var(--color-brand-text)]">
+                            Limite de projetos atingido
+                          </h2>
                           <p className="mt-1 text-sm text-[color:var(--color-brand-muted)]">
                             {slotError || `Seu plano ${userPlan} permite ${slotLimit} projeto${slotLimit > 1 ? "s" : ""} simultâneo${slotLimit > 1 ? "s" : ""}.`}
                           </p>
@@ -418,24 +620,27 @@ function NewTccModal({
                       <>
                         <div className="text-center">
                           <div className="w-12 h-12 bg-[color:var(--color-brand-accent)]/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <Sparkles className="w-6 h-6 text-[color:var(--color-brand-accent)]" />
+                            <Sparkles className="w-5 h-5 text-[color:var(--color-brand-accent)]" />
                           </div>
-                          <h2 className="text-lg font-bold text-[color:var(--color-brand-text)]">Tudo pronto para começar</h2>
-                          <p className="mt-1 text-sm text-[color:var(--color-brand-muted)]">Revise o resumo antes de criar o workspace.</p>
+                          <h2 className="text-lg font-bold text-[color:var(--color-brand-text)]">
+                            Tudo certo — pronto para começar
+                          </h2>
+                          <p className="mt-1 text-sm text-[color:var(--color-brand-muted)]">
+                            O Teseo vai preparar seu workspace com base neste contexto.
+                          </p>
                         </div>
-                        <div className="bg-[color:var(--color-brand-bg)] border border-[color:var(--color-brand-border)] rounded-xl p-5 space-y-3">
-                          <div className="text-[10px] font-bold text-[color:var(--color-brand-muted)] uppercase tracking-widest">Resumo do projeto</div>
-                          <p className="font-semibold text-[color:var(--color-brand-text)] leading-snug">&ldquo;{form.title}&rdquo;</p>
-                          <div className="space-y-1 text-sm text-[color:var(--color-brand-muted)]">
-                            <div>{form.course} · {form.institution}</div>
-                            <div>{form.workType} · Norma {form.norma}</div>
-                            {form.deadline && (
-                              <div>Prazo: {new Date(form.deadline + "T00:00:00").toLocaleDateString("pt-BR")}</div>
-                            )}
-                            {form.objective && (
-                              <p className="pt-1 text-xs line-clamp-2">{form.objective}</p>
-                            )}
-                          </div>
+
+                        <div className="bg-[color:var(--color-brand-bg)] border border-[color:var(--color-brand-border)] rounded-xl divide-y divide-[color:var(--color-brand-border)] overflow-hidden">
+                          {summaryRows.map(row => (
+                            <div key={row.label} className="flex gap-3 px-4 py-2.5">
+                              <span className="text-[11px] font-semibold uppercase tracking-wider text-[color:var(--color-brand-muted)] w-14 pt-0.5 shrink-0">
+                                {row.label}
+                              </span>
+                              <span className="text-sm text-[color:var(--color-brand-text)] font-medium line-clamp-2">
+                                {row.value}
+                              </span>
+                            </div>
+                          ))}
                         </div>
                       </>
                     )}
@@ -445,17 +650,19 @@ function NewTccModal({
               </AnimatePresence>
 
               {/* CTA */}
-              <div className="mt-7 flex justify-end">
-                <button
-                  onClick={handleNext}
-                  disabled={!canNext || loading}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[color:var(--color-brand-text)] hover:opacity-80 text-[color:var(--color-brand-bg)] text-sm font-semibold rounded-xl transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  {loading && <Loader2 size={15} className="animate-spin" />}
-                  {step === TOTAL_STEPS ? "Criar workspace" : "Continuar"}
-                  {step < TOTAL_STEPS && !loading && <ArrowRight size={15} />}
-                </button>
-              </div>
+              {showCta && (
+                <div className="mt-7 flex justify-end">
+                  <button
+                    onClick={handleNext}
+                    disabled={!canNext || loading}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-[color:var(--color-brand-text)] hover:opacity-80 text-[color:var(--color-brand-bg)] text-sm font-semibold rounded-xl transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    {loading && <Loader2 size={15} className="animate-spin" />}
+                    {step === TOTAL_STEPS ? "Criar workspace" : "Continuar"}
+                    {step < TOTAL_STEPS && !loading && <ArrowRight size={15} />}
+                  </button>
+                </div>
+              )}
             </div>
           </motion.div>
         </motion.div>
@@ -464,29 +671,26 @@ function NewTccModal({
   )
 }
 
-// ─── Dashboard ───────────────────────────────────────────────────────────────
+// ─── Dashboard Page ───────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const router = useRouter()
+  const router      = useRouter()
   const { data: session, status } = useSession()
-  const userPlan = useUserPlan()
+  const userPlan    = useUserPlan()
   const tccSlotLimit = getTccSlotLimit(userPlan)
 
-  const [loadingTccs, setLoadingTccs] = React.useState(true)
-  const [tccs, setTccs] = React.useState<Tcc[]>([])
-  const [motto, setMotto] = React.useState<{ title: string; byline: string }>({
-    title: "Bem-vindo ao Teseo",
-    byline: "Selecione um projeto à esquerda para abrir o workspace.",
-  })
-  const [modalOpen, setModalOpen] = React.useState(false)
+  const [loadingTccs, setLoadingTccs]       = React.useState(true)
+  const [tccs, setTccs]                     = React.useState<Tcc[]>([])
+  const [modalOpen, setModalOpen]           = React.useState(false)
   const [confirmDeleteId, setConfirmDeleteId] = React.useState<string | null>(null)
-  const [deletingId, setDeletingId] = React.useState<string | null>(null)
+  const [deletingId, setDeletingId]         = React.useState<string | null>(null)
 
   const handleDelete = async (id: string) => {
     setDeletingId(id)
     try {
       await fetch(`/api/tcc/${id}`, { method: "DELETE" })
       setTccs(prev => prev.filter(t => t.id !== id))
+      trackEvent('TCC_DELETED', { plan: userPlan })
     } catch (e) {
       console.error(e)
     } finally {
@@ -498,10 +702,6 @@ export default function DashboardPage() {
   React.useEffect(() => {
     if (status === "unauthenticated") router.push("/")
   }, [router, status])
-
-  React.useEffect(() => {
-    setMotto(pickMotto())
-  }, [])
 
   const loadTccs = React.useCallback(async () => {
     setLoadingTccs(true)
@@ -525,25 +725,30 @@ export default function DashboardPage() {
 
   if (status === "loading") return null
 
+  const firstName   = session?.user?.name?.split(" ")[0] ?? null
+  const canAddMore  = tccs.length < tccSlotLimit
+  const slotsLeft   = tccSlotLimit - tccs.length
+
   return (
     <div className="min-h-[100dvh] bg-[color:var(--color-brand-bg)] text-[color:var(--color-brand-text)]">
+
       {/* ── Header ── */}
-      <header className="h-[60px] border-b border-[color:var(--color-brand-border)] bg-[color:var(--color-brand-surface)]">
+      <header className="h-[60px] border-b border-[color:var(--color-brand-border)] bg-[color:var(--color-brand-surface)] sticky top-0 z-30">
         <div className="w-full px-5 sm:px-6 h-full flex items-center justify-between gap-3">
-          {/* Left: identity */}
+          {/* Identity */}
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-7 h-7 rounded-lg bg-[color:var(--color-brand-text)] grid place-items-center shrink-0">
               <span className="text-[color:var(--color-brand-bg)] font-bold text-xs leading-none">T</span>
             </div>
             <div className="min-w-0">
-              <div className="text-sm font-semibold leading-none truncate">Dashboard</div>
-              <div className="text-[11px] text-[color:var(--color-brand-muted)] mt-0.5 truncate">
+              <div className="text-sm font-semibold leading-none">Teseo</div>
+              <div className="text-[11px] text-[color:var(--color-brand-muted)] mt-0.5 truncate max-w-[160px]">
                 {session?.user?.email}
               </div>
             </div>
           </div>
 
-          {/* Right: actions */}
+          {/* Actions */}
           <div className="flex items-center gap-2 shrink-0">
             <PlanBadge plan={userPlan} />
             <button
@@ -570,113 +775,101 @@ export default function DashboardPage() {
       </header>
 
       {/* ── Main ── */}
-      <main className="w-full px-5 sm:px-6 py-7 min-h-[calc(100dvh-60px)]">
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-5 items-start min-h-[calc(100dvh-60px-56px)]">
+      <main className="w-full px-5 sm:px-6 py-10 min-h-[calc(100dvh-60px)]">
 
-          {/* Sidebar: TCC list */}
-          <aside className="rounded-xl bg-[color:var(--color-brand-surface)] border border-[color:var(--color-brand-border)] overflow-hidden">
-            <div className="px-4 py-3 border-b border-[color:var(--color-brand-border)] flex items-center justify-between">
-              <span className="text-[10px] font-bold tracking-widest text-[color:var(--color-brand-muted)] uppercase">
-                Seus projetos
-              </span>
-              <span className={cn(
-                "text-[10px] font-semibold tabular-nums",
-                tccs.length >= tccSlotLimit
-                  ? "text-amber-600 dark:text-amber-400"
-                  : "text-[color:var(--color-brand-muted)]"
-              )}>
-                {tccs.length}/{tccSlotLimit}
-              </span>
+        {/* Loading */}
+        {loadingTccs && (
+          <div className="flex items-center justify-center py-32">
+            <Loader2 className="w-5 h-5 animate-spin text-[color:var(--color-brand-muted)]" />
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!loadingTccs && tccs.length === 0 && (
+          <EmptyState onNew={() => setModalOpen(true)} />
+        )}
+
+        {/* Projects grid */}
+        {!loadingTccs && tccs.length > 0 && (
+          <div className="max-w-4xl mx-auto">
+
+            {/* Greeting */}
+            <div className="mb-8">
+              <h1 className="text-2xl font-bold text-[color:var(--color-brand-text)]">
+                {firstName ? `Olá, ${firstName}` : "Seus projetos"}
+              </h1>
+              <p className="mt-1 text-sm text-[color:var(--color-brand-muted)]">
+                {tccs.length} projeto{tccs.length !== 1 ? "s" : ""} em andamento
+                {canAddMore
+                  ? ` · ${slotsLeft} vaga${slotsLeft !== 1 ? "s" : ""} disponível${slotsLeft !== 1 ? "is" : ""}`
+                  : " · limite do plano atingido"}
+              </p>
             </div>
 
-            <div className="p-2">
-              {loadingTccs ? (
-                <div className="px-3 py-4 flex items-center gap-2 text-sm text-[color:var(--color-brand-muted)]">
-                  <Loader2 size={13} className="animate-spin" /> Carregando…
-                </div>
-              ) : tccs.length === 0 ? (
-                <div className="px-3 py-8 text-center space-y-4">
-                  <p className="text-sm text-[color:var(--color-brand-muted)]">
-                    Nenhum projeto ainda.
-                  </p>
-                  <button
-                    onClick={() => setModalOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[color:var(--color-brand-text)] hover:opacity-80 text-[color:var(--color-brand-bg)] text-sm font-semibold transition-opacity"
-                  >
-                    <Plus size={14} /> Criar primeiro TCC
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-0.5">
-                  {tccs.map(tcc => (
-                    <div key={tcc.id} className="group relative">
-                      {confirmDeleteId === tcc.id ? (
-                        <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-[color:var(--color-brand-hover)]">
-                          <span className="text-xs text-[color:var(--color-brand-muted)] flex-1">Excluir projeto?</span>
-                          <button
-                            onClick={() => handleDelete(tcc.id)}
-                            disabled={deletingId === tcc.id}
-                            className="text-[11px] font-semibold text-red-500 hover:text-red-600 transition-colors disabled:opacity-50"
-                          >
-                            {deletingId === tcc.id ? <Loader2 size={11} className="animate-spin" /> : "Confirmar"}
-                          </button>
-                          <button
-                            onClick={() => setConfirmDeleteId(null)}
-                            className="text-[color:var(--color-brand-muted)] hover:text-[color:var(--color-brand-text)] transition-colors"
-                          >
-                            <X size={13} />
-                          </button>
-                        </div>
-                      ) : (
-                        <Link
-                          href={`/tcc/${tcc.id}`}
-                          className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-[color:var(--color-brand-hover)] transition-colors"
-                        >
-                          <div className="min-w-0">
-                            <div className="text-sm font-medium truncate text-[color:var(--color-brand-text)]">
-                              {tcc.title}
-                            </div>
-                            <div className="text-[11px] text-[color:var(--color-brand-muted)] truncate mt-0.5">
-                              {tcc.course} · {tcc.institution}
-                              {tcc.norma ? ` · ${tcc.norma}` : ""}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1 shrink-0 ml-2">
-                            <button
-                              onClick={e => { e.preventDefault(); setConfirmDeleteId(tcc.id) }}
-                              className="p-1 rounded opacity-0 group-hover:opacity-100 text-[color:var(--color-brand-muted)] hover:text-red-500 transition-all"
-                            >
-                              <Trash2 size={12} />
-                            </button>
-                            <ChevronRight size={13} className="text-[color:var(--color-brand-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </div>
-                        </Link>
-                      )}
+            {/* Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <AnimatePresence>
+                {tccs.map(tcc => (
+                  <TccCard
+                    key={tcc.id}
+                    tcc={tcc}
+                    confirmDeleteId={confirmDeleteId}
+                    deletingId={deletingId}
+                    onConfirmDelete={setConfirmDeleteId}
+                    onCancelDelete={() => setConfirmDeleteId(null)}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </AnimatePresence>
+
+              {/* Add new card (dashed) */}
+              {canAddMore && (
+                <motion.button
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  onClick={() => setModalOpen(true)}
+                  className="group min-h-[180px] bg-[color:var(--color-brand-surface)] border-2 border-dashed border-[color:var(--color-brand-border)] rounded-2xl p-5 flex flex-col items-center justify-center gap-3 hover:border-[color:var(--color-brand-text)]/30 hover:bg-[color:var(--color-brand-hover)] transition-all cursor-pointer"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[color:var(--color-brand-border)] group-hover:bg-[color:var(--color-brand-text)]/10 flex items-center justify-center transition-colors">
+                    <Plus size={18} className="text-[color:var(--color-brand-muted)] group-hover:text-[color:var(--color-brand-text)] transition-colors" />
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm font-semibold text-[color:var(--color-brand-muted)] group-hover:text-[color:var(--color-brand-text)] transition-colors">
+                      Novo projeto
                     </div>
-                  ))}
-                </div>
+                    <div className="text-xs text-[color:var(--color-brand-muted)]/60 mt-0.5">
+                      {slotsLeft} vaga{slotsLeft !== 1 ? "s" : ""} disponível{slotsLeft !== 1 ? "is" : ""}
+                    </div>
+                  </div>
+                </motion.button>
               )}
             </div>
-          </aside>
 
-          {/* Center: editorial motto */}
-          <section className="min-h-[480px] lg:min-h-[calc(100dvh-60px-56px)] flex items-center justify-center">
-            <div className="w-full text-center space-y-5 mx-auto">
-              <h1 className="text-6xl sm:text-7xl lg:text-8xl font-bold tracking-tight font-serif text-[color:var(--color-brand-text)] leading-[1.05]">
-                {motto.title}
-              </h1>
-              <p className="text-base sm:text-lg text-[color:var(--color-brand-muted)] leading-relaxed">
-                {motto.byline}
-              </p>
-              <p className="pt-4 text-sm text-[color:var(--color-brand-muted)]/50">
-                {tccs.length === 0
-                  ? "Comece criando seu primeiro projeto."
-                  : "Selecione um projeto à esquerda para abrir o workspace."}
-              </p>
-            </div>
-          </section>
+            {/* Upgrade banner when at limit */}
+            {!canAddMore && (
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-6 p-4 rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-500/10 dark:border-amber-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+              >
+                <div className="flex items-center gap-3">
+                  <Crown className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    Você atingiu o limite do plano <strong>{userPlan === "FREE" ? "Gratuito" : userPlan}</strong>.
+                    Faça upgrade para criar mais projetos simultâneos.
+                  </p>
+                </div>
+                <Link
+                  href="/pricing"
+                  className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition-colors"
+                >
+                  Ver planos
+                </Link>
+              </motion.div>
+            )}
+          </div>
+        )}
 
-        </div>
       </main>
 
       {/* ── Modal ── */}
@@ -690,6 +883,7 @@ export default function DashboardPage() {
         userPlan={userPlan}
         tccCount={tccs.length}
       />
+
       <DevPlanSwitcher />
     </div>
   )
