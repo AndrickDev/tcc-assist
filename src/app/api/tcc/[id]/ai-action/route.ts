@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { resolvePlan } from '@/lib/plan'
 import { buildActionPrompt } from '@/lib/agents/guardrails'
 import { generateAIContent } from '@/lib/ai/provider'
+import { getGeminiConfigForPlan } from '@/lib/gemini'
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,7 +20,6 @@ export async function POST(req: NextRequest) {
     }
 
     // Free users can only Generate (via the main chat). This endpoint restricts Action tools.
-    // Let's implement blocked paths.
     if (userPlan === 'FREE') {
       return NextResponse.json({ error: 'Ações de IA são exclusivas para planos PRO e VIP.' }, { status: 403 })
     }
@@ -32,8 +32,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Funcionalidade exclusiva VIP ou ação desconhecida.' }, { status: 403 })
     }
 
-    // Call unified AI provider (only gemini for Beta)
-    const result = await generateAIContent(prompt, 'gemini')
+    // Get plan-specific config for the AI call
+    const geminiConfig = getGeminiConfigForPlan(userPlan)
+
+    // Call unified AI provider with plan-specific config
+    const result = await generateAIContent(prompt, 'gemini', { geminiConfig })
 
     // Regex to remove generic markdown code blocks like ```html ... ``` or just ``` ... ```
     const cleanResult = result.replace(/^```[a-z]*\s*|\s*```$/gi, '').trim()

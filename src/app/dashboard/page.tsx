@@ -283,12 +283,22 @@ function NewTccModal({
     setForm(prev => ({ ...prev, [key]: val }))
 
   const canNext = React.useMemo(() => {
-    if (step === 1) return form.title.trim().length > 0
-    if (step === 2) return form.course.trim().length > 0 && form.institution.trim().length > 0
-    if (step === 3) return form.workType.length > 0 && form.norma.length > 0
-    if (step === 4) return form.objective.trim().length > 0
-    return true
-  }, [step, form])
+    switch (step) {
+      case 1: return form.title.trim().length > 0
+      case 2: return form.course.trim().length > 0 && form.institution.trim().length > 0
+      case 3: return form.workType.length > 0 && form.norma.length > 0
+      case 4: return form.objective.trim().length > 0
+      default: return true
+    }
+  }, [
+    step,
+    // Only subscribe to the field(s) relevant to the current step
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    step === 1 ? form.title :
+    step === 2 ? `${form.course}|${form.institution}` :
+    step === 3 ? `${form.workType}|${form.norma}` :
+    step === 4 ? form.objective : null,
+  ])
 
   const handleNext = () => {
     trackEvent('ONBOARDING_STEP', { step, name: STEP_NAMES[step - 1], plan: userPlan })
@@ -366,7 +376,7 @@ function NewTccModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-[2px]"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
           onClick={e => { if (e.target === e.currentTarget) handleClose() }}
         >
           <motion.div

@@ -3,7 +3,7 @@
 import * as React from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  ArrowLeft, FileText, Menu, X, Check, PanelRightOpen,
+  ArrowLeft, FileText, X,
   Loader2, AlertCircle, ArrowRight, Paperclip, Sparkles,
   CheckCircle2, Clock, Crown, Download, Wand2, RefreshCw, Hand, BrainCircuit, Plus, Trash2, ArrowDownToLine, Save, RotateCcw
 } from "lucide-react"
@@ -293,7 +293,12 @@ export default function TccWorkspacePage() {
 
   const fetchMeta = React.useCallback(async () => {
     try {
-      const data = await safeJson(await fetch(`/api/tcc/${id}`))
+      const res = await fetch(`/api/tcc/${id}`)
+      if (!res.ok) {
+        router.push("/dashboard")
+        return
+      }
+      const data = await safeJson(res)
       if (data && !data.error) {
         setTccMeta(data)
         if (data.content) {
@@ -302,7 +307,7 @@ export default function TccWorkspacePage() {
         }
       }
     } catch (e) { console.error(e) }
-  }, [id])
+  }, [id, router])
 
   React.useEffect(() => {
     if (!id) return
@@ -312,7 +317,7 @@ export default function TccWorkspacePage() {
       setLoading(false)
     }
     init()
-    const interval = setInterval(fetchStats, 5000)
+    const interval = setInterval(fetchStats, 15000)
     return () => clearInterval(interval)
   }, [id, fetchMessages, fetchStats, fetchAttachments, fetchMeta])
 
@@ -595,9 +600,14 @@ export default function TccWorkspacePage() {
             <>
                 <div className="flex-1 overflow-y-auto custom-scroll p-4 space-y-5 pb-[140px]">
                     {messages.length === 0 && (
-                        <div className="h-full flex flex-col items-center justify-center text-center opacity-40 px-4">
-                            <Wand2 size={32} className="mb-4" />
-                            <p className="text-sm">Selecione uma ação rápida ou peça para a IA gerar conteúdo para o seu TCC.</p>
+                        <div className="h-full flex flex-col items-center justify-center text-center opacity-60 px-5 space-y-3">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20 text-amber-500 mb-2">
+                                <Sparkles size={24} />
+                            </div>
+                            <h3 className="text-white/90 font-bold text-base">Boas-vindas ao seu TCC!</h3>
+                            <p className="text-[13px] text-white/50 leading-relaxed font-serif">
+                                Seu espaço de trabalho está pronto. Comece pedindo para a IA escrever a introdução do seu projeto ou gerar a estrutura do documento.
+                            </p>
                         </div>
                     )}
 

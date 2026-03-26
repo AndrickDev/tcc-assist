@@ -1,9 +1,10 @@
-import { callGemini } from '@/lib/gemini'
+import { callGemini, type GeminiConfig } from '@/lib/gemini'
 
 // Tipagem genérica para ações de IA independentemente do provider
 export interface AIProviderOptions {
   model?: string;
   temperature?: number;
+  geminiConfig?: GeminiConfig;
 }
 
 export type SupportedProviders = 'gemini' | 'gpt';
@@ -15,17 +16,15 @@ export type SupportedProviders = 'gemini' | 'gpt';
  */
 export async function generateAIContent(
   prompt: string, 
-  provider: SupportedProviders = 'gemini'
+  provider: SupportedProviders = 'gemini',
+  options?: AIProviderOptions
 ): Promise<string> {
   
   if (provider === 'gemini') {
-    // Para simplificar no beta, a implementação bruta chama a API do Gemini.
-    return callGemini(prompt)
+    return callGemini(prompt, options?.geminiConfig)
   }
   
   if (provider === 'gpt') {
-    // Preparação para futura integração GPT
-    // return callOpenAI(prompt, options)
     throw new Error('GPT provider not yet implemented for Beta.')
   }
 

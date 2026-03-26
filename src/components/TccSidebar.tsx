@@ -125,7 +125,7 @@ export function TccSidebar({ stats: initialStats, userPlan, tccId, humanAuthorsh
                         </div>
                     </div>
 
-                    {/* Turnitin */}
+                    {/* Plagiarism */}
                     <div className="relative group/turnitin">
                         <div className="flex items-center justify-between p-3 bg-white/[0.03] border border-white/5 rounded-xl hover:bg-white/[0.05] transition-colors">
                             <div className="flex items-center gap-2">
@@ -136,10 +136,10 @@ export function TccSidebar({ stats: initialStats, userPlan, tccId, humanAuthorsh
                                          onFocus={() => trackEvent('TURNITIN_INFO_HOVER')}
                                          onMouseEnter={() => trackEvent('TURNITIN_INFO_HOVER')}
                                     >
-                                        TURNITIN
+                                        ORIGINALIDADE 
                                         <Info size={11} className="text-white/20 hover:text-white/40 transition-colors" />
                                     </div>
-                                    <div className="text-[11px] text-slate-300 font-medium mt-1">Real-time API</div>
+                                    <div className="text-[10px] text-amber-500/70 font-bold mt-1 uppercase tracking-wider">Estimativa (Mock)</div>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">

@@ -46,15 +46,36 @@ export async function chatAgent(agent: 'bibliotecario' | 'arquiteto' | 'redator'
   return callGemini(prompts[agent]);
 }
 
-export async function callGemini(prompt: string) {
+// ─── Per-plan generation config ────────────────────────────────────────────
+
+export interface GeminiConfig {
+  temperature?: number
+  maxOutputTokens?: number
+}
+
+/** Default per-plan output limits and temperature. */
+const PLAN_CONFIGS: Record<string, GeminiConfig> = {
+  FREE: { temperature: 0.1, maxOutputTokens: 2000 },   // ~1 pg ABNT
+  PRO:  { temperature: 0.15, maxOutputTokens: 6000 },   // ~3 pg ABNT
+  VIP:  { temperature: 0.2, maxOutputTokens: 16000 },   // ~8 pg ABNT, full chapter
+}
+
+export function getGeminiConfigForPlan(plan: string): GeminiConfig {
+  return PLAN_CONFIGS[plan] ?? PLAN_CONFIGS.FREE
+}
+
+export async function callGemini(prompt: string, config?: GeminiConfig) {
+  const temperature = config?.temperature ?? 0.1
+  const maxOutputTokens = config?.maxOutputTokens ?? 2000
+
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${process.env.GOOGLE_API_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
-        temperature: 0.1,
-        maxOutputTokens: 2000
+        temperature,
+        maxOutputTokens
       }
     })
   })
