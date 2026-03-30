@@ -25,6 +25,8 @@ type EventName =
   | 'AI_ACTION_SUCCESS'        // action returned successfully
   | 'AI_ACTION_ERROR'          // action returned an error
   | 'AI_PANEL_TOGGLE_NEXT_STEP' // "Próximo Passo" panel opened/closed
+  | 'REVIEW_ACCEPTED'
+  | 'REVIEW_REJECTED'
   // ── Monetisation ───────────────────────────────────────────────────────
   | 'UPGRADE_MODAL_SHOWN'      // upgrade modal was displayed
   | 'UPGRADE_CTA_CLICK'        // user clicked a pricing CTA

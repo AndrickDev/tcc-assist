@@ -755,14 +755,10 @@ export default function TccWorkspacePage() {
                               <div className="px-3 py-2 bg-amber-500/[0.06] border-b border-amber-500/10 flex items-center justify-between">
                                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-500/70 tracking-widest uppercase"><Sparkles size={11} /> Sugestão da IA</div>
                                 <button
-                                  onClick={() => {
-                                    if (reviewState?.messageId === m.id) setReviewState(null)
-                                    else setReviewState({ messageId: m.id, suggestionHtml: m.editorContent || m.content, userPrompt: m.userPrompt })
-                                  }}
-                                  className={cn("text-[10px] font-bold tracking-wider uppercase transition-colors px-2 py-0.5 rounded",
-                                    reviewState?.messageId === m.id ? "bg-amber-500/20 text-amber-400" : "text-white/30 hover:text-white/60")}
+                                  onClick={() => setReviewState({ messageId: m.id, suggestionHtml: m.editorContent || m.content, userPrompt: m.userPrompt })}
+                                  className="text-[10px] font-bold tracking-wider uppercase transition-colors px-2 py-0.5 rounded text-white/30 hover:text-white/60"
                                 >
-                                  {reviewState?.messageId === m.id ? "Em revisão" : "Revisar"}
+                                  Revisar
                                 </button>
                               </div>
                               <div className="p-3 text-[12px] leading-relaxed text-white/50 font-serif max-h-[160px] overflow-hidden relative">
