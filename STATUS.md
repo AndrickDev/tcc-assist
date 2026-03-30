@@ -77,7 +77,7 @@
 - [ ] **Recuperação de senha** — fluxo de "esqueci minha senha" não está implementado
 - [ ] **Confirmação de e-mail** — novos cadastros não recebem e-mail de verificação
 - [ ] **Rate limiting nas APIs** — sem proteção contra abuso nas rotas de chat e AI actions
-- [ ] **Feedback de erro de IA** — quando o provider falha, o usuário vê mensagem genérica; deveria ser mais orientada
+- [ ] **Feedback de erro de IA** — quando o  provider falha, o usuário vê mensagem genérica; deveria ser mais orientada
 
 ### Média prioridade (pós-beta inicial)
 - [ ] **Progresso real do TCC** — o % de progresso é estimado; idealmente reflete seções preenchidas vs. estrutura esperada

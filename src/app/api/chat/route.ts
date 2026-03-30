@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 import { runTccWorkflow } from '@/lib/agents/aiox-integration'
 import { resolvePlan } from '@/lib/plan'
 
@@ -15,6 +16,15 @@ export async function POST(req: NextRequest) {
 
     if (!tccId || !message) {
       return NextResponse.json({ error: 'Dados insuficientes (tccId e message são obrigatórios)' }, { status: 400 })
+    }
+
+    // Verificar que o TCC pertence ao usuário autenticado
+    const tcc = await prisma.tcc.findFirst({
+      where: { id: tccId, userId: session.user.id! },
+      select: { id: true }
+    })
+    if (!tcc) {
+      return NextResponse.json({ error: 'TCC não encontrado.' }, { status: 404 })
     }
 
     let userPlan = resolvePlan((session.user as { plan?: string }).plan)

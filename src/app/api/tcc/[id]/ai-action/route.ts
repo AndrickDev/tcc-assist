@@ -1,15 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 import { resolvePlan } from '@/lib/plan'
 import { buildActionPrompt } from '@/lib/agents/guardrails'
 import { generateAIContent } from '@/lib/ai/provider'
 import { getGeminiConfigForPlan } from '@/lib/gemini'
 
-export async function POST(req: NextRequest) {
+type Params = { params: Promise<{ id: string }> }
+
+export async function POST(req: NextRequest, { params }: Params) {
   try {
     const session = await auth()
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+    }
+
+    const { id: tccId } = await params
+
+    // Verificar que o TCC pertence ao usuário autenticado
+    const tcc = await prisma.tcc.findFirst({
+      where: { id: tccId, userId: (session.user as { id?: string }).id! },
+      select: { id: true }
+    })
+    if (!tcc) {
+      return NextResponse.json({ error: 'TCC não encontrado.' }, { status: 404 })
     }
 
     const { action, text, context, devPlanOverride } = await req.json()
