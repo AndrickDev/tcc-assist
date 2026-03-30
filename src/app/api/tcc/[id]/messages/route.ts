@@ -39,7 +39,24 @@ export async function POST(req: NextRequest, { params }: Params) {
   }
 
   const { id: tccId } = await params
-  const { role, content, agent } = await req.json()
+  const body = await req.json().catch(() => null)
+  if (!body) return NextResponse.json({ error: "Corpo da requisição inválido." }, { status: 400 })
+
+  const { role, content, agent } = body
+
+  // Only allow clients to create 'user' messages.
+  // 'bot' messages are created exclusively by server-side workflow (aiox-integration).
+  if (role !== "user") {
+    return NextResponse.json({ error: "Somente mensagens de usuário podem ser criadas por esta rota." }, { status: 403 })
+  }
+
+  if (typeof content !== "string" || content.trim().length === 0) {
+    return NextResponse.json({ error: "Conteúdo da mensagem é obrigatório." }, { status: 400 })
+  }
+
+  if (content.length > 20000) {
+    return NextResponse.json({ error: "Mensagem excede o limite de 20.000 caracteres." }, { status: 400 })
+  }
 
   // Verify the TCC belongs to the current user
   const tcc = await prisma.tcc.findFirst({
@@ -50,7 +67,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   }
 
   const message = await prisma.message.create({
-    data: { tccId, role, content, agent: agent ?? null },
+    data: { tccId, role: "user", content: content.trim(), agent: agent ?? null },
   })
 
   // Update TCC updatedAt timestamp

@@ -7,6 +7,8 @@ import { resolvePlan, getAttachmentLimit } from "@/lib/plan"
 
 export const dynamic = "force-dynamic"
 
+const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024 // 20 MB
+
 function safeFileName(originalName: string) {
   const base = path.basename(originalName).replace(/[^\w.\-()+\s]/g, "_")
   return base.slice(0, 180) || "upload"
@@ -79,6 +81,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (!isAllowedMime(file.type)) {
       return NextResponse.json(
         { error: "Formato não suportado. Envie PDF ou DOC/DOCX." },
+        { status: 400 }
+      )
+    }
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      return NextResponse.json(
+        { error: "Arquivo muito grande. O limite é 20 MB por arquivo." },
         { status: 400 }
       )
     }

@@ -13,13 +13,16 @@ export async function GET(
 
     const { id } = await params;
 
-    const tcc = await prisma.tcc.findUnique({
-      where: { id },
+    const userId = (session.user as { id?: string } | undefined)?.id
+    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+    const tcc = await prisma.tcc.findFirst({
+      where: { id, userId },
       include: {
         messages: {
             where: { role: 'bot' },
             orderBy: { createdAt: 'desc' },
-            select: { 
+            select: {
               content: true,
               agent: true
             }
@@ -27,8 +30,7 @@ export async function GET(
       }
     });
 
-    const userId = (session.user as { id?: string } | undefined)?.id
-    if (!tcc || !userId || tcc.userId !== userId) {
+    if (!tcc) {
         return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
