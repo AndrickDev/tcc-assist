@@ -2,7 +2,6 @@ import type { Metadata } from "next"
 import { Inter, Lora } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { I18nProvider } from "@/lib/i18n"
 import { SessionProvider } from "next-auth/react"
 
 const inter = Inter({
@@ -31,11 +30,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <SessionProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <I18nProvider>{children}</I18nProvider>
+            {children}
           </ThemeProvider>
         </SessionProvider>
       </body>
     </html>
   )
 }
-
