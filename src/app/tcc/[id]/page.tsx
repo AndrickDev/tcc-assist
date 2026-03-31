@@ -407,7 +407,6 @@ export default function TccWorkspacePage() {
   const [uploading, setUploading] = React.useState(false)
   const [pdfFiles, setPdfFiles] = React.useState<File[]>([])
   const [isGenerating, setIsGenerating] = React.useState(false)
-  const [tccGerado, setTccGerado] = React.useState("")
   const [upgradeOpen, setUpgradeOpen] = React.useState(false)
   const [limitOpen, setLimitOpen] = React.useState(false)
   const [exportOpen, setExportOpen] = React.useState(false)
@@ -643,7 +642,6 @@ export default function TccWorkspacePage() {
       const data = await res.json()
       if (data.sucesso) {
         const html = markdownToHtml(data.texto)
-        setTccGerado(data.texto)
         const botMsg: ChatMessage = {
           id: Date.now().toString() + "bot",
           role: "bot",
@@ -661,6 +659,7 @@ export default function TccWorkspacePage() {
       setMessages(prev => [...prev, { id: Date.now().toString(), role: "bot", content: "⚠️ Falha na conexão com a IA. Tente novamente." }])
     } finally {
       setIsGenerating(false)
+      setPdfFiles([])
     }
   }
 
