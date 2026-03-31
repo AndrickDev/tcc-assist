@@ -82,6 +82,41 @@ function computeLinguisticFidelity(original: string, suggestion: string): number
   return Math.min(Math.max(base, 72), 97)
 }
 
+// ─── PDF / Gemini helpers ─────────────────────────────────────────────────────
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
+function markdownToHtml(md: string): string {
+  const html = md
+    .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    .replace(/^---$/gm, '<hr/>')
+  return html
+    .split(/\n{2,}/)
+    .map(block => {
+      const trimmed = block.trim()
+      if (!trimmed) return ''
+      if (/^<(h[1-6]|hr)/.test(trimmed)) return trimmed
+      return trimmed
+        .split('\n')
+        .filter(l => l.trim())
+        .map(l => /^<(h[1-6]|hr)/.test(l.trim()) ? l : `<p>${l}</p>`)
+        .join('')
+    })
+    .join('')
+}
+
 // ─── Review Mode Panel (3 columns) ───────────────────────────────────────────
 
 function ReviewPanel({
@@ -370,6 +405,9 @@ export default function TccWorkspacePage() {
   const [activeTab, setActiveTab] = React.useState<"chat" | "metricas">("chat")
   const [attachmentsMeta, setAttachmentsMeta] = React.useState<{ count: number; limit: number } | null>(null)
   const [uploading, setUploading] = React.useState(false)
+  const [pdfFiles, setPdfFiles] = React.useState<File[]>([])
+  const [isGenerating, setIsGenerating] = React.useState(false)
+  const [tccGerado, setTccGerado] = React.useState("")
   const [upgradeOpen, setUpgradeOpen] = React.useState(false)
   const [limitOpen, setLimitOpen] = React.useState(false)
   const [exportOpen, setExportOpen] = React.useState(false)
@@ -582,11 +620,47 @@ export default function TccWorkspacePage() {
     formData.append("file", file)
     try {
       await fetch(`/api/tcc/${id}/attachments`, { method: "POST", body: formData })
+      if (file.type === "application/pdf") setPdfFiles(prev => [...prev, file])
       setMessages(prev => [...prev, { id: Date.now().toString(), role: "bot", content: `📎 Arquivo "${file.name}" anexado com sucesso.` }])
       fetchAttachments()
     } catch { } finally {
       setUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ""
+    }
+  }
+
+  const handleGerarTcc = async () => {
+    if (pdfFiles.length === 0 || !tccMeta) return
+    setIsGenerating(true)
+    setActiveTab("chat")
+    try {
+      const pdfsBase64 = await Promise.all(pdfFiles.map(fileToBase64))
+      const res = await fetch('/api/gerar-tcc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tema: tccMeta.title, pdfsBase64 })
+      })
+      const data = await res.json()
+      if (data.sucesso) {
+        const html = markdownToHtml(data.texto)
+        setTccGerado(data.texto)
+        const botMsg: ChatMessage = {
+          id: Date.now().toString() + "bot",
+          role: "bot",
+          content: html,
+          hasEditor: true,
+          editorContent: html,
+          userPrompt: `Gerar Introdução — ${tccMeta.title}`,
+        }
+        setMessages(prev => [...prev, botMsg])
+      } else {
+        setMessages(prev => [...prev, { id: Date.now().toString(), role: "bot", content: `⚠️ ${data.error ?? "Erro ao gerar introdução."}` }])
+      }
+    } catch (e) {
+      console.error(e)
+      setMessages(prev => [...prev, { id: Date.now().toString(), role: "bot", content: "⚠️ Falha na conexão com a IA. Tente novamente." }])
+    } finally {
+      setIsGenerating(false)
     }
   }
 
@@ -800,6 +874,14 @@ export default function TccWorkspacePage() {
 
                   {/* Chat input */}
                   <div className="absolute bottom-0 right-0 w-[340px] bg-[#111110] border-t border-white/[0.06] p-3 z-10 space-y-2">
+                    {pdfFiles.length > 0 && (
+                      <button onClick={handleGerarTcc} disabled={isGenerating}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold rounded-xl hover:bg-amber-500/20 transition-colors disabled:opacity-50">
+                        {isGenerating
+                          ? <><Loader2 size={12} className="animate-spin" /> Gerando Inteligência...</>
+                          : <><Sparkles size={12} /> Gerar Introdução com {pdfFiles.length} PDF{pdfFiles.length > 1 ? 's' : ''}</>}
+                      </button>
+                    )}
                     <div className="flex gap-2 overflow-x-auto pb-1 custom-scroll">
                       <button onClick={() => handleSendPrompt("Continue a introdução deste TCC")} disabled={isTyping} className="shrink-0 px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-[10px] text-white/50 font-medium whitespace-nowrap transition-colors flex items-center gap-1">
                         <RefreshCw size={9} /> Continuar introdução

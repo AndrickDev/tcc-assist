@@ -85,3 +85,38 @@ export async function callGemini(prompt: string, config?: GeminiConfig) {
   const data = await response.json()
   return data.candidates[0].content.parts[0].text
 }
+
+export async function callGeminiWithFiles(
+  pdfParts: { data: string; mimeType: string }[],
+  prompt: string,
+  config?: GeminiConfig
+): Promise<string> {
+  const temperature = config?.temperature ?? 0.1
+  const maxOutputTokens = config?.maxOutputTokens ?? 8000
+
+  const parts = [
+    ...pdfParts.map(pdf => ({
+      inlineData: {
+        data: pdf.data.replace(/^data:application\/pdf;base64,/, ''),
+        mimeType: pdf.mimeType
+      }
+    })),
+    { text: prompt }
+  ]
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GOOGLE_API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts }],
+        generationConfig: { temperature, maxOutputTokens }
+      })
+    }
+  )
+
+  if (!response.ok) throw new Error(`Gemini ${response.status}: ${await response.text()}`)
+  const data = await response.json()
+  return data.candidates[0].content.parts[0].text
+}
