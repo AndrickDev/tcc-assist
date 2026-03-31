@@ -407,6 +407,7 @@ export default function TccWorkspacePage() {
   const [uploading, setUploading] = React.useState(false)
   const [pdfFiles, setPdfFiles] = React.useState<File[]>([])
   const [isGenerating, setIsGenerating] = React.useState(false)
+  const [selectedChapter, setSelectedChapter] = React.useState("Introdução")
   const [upgradeOpen, setUpgradeOpen] = React.useState(false)
   const [limitOpen, setLimitOpen] = React.useState(false)
   const [exportOpen, setExportOpen] = React.useState(false)
@@ -637,7 +638,7 @@ export default function TccWorkspacePage() {
       const res = await fetch('/api/gerar-tcc', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tema: tccMeta.title, pdfsBase64 })
+        body: JSON.stringify({ tema: tccMeta.title, pdfsBase64, capitulo: selectedChapter, contextoAnterior: stripHtmlTags(tccContent) })
       })
       const data = await res.json()
       if (data.sucesso) {
@@ -648,7 +649,7 @@ export default function TccWorkspacePage() {
           content: html,
           hasEditor: true,
           editorContent: html,
-          userPrompt: `Gerar Introdução — ${tccMeta.title}`,
+          userPrompt: `Gerar ${selectedChapter} — ${tccMeta.title}`,
         }
         setMessages(prev => [...prev, botMsg])
       } else {
@@ -873,14 +874,27 @@ export default function TccWorkspacePage() {
 
                   {/* Chat input */}
                   <div className="absolute bottom-0 right-0 w-[340px] bg-[#111110] border-t border-white/[0.06] p-3 z-10 space-y-2">
-                    {pdfFiles.length > 0 && (
+                    <div className="space-y-1.5">
+                      <select
+                        value={selectedChapter}
+                        onChange={e => setSelectedChapter(e.target.value)}
+                        className="w-full bg-[#1a1a18] border border-white/10 text-white/70 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500/50"
+                      >
+                        <option>Introdução</option>
+                        <option>Revisão Bibliográfica (Referencial Teórico)</option>
+                        <option>Metodologia</option>
+                        <option>Desenvolvimento (Resultados)</option>
+                        <option>Conclusão</option>
+                      </select>
                       <button onClick={handleGerarTcc} disabled={isGenerating}
                         className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold rounded-xl hover:bg-amber-500/20 transition-colors disabled:opacity-50">
                         {isGenerating
                           ? <><Loader2 size={12} className="animate-spin" /> Gerando Inteligência...</>
-                          : <><Sparkles size={12} /> Gerar Introdução com {pdfFiles.length} PDF{pdfFiles.length > 1 ? 's' : ''}</>}
+                          : pdfFiles.length > 0
+                            ? <><Sparkles size={12} /> Gerar com {pdfFiles.length} PDF{pdfFiles.length > 1 ? 's' : ''}</>
+                            : <><Sparkles size={12} /> Gerar sem Referências</>}
                       </button>
-                    )}
+                    </div>
                     <div className="flex gap-2 overflow-x-auto pb-1 custom-scroll">
                       <button onClick={() => handleSendPrompt("Continue a introdução deste TCC")} disabled={isTyping} className="shrink-0 px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-[10px] text-white/50 font-medium whitespace-nowrap transition-colors flex items-center gap-1">
                         <RefreshCw size={9} /> Continuar introdução

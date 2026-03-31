@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,23 +7,20 @@ datasource db {
   url      = env("POSTGRES_URL")
 }
 
-// ── NextAuth Required Models ──────────────────────────────────────────────────
-
 model Account {
   id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -47,55 +41,50 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// ── App Models ────────────────────────────────────────────────────────────────
-
 model User {
   id            String    @id @default(cuid())
   name          String?
   email         String    @unique
   emailVerified DateTime?
   image         String?
-  password      String?   // null for Google OAuth users
+  password      String?
   role          Role      @default(USER)
   plan          Plan      @default(FREE)
-  planExpiresAt DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
-  accounts Account[]
-  sessions Session[]
-  tccs     Tcc[]
+  planExpiresAt DateTime?
+  accounts      Account[]
+  sessions      Session[]
+  tccs          Tcc[]
 }
 
 model Tcc {
-  id          String    @id @default(cuid())
+  id          String       @id @default(cuid())
   userId      String
   title       String
   course      String
   institution String
-  workType    String?   // TCC | Monografia | Dissertação | Artigo Científico
-  norma       String?   // ABNT | APA | Vancouver | Chicago | Outra
+  status      TccStatus    @default(IN_PROGRESS)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   deadline    DateTime?
-  objective   String?   @db.Text
-  content     String?   @db.Text
-  status      TccStatus @default(IN_PROGRESS)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages    Message[]
+  norma       String?
+  objective   String?
+  workType    String?
+  content     String?
   attachments Attachment[]
+  messages    Message[]
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Message {
   id        String      @id @default(cuid())
   tccId     String
   role      MessageRole
-  content   String      @db.Text
-  agent     String?     // 'bibliotecario' | 'arquiteto' | 'redator'
+  content   String
+  agent     String?
   createdAt DateTime    @default(now())
-
-  tcc Tcc @relation(fields: [tccId], references: [id], onDelete: Cascade)
+  tcc       Tcc         @relation(fields: [tccId], references: [id], onDelete: Cascade)
 }
 
 model Attachment {
@@ -106,11 +95,8 @@ model Attachment {
   fileSize  Int
   mimeType  String
   createdAt DateTime @default(now())
-
-  tcc Tcc @relation(fields: [tccId], references: [id], onDelete: Cascade)
+  tcc       Tcc      @relation(fields: [tccId], references: [id], onDelete: Cascade)
 }
-
-// ── Enums ─────────────────────────────────────────────────────────────────────
 
 enum Role {
   USER

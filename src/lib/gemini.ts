@@ -105,5 +105,5 @@ export async function callGeminiWithFiles(
     })),
     { text: prompt }
   ]
-  return _callGeminiAPI(parts, 'gemini-1.5-flash', config, 8000)
+  return _callGeminiAPI(parts, 'gemini-flash-latest', config, 8000)
 }
