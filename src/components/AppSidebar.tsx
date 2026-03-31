@@ -7,10 +7,10 @@ import { LayoutDashboard, FolderOpen, BookOpen, Settings, LogOut, HelpCircle } f
 import { cn } from "@/lib/utils"
 
 const NAV = [
-  { icon: LayoutDashboard, href: "/dashboard", label: "Dashboard" },
-  { icon: FolderOpen,      href: "/dashboard", label: "Projetos",   match: "/tcc" },
-  { icon: BookOpen,        href: "/dashboard", label: "Referências" },
-  { icon: Settings,        href: "/pricing",   label: "Configurações" },
+  { icon: LayoutDashboard, href: "/dashboard",       label: "Dashboard" },
+  { icon: FolderOpen,      href: "/dashboard",       label: "Projetos",        match: "/tcc" },
+  { icon: BookOpen,        href: "/dashboard",       label: "Referências" },
+  { icon: Settings,        href: "/configuracoes",   label: "Configurações",   match: "/configuracoes" },
 ]
 
 export function AppSidebar() {
@@ -58,7 +58,8 @@ export function AppSidebar() {
 
       {/* Bottom actions */}
       <div className="flex flex-col items-start w-full gap-0.5 px-1.5 pb-2">
-        <button
+        <Link
+          href="/suporte"
           title="Ajuda"
           className="w-full flex items-center gap-2.5 px-2 h-9 rounded-xl text-white/20 hover:text-white/50 hover:bg-white/[0.05] transition-all"
         >
@@ -66,7 +67,7 @@ export function AppSidebar() {
           <span className="text-[13px] font-medium opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-150 whitespace-nowrap">
             Ajuda
           </span>
-        </button>
+        </Link>
         <button
           onClick={() => signOut({ callbackUrl: "/" })}
           title="Sair"

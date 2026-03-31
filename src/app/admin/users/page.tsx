@@ -224,7 +224,7 @@ export default function AdminUsersPage() {
                             "px-2.5 py-1 rounded-full text-[10px] font-bold border flex items-center gap-1.5 cursor-pointer",
                             u.plan === "FREE" ? "bg-slate-500/10 text-slate-400 border-slate-500/20" :
                             u.plan === "PRO" ? "bg-brand-purple/10 text-brand-purple border-brand-purple/20" :
-                            "bg-orange-500/10 text-orange-500 border-orange-500/20"
+                            "bg-orange-700/10 text-orange-700 border-orange-700/20"
                           )}>
                             {u.plan}
                             <ChevronDown size={10} />

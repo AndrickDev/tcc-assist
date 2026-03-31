@@ -99,7 +99,7 @@ export default function PricingPage() {
       description: "Para quem precisa do melhor resultado possível",
       featured: true,
       badge: "Recomendado",
-      icon: <Crown size={18} className="text-orange-400" />,
+      icon: <Crown size={18} className="text-orange-600" />,
       variant: "vip",
       cta: userPlan === "VIP" ? "Plano atual" : "Começar com VIP",
       features: [
@@ -126,7 +126,7 @@ export default function PricingPage() {
     <div className="min-h-screen bg-[#0C0C0B] text-white">
       {/* Subtle ambient */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none" aria-hidden>
-        <div className="absolute top-0 right-[20%] w-[500px] h-[500px] bg-orange-500/[0.04] blur-[120px] rounded-full" />
+        <div className="absolute top-0 right-[20%] w-[500px] h-[500px] bg-orange-700/[0.04] blur-[120px] rounded-full" />
         <div className="absolute bottom-0 left-[10%] w-[400px] h-[400px] bg-white/[0.02] blur-[100px] rounded-full" />
       </div>
 
@@ -169,14 +169,14 @@ export default function PricingPage() {
               className={cn(
                 "relative flex flex-col rounded-2xl border transition-all duration-300",
                 plan.variant === "vip" &&
-                  "border-orange-500/30 bg-orange-500/[0.04] ring-1 ring-orange-500/10",
+                  "border-orange-700/30 bg-orange-700/[0.04] ring-1 ring-orange-700/10",
                 plan.variant === "pro" &&
                   "border-white/10 bg-white/[0.03] hover:border-white/20",
                 plan.variant === "muted" && "border-white/[0.06] bg-white/[0.01]"
               )}
             >
               {plan.badge && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-orange-500 text-black text-[10px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-orange-700 text-black text-[10px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap">
                   {plan.badge}
                 </div>
               )}
@@ -187,13 +187,13 @@ export default function PricingPage() {
                   <div className="flex items-center gap-2 mb-3">
                     <div className={cn(
                       "w-8 h-8 rounded-lg grid place-items-center",
-                      plan.variant === "vip" ? "bg-orange-500/15" : "bg-white/[0.06]"
+                      plan.variant === "vip" ? "bg-orange-700/15" : "bg-white/[0.06]"
                     )}>
                       {plan.icon}
                     </div>
                     <span className={cn(
                       "text-sm font-bold",
-                      plan.variant === "vip" ? "text-orange-400" : "text-white/70"
+                      plan.variant === "vip" ? "text-orange-600" : "text-white/70"
                     )}>
                       {plan.name}
                     </span>
@@ -221,7 +221,7 @@ export default function PricingPage() {
                         "mt-0.5 shrink-0 w-4 h-4 rounded-full flex items-center justify-center",
                         feature.included
                           ? plan.variant === "vip"
-                            ? "bg-orange-500/20 text-orange-400"
+                            ? "bg-orange-700/20 text-orange-600"
                             : "bg-white/10 text-white/60"
                           : "bg-transparent text-white/15"
                       )}>
@@ -259,9 +259,9 @@ export default function PricingPage() {
                   className={cn(
                     "w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2",
                     plan.variant === "vip" && userPlan !== "VIP" &&
-                      "bg-orange-500 text-black hover:bg-orange-400 shadow-[0_0_24px_rgba(245,158,11,0.2)]",
+                      "bg-orange-700 text-black hover:bg-orange-600 shadow-[0_0_24px_rgba(245,158,11,0.2)]",
                     plan.variant === "vip" && userPlan === "VIP" &&
-                      "bg-orange-500/20 text-orange-400/60 cursor-default",
+                      "bg-orange-700/20 text-orange-600/60 cursor-default",
                     plan.variant === "pro" && userPlan !== "PRO" && userPlan !== "VIP" &&
                       "bg-white text-[#0C0C0B] hover:opacity-90",
                     plan.variant === "pro" && (userPlan === "PRO" || userPlan === "VIP") &&

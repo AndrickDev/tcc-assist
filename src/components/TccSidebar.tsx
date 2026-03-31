@@ -139,17 +139,17 @@ export function TccSidebar({ stats: initialStats, userPlan, tccId, humanAuthorsh
                                         ORIGINALIDADE 
                                         <Info size={11} className="text-white/20 hover:text-white/40 transition-colors" />
                                     </div>
-                                    <div className="text-[10px] text-orange-500/70 font-bold mt-1 uppercase tracking-wider">Estimativa (Mock)</div>
+                                    <div className="text-[10px] text-orange-700/70 font-bold mt-1 uppercase tracking-wider">Estimativa (Mock)</div>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className={cn(
                                     "w-2 h-2 rounded-full animate-pulse",
-                                    turnitin <= 10 ? "bg-green-500" : turnitin <= 25 ? "bg-orange-500" : "bg-red-500"
+                                    turnitin <= 10 ? "bg-green-500" : turnitin <= 25 ? "bg-orange-700" : "bg-red-500"
                                 )} />
                                 <span className={cn(
                                     "text-sm font-bold",
-                                    turnitin <= 10 ? "text-green-500" : turnitin <= 25 ? "text-orange-500" : "text-red-500"
+                                    turnitin <= 10 ? "text-green-500" : turnitin <= 25 ? "text-orange-700" : "text-red-500"
                                 )}>{turnitin}%</span>
                             </div>
                         </div>

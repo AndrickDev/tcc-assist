@@ -103,7 +103,7 @@ export function EditableRichText({
           "[&_h2]:text-xl [&_h2]:font-bold [&_h2]:tracking-tight [&_h2]:font-sans [&_h2]:mb-4 [&_h2]:mt-8 " +
           "[&_h3]:text-lg [&_h3]:font-bold [&_h3]:font-sans [&_h3]:mb-3 [&_h3]:mt-6 " +
           "[&_ul]:list-disc [&_ul]:ml-7 [&_ul]:my-4 [&_ol]:list-decimal [&_ol]:ml-7 [&_ol]:my-4 [&_li]:mb-1.5 [&_li]:pl-1 " +
-          "[&_blockquote]:border-l-4 [&_blockquote]:border-orange-500/40 [&_blockquote]:pl-6 [&_blockquote]:pr-2 [&_blockquote]:py-1 [&_blockquote]:italic [&_blockquote]:my-6 [&_blockquote]:text-white/60",
+          "[&_blockquote]:border-l-4 [&_blockquote]:border-orange-700/40 [&_blockquote]:pl-6 [&_blockquote]:pr-2 [&_blockquote]:py-1 [&_blockquote]:italic [&_blockquote]:my-6 [&_blockquote]:text-white/60",
       },
     },
   })

@@ -65,7 +65,7 @@ function getHour() {
 function PlanBadge({ plan }: { plan: string }) {
   const cls =
     plan === "VIP"
-      ? "bg-orange-500/20 text-orange-400 border-orange-500/30"
+      ? "bg-orange-700/20 text-orange-600 border-orange-700/30"
       : plan === "PRO"
       ? "bg-white/10 text-white/80 border-white/[0.12]"
       : "bg-white/[0.06] text-white/40 border-white/[0.08]"
@@ -82,7 +82,7 @@ function ProgressBar({ value, accent = false }: { value: number; accent?: boolea
   return (
     <div className="h-0.5 w-full bg-white/[0.07] rounded-full overflow-hidden">
       <div
-        className={cn("h-full rounded-full transition-all duration-700", accent ? "bg-orange-500" : "bg-white/30")}
+        className={cn("h-full rounded-full transition-all duration-700", accent ? "bg-orange-700" : "bg-white/30")}
         style={{ width: `${value}%` }}
       />
     </div>
@@ -119,7 +119,7 @@ function TccCardGrid({ tcc, confirmDeleteId, deletingId, onConfirmDelete, onCanc
         <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
           <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", isActive ? "bg-emerald-400" : "bg-white/20")} />
           {tcc.workType && (
-            <span className="px-2 py-0.5 rounded-md bg-orange-500/10 text-[10px] font-bold text-orange-500/80 tracking-wide border border-orange-500/20">{tcc.workType}</span>
+            <span className="px-2 py-0.5 rounded-md bg-orange-700/10 text-[10px] font-bold text-orange-700/80 tracking-wide border border-orange-700/20">{tcc.workType}</span>
           )}
           {tcc.norma && <span className="text-[10px] text-white/25">{tcc.norma}</span>}
         </div>
@@ -190,15 +190,15 @@ function TccCardList({ tcc, confirmDeleteId, deletingId, onConfirmDelete, onCanc
     <motion.div layout initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }} transition={{ duration: 0.15 }}
       className="group flex items-center gap-4 px-5 py-4 bg-[#161614] border border-white/[0.08] rounded-xl hover:border-white/[0.14] transition-all">
-      <div className="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shrink-0">
-        <BookOpen size={14} className="text-orange-500/70" />
+      <div className="w-8 h-8 rounded-lg bg-orange-700/10 border border-orange-700/20 flex items-center justify-center shrink-0">
+        <BookOpen size={14} className="text-orange-700/70" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
           <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", isActive ? "bg-emerald-400" : "bg-white/20")} />
           <h3 className="text-sm font-semibold text-white/85 truncate font-serif">{tcc.title}</h3>
           {tcc.workType && (
-            <span className="hidden sm:inline px-1.5 py-0.5 rounded text-[9px] font-bold bg-orange-500/10 text-orange-500/70 border border-orange-500/20">{tcc.workType}</span>
+            <span className="hidden sm:inline px-1.5 py-0.5 rounded text-[9px] font-bold bg-orange-700/10 text-orange-700/70 border border-orange-700/20">{tcc.workType}</span>
           )}
         </div>
         <p className="text-[11px] text-white/30 truncate">{tcc.course} · {tcc.institution}</p>
@@ -243,9 +243,9 @@ function IntelligenceFeed({ tccs }: { tccs: Tcc[] }) {
     if (active) {
       const msgs = active._count?.messages ?? 0
       if (msgs > 5) feed.push({ icon: <CheckCircle2 size={13} className="text-emerald-400" />, title: "Marco atingido", desc: `${msgs} interações em "${active.title.slice(0, 35)}…"`, time: "Recente" })
-      if (msgs < 3) feed.push({ icon: <Zap size={13} className="text-orange-400" />, title: "Sugestão da IA", desc: `Continue "${active.title.slice(0, 30)}…" — gere o próximo capítulo.`, time: "Agora" })
+      if (msgs < 3) feed.push({ icon: <Zap size={13} className="text-orange-600" />, title: "Sugestão da IA", desc: `Continue "${active.title.slice(0, 30)}…" — gere o próximo capítulo.`, time: "Agora" })
     }
-    if (tccs.length === 0) feed.push({ icon: <Sparkles size={13} className="text-orange-400" />, title: "Bem-vindo ao Teseo", desc: "Crie seu primeiro projeto e deixe a IA te guiar.", time: "Agora" })
+    if (tccs.length === 0) feed.push({ icon: <Sparkles size={13} className="text-orange-600" />, title: "Bem-vindo ao Teseo", desc: "Crie seu primeiro projeto e deixe a IA te guiar.", time: "Agora" })
     feed.push({ icon: <TrendingUp size={13} className="text-white/30" />, title: "Dica de produtividade", desc: "Trabalhe em blocos de 25 min por capítulo. A IA gera rascunhos — você refina.", time: "Hoje" })
     return feed.slice(0, 3)
   }, [tccs])
@@ -321,14 +321,14 @@ function SidebarStats({ tccs, userPlan }: { tccs: Tcc[]; userPlan: string }) {
             <ProgressBar value={(tccs.length / slotLimit) * 100} />
           </div>
         </div>
-        <Link href="/pricing" className="mt-4 block text-center text-[10px] font-bold text-orange-500/70 hover:text-orange-400 transition-colors tracking-wide">
+        <Link href="/pricing" className="mt-4 block text-center text-[10px] font-bold text-orange-700/70 hover:text-orange-600 transition-colors tracking-wide">
           GERENCIAR PLANO →
         </Link>
       </div>
-      <div className="p-4 rounded-xl border border-orange-500/20 bg-orange-500/[0.04]">
+      <div className="p-4 rounded-xl border border-orange-700/20 bg-orange-700/[0.04]">
         <div className="flex items-center gap-2 mb-2">
-          <Sparkles size={12} className="text-orange-500/70" />
-          <span className="text-[10px] font-bold text-orange-500/70 tracking-wide">NOTA DO TESEO</span>
+          <Sparkles size={12} className="text-orange-700/70" />
+          <span className="text-[10px] font-bold text-orange-700/70 tracking-wide">NOTA DO TESEO</span>
         </div>
         <p className="text-[11px] text-white/35 leading-relaxed">
           Comece sempre pela Introdução e Metodologia — são as seções que mais reprovam por falta de clareza.
@@ -344,8 +344,8 @@ function EmptyState({ onNew }: { onNew: () => void }) {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
       className="flex flex-col items-center justify-center text-center px-4 py-24 max-w-sm mx-auto">
-      <div className="w-16 h-16 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mb-6">
-        <BookOpen className="w-7 h-7 text-orange-500/70" />
+      <div className="w-16 h-16 rounded-2xl bg-orange-700/10 border border-orange-700/20 flex items-center justify-center mb-6">
+        <BookOpen className="w-7 h-7 text-orange-700/70" />
       </div>
       <h2 className="text-2xl font-bold font-serif text-white/85 leading-snug mb-3">Seu próximo capítulo começa aqui</h2>
       <p className="text-sm text-white/35 leading-relaxed mb-8">O Teseo te acompanha do tema à entrega — estruturando, revisando e orientando cada etapa.</p>
@@ -356,7 +356,7 @@ function EmptyState({ onNew }: { onNew: () => void }) {
           { Icon: Sparkles, label: "IA especializada" },
         ] as const).map(({ Icon, label }) => (
           <div key={label} className="bg-[#161614] border border-white/[0.07] rounded-xl p-3 flex flex-col items-center gap-1.5">
-            <Icon className="w-4 h-4 text-orange-500/60" />
+            <Icon className="w-4 h-4 text-orange-700/60" />
             <span className="text-[10px] font-medium text-white/40 text-center leading-tight">{label}</span>
           </div>
         ))}
@@ -428,7 +428,7 @@ function NewTccModal({ open, onClose, onCreated, userPlan, tccCount }: {
             exit={{ opacity: 0, y: 8, scale: 0.97 }} transition={{ duration: 0.2, ease: "easeOut" }}
             className="relative w-full max-w-lg bg-[#1a1a18] rounded-2xl shadow-2xl overflow-hidden border border-white/[0.10]">
             <div className="h-[2px] bg-white/[0.05]">
-              <motion.div className="h-full bg-orange-500" animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }} transition={{ duration: 0.25, ease: "easeOut" }} />
+              <motion.div className="h-full bg-orange-700" animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }} transition={{ duration: 0.25, ease: "easeOut" }} />
             </div>
             <div className="p-7">
               <div className="flex items-center justify-between mb-7">
@@ -487,14 +487,14 @@ function NewTccModal({ open, onClose, onCreated, userPlan, tccCount }: {
                   <motion.div key="s5" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.15 }} className="space-y-5">
                     {(slotError || atSlotLimit) ? (
                       <div className="text-center space-y-4">
-                        <div className="w-12 h-12 bg-orange-500/10 border border-orange-500/20 rounded-full flex items-center justify-center mx-auto"><Crown className="w-5 h-5 text-orange-500" /></div>
+                        <div className="w-12 h-12 bg-orange-700/10 border border-orange-700/20 rounded-full flex items-center justify-center mx-auto"><Crown className="w-5 h-5 text-orange-700" /></div>
                         <div><h2 className="text-lg font-bold text-white/90">Limite atingido</h2><p className="mt-1 text-sm text-white/35">{slotError || `Plano ${userPlan}: ${slotLimit} projeto${slotLimit > 1 ? "s" : ""} simultâneo${slotLimit > 1 ? "s" : ""}.`}</p></div>
                         <Link href="/pricing" onClick={handleClose} className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-[#111110] text-sm font-bold rounded-xl hover:opacity-90 transition-opacity"><Crown size={14} /> Ver planos</Link>
                       </div>
                     ) : (
                       <>
                         <div className="text-center">
-                          <div className="w-12 h-12 bg-orange-500/10 border border-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-3"><Sparkles className="w-5 h-5 text-orange-500" /></div>
+                          <div className="w-12 h-12 bg-orange-700/10 border border-orange-700/20 rounded-full flex items-center justify-center mx-auto mb-3"><Sparkles className="w-5 h-5 text-orange-700" /></div>
                           <h2 className="text-lg font-bold text-white/90 font-serif">Tudo certo — pronto para começar</h2>
                           <p className="mt-1 text-sm text-white/35">O Teseo vai preparar seu workspace com este contexto.</p>
                         </div>
@@ -583,11 +583,11 @@ export default function DashboardPage() {
         {/* Top bar */}
         <header className="h-[52px] border-b border-white/[0.06] bg-[#0F0F0E] sticky top-0 z-30 flex items-center justify-between px-6">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold text-white/25 uppercase tracking-widest">MANUSCRIPT</span>
+            <span className="text-[11px] font-bold text-white/25 uppercase tracking-widest">PROJETOS</span>
             <span className="text-white/10">·</span>
-            <span className="text-[11px] text-white/15 uppercase tracking-widest">OUTLINE</span>
+            <span className="text-[11px] text-white/15 uppercase tracking-widest">ESBOÇOS</span>
             <span className="text-white/10">·</span>
-            <span className="text-[11px] text-white/15 uppercase tracking-widest">ARCHIVE</span>
+            <span className="text-[11px] text-white/15 uppercase tracking-widest">ARQUIVO</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-2 bg-[#161614] border border-white/[0.07] rounded-lg px-3 py-1.5">
@@ -674,12 +674,12 @@ export default function DashboardPage() {
 
                   {!canAddMore && (
                     <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-                      className="p-4 rounded-xl border border-orange-500/20 bg-orange-500/[0.04] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                      className="p-4 rounded-xl border border-orange-700/20 bg-orange-700/[0.04] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <Crown className="w-4 h-4 text-orange-500/70 shrink-0" />
+                        <Crown className="w-4 h-4 text-orange-700/70 shrink-0" />
                         <p className="text-sm text-white/40">Limite do plano <strong className="text-white/60">{userPlan === "FREE" ? "Gratuito" : userPlan}</strong> atingido.</p>
                       </div>
-                      <Link href="/pricing" className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-400 text-black text-xs font-bold transition-colors">Ver planos</Link>
+                      <Link href="/pricing" className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-orange-700 hover:bg-orange-600 text-black text-xs font-bold transition-colors">Ver planos</Link>
                     </motion.div>
                   )}
 

@@ -18,7 +18,7 @@ const IS_DEV = process.env.NODE_ENV === "development"
 const PLAN_COLORS: Record<Plan, string> = {
   FREE: "bg-white/10 text-white/60 border-white/15",
   PRO: "bg-white/90 text-black border-white",
-  VIP: "bg-orange-500 text-black border-orange-400",
+  VIP: "bg-orange-700 text-black border-orange-600",
 }
 
 const PLAN_ACTIVE: Record<Plan, string> = {
@@ -78,7 +78,7 @@ export function DevPlanSwitcher() {
         className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/80 border border-white/10 text-white/40 hover:text-white/70 transition-colors text-[10px] font-bold tracking-widest uppercase"
         title="Dev plan switcher"
       >
-        <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
+        <span className="w-1.5 h-1.5 rounded-full bg-orange-600 animate-pulse" />
         DEV {current ?? "real"}
       </button>
     </div>
