@@ -71,6 +71,15 @@ function stripHtmlTags(html: string) {
   return html.replace(/<[^>]*>/g, " ").replace(/\s{2,}/g, " ").trim()
 }
 
+function extractHeadings(html: string): { id: string; text: string; level: number }[] {
+  const matches = [...html.matchAll(/<(h[1-3])[^>]*>(.*?)<\/h[1-3]>/gi)]
+  return matches.map((m, i) => ({
+    id: `heading-${i}`,
+    text: stripHtmlTags(m[2]),
+    level: parseInt(m[1].replace('h', ''))
+  }))
+}
+
 function computeLinguisticFidelity(original: string, suggestion: string): number {
   // Simple word overlap metric for fidelity display
   if (!original || !suggestion) return 88
@@ -317,18 +326,18 @@ function UpgradeModal({ open, onClose, onPricing, currentPlan }: { open: boolean
                   <ul className="space-y-1.5">{["50 mensagens/dia", "Revisão por cap.", "PDF sem marca"].map(f => (<li key={f} className="text-[11px] text-white/45 flex items-center gap-1.5"><CheckCircle2 size={10} className="text-white/25 shrink-0" /> {f}</li>))}</ul>
                   <button onClick={onPricing} className="w-full py-2 text-[11px] font-bold border border-white/[0.12] rounded-lg text-white/60 hover:bg-white/[0.06] transition-colors">Ver PRO</button>
                 </div>
-                <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/[0.05] space-y-3 relative">
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-amber-500 text-black text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap">Premium</div>
-                  <div><p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">VIP</p><p className="text-lg font-black text-white leading-none mt-1">R$ 1.000</p><p className="text-[10px] text-white/30 mt-0.5">2 TCCs</p></div>
-                  <ul className="space-y-1.5">{["Ilimitado", "Revisão completa", "Consistência global"].map(f => (<li key={f} className="text-[11px] text-white/70 flex items-center gap-1.5"><CheckCircle2 size={10} className="text-amber-400 shrink-0" /> {f}</li>))}</ul>
-                  <button onClick={onPricing} className="w-full py-2 text-[11px] font-bold bg-amber-500 text-black rounded-lg hover:bg-amber-400 transition-colors">Ver VIP</button>
+                <div className="p-4 rounded-xl border border-orange-500/30 bg-orange-500/[0.05] space-y-3 relative">
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-orange-500 text-black text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap">Premium</div>
+                  <div><p className="text-[10px] font-bold text-orange-400 uppercase tracking-wider">VIP</p><p className="text-lg font-black text-white leading-none mt-1">R$ 1.000</p><p className="text-[10px] text-white/30 mt-0.5">2 TCCs</p></div>
+                  <ul className="space-y-1.5">{["Ilimitado", "Revisão completa", "Consistência global"].map(f => (<li key={f} className="text-[11px] text-white/70 flex items-center gap-1.5"><CheckCircle2 size={10} className="text-orange-400 shrink-0" /> {f}</li>))}</ul>
+                  <button onClick={onPricing} className="w-full py-2 text-[11px] font-bold bg-orange-500 text-black rounded-lg hover:bg-orange-400 transition-colors">Ver VIP</button>
                 </div>
               </div>
             )}
             {isPro && (
-              <div className="p-5 rounded-xl border border-amber-500/30 bg-amber-500/[0.05] space-y-3">
-                <div className="flex items-center justify-between"><div><p className="text-sm font-bold text-amber-400">VIP</p><p className="text-2xl font-black text-white">R$ 1.000 <span className="text-sm font-normal text-white/30">/ 2 TCCs</span></p></div><Crown size={26} className="text-amber-400/50" /></div>
-                <ul className="space-y-2">{["Mensagens ilimitadas", "2 projetos simultâneos", "Revisão completa", "Consistência automática", "50 uploads de referências", "Suporte VIP"].map(f => (<li key={f} className="text-sm text-white/65 flex items-center gap-2"><CheckCircle2 size={12} className="text-amber-400 shrink-0" /> {f}</li>))}</ul>
+              <div className="p-5 rounded-xl border border-orange-500/30 bg-orange-500/[0.05] space-y-3">
+                <div className="flex items-center justify-between"><div><p className="text-sm font-bold text-orange-400">VIP</p><p className="text-2xl font-black text-white">R$ 1.000 <span className="text-sm font-normal text-white/30">/ 2 TCCs</span></p></div><Crown size={26} className="text-orange-400/50" /></div>
+                <ul className="space-y-2">{["Mensagens ilimitadas", "2 projetos simultâneos", "Revisão completa", "Consistência automática", "50 uploads de referências", "Suporte VIP"].map(f => (<li key={f} className="text-sm text-white/65 flex items-center gap-2"><CheckCircle2 size={12} className="text-orange-400 shrink-0" /> {f}</li>))}</ul>
               </div>
             )}
             <div className="space-y-2 pt-1">
@@ -411,6 +420,8 @@ export default function TccWorkspacePage() {
   const [upgradeOpen, setUpgradeOpen] = React.useState(false)
   const [limitOpen, setLimitOpen] = React.useState(false)
   const [exportOpen, setExportOpen] = React.useState(false)
+
+  const headings = React.useMemo(() => extractHeadings(tccContent), [tccContent])
 
   // ── Review mode state ──────────────────────────────────────────────────────
   const [reviewState, setReviewState] = React.useState<ReviewState | null>(null)
@@ -695,7 +706,7 @@ export default function TccWorkspacePage() {
         <div className="flex-1" />
         <div
           className={cn("px-2 py-1 rounded-md text-[9px] font-bold tracking-widest uppercase select-none",
-            isVip ? "bg-amber-500/20 text-amber-400" : userPlan === "PRO" ? "bg-white/15 text-white/80" : "bg-white/[0.07] text-white/50 border border-white/[0.10]"
+            isVip ? "bg-orange-500/20 text-orange-400" : userPlan === "PRO" ? "bg-white/15 text-white/80" : "bg-white/[0.07] text-white/50 border border-white/[0.10]"
           )}
           style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
         >
@@ -715,21 +726,21 @@ export default function TccWorkspacePage() {
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="font-bold text-sm text-white/85 leading-tight">{tccMeta?.title || "Seu TCC"}</h1>
-                  <span className={cn("px-1.5 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase", isVip ? "bg-amber-500/20 text-amber-400" : userPlan === "PRO" ? "bg-white/15 text-white/80" : "bg-white/[0.07] text-white/50")}>{userPlan}</span>
+                  <span className={cn("px-1.5 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase", isVip ? "bg-orange-500/20 text-orange-400" : userPlan === "PRO" ? "bg-white/15 text-white/80" : "bg-white/[0.07] text-white/50")}>{userPlan}</span>
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-[10px] text-white/35">{tccMeta?.course || "—"}</span>
-                  {reviewState && <span className="text-[10px] text-amber-500/70 font-bold tracking-widest">· MODO REVISÃO</span>}
+                  {reviewState && <span className="text-[10px] text-orange-500/70 font-bold tracking-widest">· MODO REVISÃO</span>}
                 </div>
               </div>
             </div>
             {/* Saving status */}
             <div className="flex items-center gap-1.5 text-[10px] ml-2">
-              {savingStatus === "saving" && <><Loader2 size={10} className="animate-spin text-amber-500" /><span className="text-amber-500">Salvando...</span></>}
+              {savingStatus === "saving" && <><Loader2 size={10} className="animate-spin text-orange-500" /><span className="text-orange-500">Salvando...</span></>}
               {savingStatus === "saved" && <><CheckCircle2 size={10} className="text-emerald-500" /><span className="text-emerald-500">Salvo</span></>}
               {savingStatus === "error" && <><AlertCircle size={10} className="text-red-500" /><span className="text-red-500">Erro</span></>}
               {savingStatus === "idle" && tccContent !== tccSavedContent && (
-                <button onClick={handleManualSave} className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 transition-colors border border-amber-500/20 font-bold">
+                <button onClick={handleManualSave} className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 transition-colors border border-orange-500/20 font-bold">
                   <Save size={10} /> Salvar
                 </button>
               )}
@@ -778,12 +789,38 @@ export default function TccWorkspacePage() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
-                className="flex-1 overflow-y-auto custom-scroll flex justify-center py-10 bg-[#0A0A09]"
+                className="flex-1 overflow-y-auto custom-scroll bg-[#0A0A09]"
               >
-                <div className="w-full max-w-[850px] mx-4 sm:mx-8">
-                  <div className="w-full bg-[#111110] border border-white/[0.08] shadow-2xl rounded-sm min-h-[90vh]">
-                    <EditableRichText value={tccContent} onChange={setTccContent} editorRef={editorRef} className="border-none shadow-none bg-transparent" />
+                <div className="min-h-full py-10 flex justify-center gap-4 px-4 sm:px-8">
+                  {/* TOC — só aparece em telas largas quando há headings */}
+                  {headings.length > 0 && (
+                    <aside className="hidden xl:flex w-[170px] shrink-0 self-start sticky top-10 flex-col gap-1">
+                      <p className="text-[9px] font-bold tracking-widest uppercase text-white/25 mb-1">Índice</p>
+                      {headings.map((h, i) => (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            const el = document.querySelector(`[data-heading-index="${i}"]`)
+                            el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                          }}
+                          className="text-left text-[11px] text-white/35 hover:text-white/70 transition-colors leading-snug py-0.5 truncate"
+                          style={{ paddingLeft: `${(h.level - 1) * 8}px` }}
+                        >
+                          {h.text}
+                        </button>
+                      ))}
+                    </aside>
+                  )}
+
+                  {/* Editor */}
+                  <div className="w-full max-w-[850px]">
+                    <div className="w-full bg-[#111110] border border-white/[0.08] shadow-2xl rounded-sm min-h-[90vh]">
+                      <EditableRichText value={tccContent} onChange={setTccContent} editorRef={editorRef} className="border-none shadow-none bg-transparent" />
+                    </div>
                   </div>
+
+                  {/* Phantom para manter editor centralizado quando TOC aparece */}
+                  {headings.length > 0 && <div className="hidden xl:block w-[170px] shrink-0" />}
                 </div>
               </motion.div>
             )}
@@ -794,10 +831,10 @@ export default function TccWorkspacePage() {
             <aside className="w-[340px] shrink-0 border-l border-white/[0.06] bg-[#111110] flex flex-col z-20">
               {/* Tabs */}
               <div className="flex items-center border-b border-white/[0.06] px-1 pt-1 shrink-0 bg-[#161615]">
-                <button onClick={() => setActiveTab("chat")} className={cn("flex-1 py-2.5 text-xs font-bold uppercase tracking-wider transition-all border-b-2", activeTab === "chat" ? "border-amber-500 text-amber-400" : "border-transparent text-white/40 hover:text-white/70")}>
+                <button onClick={() => setActiveTab("chat")} className={cn("flex-1 py-2.5 text-xs font-bold uppercase tracking-wider transition-all border-b-2", activeTab === "chat" ? "border-orange-500 text-orange-400" : "border-transparent text-white/40 hover:text-white/70")}>
                   <span className="flex items-center justify-center gap-2"><BrainCircuit size={13} /> Sugestões</span>
                 </button>
-                <button onClick={() => setActiveTab("metricas")} className={cn("flex-1 py-2.5 text-xs font-bold uppercase tracking-wider transition-all border-b-2", activeTab === "metricas" ? "border-amber-500 text-amber-400" : "border-transparent text-white/40 hover:text-white/70")}>
+                <button onClick={() => setActiveTab("metricas")} className={cn("flex-1 py-2.5 text-xs font-bold uppercase tracking-wider transition-all border-b-2", activeTab === "metricas" ? "border-orange-500 text-orange-400" : "border-transparent text-white/40 hover:text-white/70")}>
                   Métricas
                 </button>
               </div>
@@ -814,7 +851,7 @@ export default function TccWorkspacePage() {
                   <div className="flex-1 overflow-y-auto custom-scroll p-4 space-y-4 pb-[130px]">
                     {messages.length === 0 && (
                       <div className="h-full flex flex-col items-center justify-center text-center opacity-60 px-5 space-y-3 pt-12">
-                        <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20 text-amber-500 mb-2"><Sparkles size={22} /></div>
+                        <div className="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20 text-orange-500 mb-2"><Sparkles size={22} /></div>
                         <h3 className="text-white/90 font-bold text-sm">Boas-vindas ao seu TCC!</h3>
                         <p className="text-[12px] text-white/40 leading-relaxed font-serif">Peça para a IA gerar um capítulo. A sugestão aparecerá no modo de revisão lado a lado com seu texto.</p>
                       </div>
@@ -825,9 +862,9 @@ export default function TccWorkspacePage() {
                           {m.role === "user" ? (
                             <div className="max-w-[85%] px-3 py-2.5 text-[13px] bg-[#1E1D19] border border-white/[0.08] rounded-[1rem_0_1rem_1rem] text-white/85 leading-relaxed">{m.content}</div>
                           ) : (
-                            <div className="w-full bg-[#181816] border border-amber-500/20 rounded-xl overflow-hidden">
-                              <div className="px-3 py-2 bg-amber-500/[0.06] border-b border-amber-500/10 flex items-center justify-between">
-                                <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-500/70 tracking-widest uppercase"><Sparkles size={11} /> Sugestão da IA</div>
+                            <div className="w-full bg-[#181816] border border-orange-500/20 rounded-xl overflow-hidden">
+                              <div className="px-3 py-2 bg-orange-500/[0.06] border-b border-orange-500/10 flex items-center justify-between">
+                                <div className="flex items-center gap-1.5 text-[10px] font-bold text-orange-500/70 tracking-widest uppercase"><Sparkles size={11} /> Sugestão da IA</div>
                                 <button
                                   onClick={() => setReviewState({ messageId: m.id, suggestionHtml: m.editorContent || m.content, userPrompt: m.userPrompt })}
                                   className="text-[10px] font-bold tracking-wider uppercase transition-colors px-2 py-0.5 rounded text-white/30 hover:text-white/60"
@@ -848,7 +885,7 @@ export default function TccWorkspacePage() {
                                 </button>
                                 <button
                                   onClick={() => handleInsertDocument(m.editorContent || m.content, 'end')}
-                                  className="flex-1 py-1.5 text-[10px] font-bold bg-amber-500/80 hover:bg-amber-500 text-black rounded-lg transition-all"
+                                  className="flex-1 py-1.5 text-[10px] font-bold bg-orange-500/80 hover:bg-orange-500 text-black rounded-lg transition-all"
                                 >
                                   Inserir direto
                                 </button>
@@ -867,7 +904,7 @@ export default function TccWorkspacePage() {
                       ))}
                     </AnimatePresence>
                     {isTyping && (
-                      <div className="flex gap-1.5 px-2"><span className="w-1.5 h-1.5 rounded-full bg-amber-500/50 animate-bounce" /><span className="w-1.5 h-1.5 rounded-full bg-amber-500/50 animate-bounce delay-75" /><span className="w-1.5 h-1.5 rounded-full bg-amber-500/50 animate-bounce delay-150" /></div>
+                      <div className="flex gap-1.5 px-2"><span className="w-1.5 h-1.5 rounded-full bg-orange-500/50 animate-bounce" /><span className="w-1.5 h-1.5 rounded-full bg-orange-500/50 animate-bounce delay-75" /><span className="w-1.5 h-1.5 rounded-full bg-orange-500/50 animate-bounce delay-150" /></div>
                     )}
                     <div ref={chatEndRef} />
                   </div>
@@ -878,7 +915,7 @@ export default function TccWorkspacePage() {
                       <select
                         value={selectedChapter}
                         onChange={e => setSelectedChapter(e.target.value)}
-                        className="w-full bg-[#1a1a18] border border-white/10 text-white/70 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500/50"
+                        className="w-full bg-[#1a1a18] border border-white/10 text-white/70 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-orange-500/50"
                       >
                         <option>Introdução</option>
                         <option>Revisão Bibliográfica (Referencial Teórico)</option>
@@ -887,7 +924,7 @@ export default function TccWorkspacePage() {
                         <option>Conclusão</option>
                       </select>
                       <button onClick={handleGerarTcc} disabled={isGenerating}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold rounded-xl hover:bg-amber-500/20 transition-colors disabled:opacity-50">
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-semibold rounded-xl hover:bg-orange-500/20 transition-colors disabled:opacity-50">
                         {isGenerating
                           ? <><Loader2 size={12} className="animate-spin" /> Gerando Inteligência...</>
                           : pdfFiles.length > 0
@@ -907,12 +944,12 @@ export default function TccWorkspacePage() {
                       <textarea value={inputVal} onChange={e => setInputVal(e.target.value)}
                         onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendPrompt() } }}
                         placeholder="Peça para gerar ou revisar..."
-                        className="w-full bg-[#181816] border border-white/[0.08] rounded-xl pl-9 pr-9 py-2.5 text-[13px] text-white/85 placeholder:text-white/25 focus:outline-none focus:border-amber-500/30 resize-none" rows={1} />
+                        className="w-full bg-[#181816] border border-white/[0.08] rounded-xl pl-9 pr-9 py-2.5 text-[13px] text-white/85 placeholder:text-white/25 focus:outline-none focus:border-orange-500/30 resize-none" rows={1} />
                       <button onClick={() => fileInputRef.current?.click()} disabled={uploading} className="absolute left-2.5 top-1/2 -translate-y-1/2 p-1 text-white/25 hover:text-white/50">
                         {uploading ? <Loader2 size={14} className="animate-spin" /> : <Paperclip size={14} />}
                       </button>
                       <input type="file" ref={fileInputRef} onChange={handleUpload} accept=".pdf,.doc,.docx" className="hidden" />
-                      <button onClick={() => handleSendPrompt()} disabled={!inputVal.trim() || isTyping} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 bg-amber-500 text-black rounded-lg hover:bg-amber-400 disabled:opacity-30 disabled:bg-white/10 disabled:text-white/30 transition-all">
+                      <button onClick={() => handleSendPrompt()} disabled={!inputVal.trim() || isTyping} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 bg-orange-500 text-black rounded-lg hover:bg-orange-400 disabled:opacity-30 disabled:bg-white/10 disabled:text-white/30 transition-all">
                         <ArrowRight size={13} />
                       </button>
                     </div>

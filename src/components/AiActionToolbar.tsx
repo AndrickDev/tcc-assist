@@ -88,22 +88,22 @@ export function AiActionToolbar({ userPlan, content, onApplyAction, onUpgrade, c
           onClick={() => handleAction('abnt')}
           disabled={loadingAction !== null}
           aria-label="Formatar nas Normas ABNT"
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] transition-colors rounded-lg border border-amber-500/20 text-[11px] font-medium text-amber-100 whitespace-nowrap shrink-0 disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] transition-colors rounded-lg border border-orange-500/20 text-[11px] font-medium text-orange-100 whitespace-nowrap shrink-0 disabled:opacity-50"
         >
-          {loadingAction === 'abnt' ? <Loader2 size={13} className="animate-spin" /> : <BookOpen size={13} className="text-amber-400" />}
+          {loadingAction === 'abnt' ? <Loader2 size={13} className="animate-spin" /> : <BookOpen size={13} className="text-orange-400" />}
           Formatar ABNT
-          {userPlan !== 'VIP' && <Crown size={10} className="text-amber-500/50" />}
+          {userPlan !== 'VIP' && <Crown size={10} className="text-orange-500/50" />}
         </button>
 
         <button 
           onClick={() => handleAction('citacoes')}
           disabled={loadingAction !== null}
           aria-label="Melhorar Citações e Referências"
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] transition-colors rounded-lg border border-amber-500/20 text-[11px] font-medium text-amber-100 whitespace-nowrap shrink-0 disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] transition-colors rounded-lg border border-orange-500/20 text-[11px] font-medium text-orange-100 whitespace-nowrap shrink-0 disabled:opacity-50"
         >
-          {loadingAction === 'citacoes' ? <Loader2 size={13} className="animate-spin" /> : <Quote size={13} className="text-amber-400" />}
+          {loadingAction === 'citacoes' ? <Loader2 size={13} className="animate-spin" /> : <Quote size={13} className="text-orange-400" />}
           Melhorar Citações
-          {userPlan !== 'VIP' && <Crown size={10} className="text-amber-500/50" />}
+          {userPlan !== 'VIP' && <Crown size={10} className="text-orange-500/50" />}
         </button>
 
         <div className="w-px h-4 bg-white/[0.1] mx-1 shrink-0" />
@@ -112,7 +112,7 @@ export function AiActionToolbar({ userPlan, content, onApplyAction, onUpgrade, c
           onClick={() => handleAction('proximopasso')}
           disabled={loadingAction !== null}
           aria-label="Orientação sobre o próximo passo"
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 transition-colors rounded-lg text-[11px] font-bold text-black whitespace-nowrap shrink-0 disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 hover:bg-orange-400 transition-colors rounded-lg text-[11px] font-bold text-black whitespace-nowrap shrink-0 disabled:opacity-50"
         >
           {loadingAction === 'proximopasso' ? <Loader2 size={13} className="animate-spin" /> : <ChevronRight size={13} />}
           Próximo Passo
@@ -136,15 +136,15 @@ export function AiActionToolbar({ userPlan, content, onApplyAction, onUpgrade, c
             exit={{ opacity: 0, height: 0, marginTop: 0 }}
             className="overflow-hidden"
           >
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 text-sm text-amber-200 flex gap-3">
-              <ChevronRight className="shrink-0 text-amber-400 mt-0.5" size={16} />
+            <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-sm text-orange-200 flex gap-3">
+              <ChevronRight className="shrink-0 text-orange-400 mt-0.5" size={16} />
               <div>
-                <p className="font-bold text-amber-400 text-xs mb-1 uppercase tracking-wider">Orientação VIP</p>
+                <p className="font-bold text-orange-400 text-xs mb-1 uppercase tracking-wider">Orientação VIP</p>
                 <p>{nextStep}</p>
                 <button onClick={() => {
                   setNextStep(null)
                   trackEvent('AI_PANEL_TOGGLE_NEXT_STEP', { state: 'closed' })
-                }} className="text-[10px] text-amber-400/50 mt-2 hover:text-amber-400">Fechar</button>
+                }} className="text-[10px] text-orange-400/50 mt-2 hover:text-orange-400">Fechar</button>
               </div>
             </div>
           </motion.div>
