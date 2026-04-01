@@ -26,12 +26,8 @@ export async function POST(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'TCC não encontrado.' }, { status: 404 })
     }
 
-    const { action, text, context, devPlanOverride } = await req.json()
-    let userPlan = resolvePlan((session.user as { plan?: string }).plan)
-    
-    if (process.env.NODE_ENV === 'development' && devPlanOverride) {
-      userPlan = devPlanOverride
-    }
+    const { action, text, context } = await req.json()
+    const userPlan = resolvePlan((session.user as { plan?: string }).plan)
 
     // Free users can only Generate (via the main chat). This endpoint restricts Action tools.
     if (userPlan === 'FREE') {

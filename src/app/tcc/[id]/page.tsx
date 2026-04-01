@@ -568,7 +568,7 @@ export default function TccWorkspacePage() {
     try {
       const res = await fetch("/api/chat", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tccId: id, message: text, devPlanOverride: userPlan }),
+        body: JSON.stringify({ tccId: id, message: text }),
       })
       const data = await res.json()
       const botMsg: ChatMessage = {

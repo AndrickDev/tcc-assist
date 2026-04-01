@@ -41,7 +41,7 @@ export function AiActionToolbar({ userPlan, content, onApplyAction, onUpgrade, c
       const res = await fetch(`/api/tcc/${tccId}/ai-action`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, text: content, context, devPlanOverride: userPlan })
+        body: JSON.stringify({ action, text: content, context })
       })
       const data = await res.json()
       const duration = Date.now() - startTime

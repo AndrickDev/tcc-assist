@@ -1,10 +1,22 @@
 import { NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 import { callGemini, callGeminiWithFiles } from '@/lib/gemini'
 
 export async function POST(request: Request) {
   try {
+    const session = await auth()
+    const userId = (session?.user as { id?: string } | undefined)?.id
+    if (!userId) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+
     const body = await request.json()
-    const { tema, pdfsBase64, capitulo = 'Introdução', contextoAnterior = '' } = body
+    const { tema, pdfsBase64, capitulo = 'Introdução', contextoAnterior = '', tccId } = body
+
+    // Verificar que o TCC pertence ao usuário autenticado (quando fornecido)
+    if (tccId) {
+      const tcc = await prisma.tcc.findFirst({ where: { id: tccId, userId }, select: { id: true } })
+      if (!tcc) return NextResponse.json({ error: 'TCC não encontrado.' }, { status: 404 })
+    }
 
     if (!tema) {
       return NextResponse.json(

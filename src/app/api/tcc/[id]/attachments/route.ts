@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import path from "path"
-import { mkdir, writeFile } from "fs/promises"
+import { put } from "@vercel/blob"
 import { resolvePlan, getAttachmentLimit } from "@/lib/plan"
 
 export const dynamic = "force-dynamic"
@@ -10,7 +9,7 @@ export const dynamic = "force-dynamic"
 const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024 // 20 MB
 
 function safeFileName(originalName: string) {
-  const base = path.basename(originalName).replace(/[^\w.\-()+\s]/g, "_")
+  const base = originalName.replace(/[^\w.\-()+\s]/g, "_")
   return base.slice(0, 180) || "upload"
 }
 
@@ -29,7 +28,7 @@ async function requireOwnedTcc(tccId: string, userId: string) {
   })
 }
 
-// GET /api/tcc/[id]/attachments - list attachments for a TCC (owner-only)
+// GET /api/tcc/[id]/attachments
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
   const userId = (session?.user as { id?: string } | undefined)?.id
@@ -44,24 +43,16 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     prisma.attachment.findMany({
       where: { tccId },
       orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        fileName: true,
-        fileUrl: true,
-        fileSize: true,
-        mimeType: true,
-        createdAt: true,
-      },
+      select: { id: true, fileName: true, fileUrl: true, fileSize: true, mimeType: true, createdAt: true },
     }),
   ])
 
   const plan = resolvePlan(user?.plan)
   const limit = getAttachmentLimit(plan)
-
   return NextResponse.json({ plan, limit, count: attachments.length, attachments })
 }
 
-// POST /api/tcc/[id]/attachments - upload attachment (owner-only)
+// POST /api/tcc/[id]/attachments
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth()
@@ -79,52 +70,31 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
 
     if (!isAllowedMime(file.type)) {
-      return NextResponse.json(
-        { error: "Formato não suportado. Envie PDF ou DOC/DOCX." },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Formato não suportado. Envie PDF ou DOC/DOCX." }, { status: 400 })
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      return NextResponse.json(
-        { error: "Arquivo muito grande. O limite é 20 MB por arquivo." },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Arquivo muito grande. O limite é 20 MB por arquivo." }, { status: 400 })
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { plan: true },
-    })
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { plan: true } })
     const plan = resolvePlan(user?.plan)
     const limit = getAttachmentLimit(plan)
     const count = await prisma.attachment.count({ where: { tccId } })
     if (count >= limit) {
       return NextResponse.json(
-        { error: `Limite de anexos atingido para o plano ${plan} (${limit})`, plan, limit, count },
+        { error: `Limite de ${limit} anexos atingido no plano ${plan}.`, plan, limit, count },
         { status: 403 }
       )
     }
 
-    // Local upload (dev-friendly): public/uploads/<userId>/<tccId>/<timestamp>-<name>
     const safeName = safeFileName(file.name)
-    const stamp = Date.now()
-    const relativeDir = path.posix.join("uploads", userId, tccId)
-    const relativePath = path.posix.join(relativeDir, `${stamp}-${safeName}`)
-    const absDir = path.join(process.cwd(), "public", "uploads", userId, tccId)
-    const absPath = path.join(process.cwd(), "public", relativePath.split("/").join(path.sep))
-    await mkdir(absDir, { recursive: true })
-    const bytes = Buffer.from(await file.arrayBuffer())
-    await writeFile(absPath, bytes)
+    const blobPath = `attachments/${userId}/${tccId}/${Date.now()}-${safeName}`
+
+    const blob = await put(blobPath, file, { access: "public" })
 
     const attachment = await prisma.attachment.create({
-      data: {
-        tccId,
-        fileName: safeName,
-        fileUrl: `/${relativePath}`,
-        fileSize: file.size,
-        mimeType: file.type,
-      },
+      data: { tccId, fileName: safeName, fileUrl: blob.url, fileSize: file.size, mimeType: file.type },
     })
 
     return NextResponse.json({ success: true, plan, limit, count: count + 1, attachment })
