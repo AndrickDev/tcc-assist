@@ -54,15 +54,20 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
 // POST /api/tcc/[id]/attachments
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  let step = "auth"
   try {
     const session = await auth()
     const userId = (session?.user as { id?: string } | undefined)?.id
     if (!userId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
 
+    step = "params"
     const { id: tccId } = await params
+
+    step = "ownership"
     const tcc = await requireOwnedTcc(tccId, userId)
     if (!tcc) return NextResponse.json({ error: "TCC não encontrado" }, { status: 404 })
 
+    step = "formdata"
     const formData = await req.formData()
     const file = formData.get("file")
     if (!(file instanceof File)) {
@@ -77,6 +82,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       return NextResponse.json({ error: "Arquivo muito grande. O limite é 20 MB por arquivo." }, { status: 400 })
     }
 
+    step = "plan_check"
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { plan: true } })
     const plan = resolvePlan(user?.plan)
     const limit = getAttachmentLimit(plan)
@@ -88,19 +94,20 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       )
     }
 
+    step = "blob_upload"
     const safeName = safeFileName(file.name)
     const blobPath = `attachments/${userId}/${tccId}/${Date.now()}-${safeName}`
-
     const blob = await put(blobPath, file, { access: "public" })
 
+    step = "db_save"
     const attachment = await prisma.attachment.create({
       data: { tccId, fileName: safeName, fileUrl: blob.url, fileSize: file.size, mimeType: file.type },
     })
 
     return NextResponse.json({ success: true, plan, limit, count: count + 1, attachment })
   } catch (error) {
-    console.error("Attachment Upload Error:", error)
     const message = error instanceof Error ? error.message : String(error)
-    return NextResponse.json({ error: message || "Internal Server Error" }, { status: 500 })
+    console.error(`Attachment Upload Error [step=${step}]:`, message)
+    return NextResponse.json({ error: message, step }, { status: 500 })
   }
 }
