@@ -11,26 +11,35 @@ export async function POST(request: Request) {
 
     const body = await request.json()
     const {
-      tema, pdfsBase64, capitulo = 'Introdução', contextoAnterior = '', tccId,
-      tipoTrabalho, objetivo, norma, curso
+      tccId, capitulo = 'Introdução', contextoAnterior = '',
+      tipoTrabalho, objetivo, norma, curso, tema
     } = body
 
-    // Verificar que o TCC pertence ao usuário autenticado (quando fornecido)
-    if (tccId) {
-      const tcc = await prisma.tcc.findFirst({ where: { id: tccId, userId }, select: { id: true } })
-      if (!tcc) return NextResponse.json({ error: 'TCC não encontrado.' }, { status: 404 })
+    if (!tccId || !tema) {
+      return NextResponse.json({ error: 'tccId e tema são obrigatórios' }, { status: 400 })
     }
 
-    if (!tema) {
-      return NextResponse.json({ error: 'Tema é obrigatório' }, { status: 400 })
-    }
+    // Verificar que o TCC pertence ao usuário autenticado
+    const tcc = await prisma.tcc.findFirst({ where: { id: tccId, userId }, select: { id: true } })
+    if (!tcc) return NextResponse.json({ error: 'TCC não encontrado.' }, { status: 404 })
 
-    const pdfParts = (pdfsBase64 && pdfsBase64.length > 0)
-      ? (pdfsBase64 as string[]).map((pdf: string) => ({
-          data: pdf.replace(/^data:application\/pdf;base64,/, ''),
-          mimeType: 'application/pdf' as const
-        }))
-      : []
+    // Buscar attachments persistidos no banco
+    const attachments = await prisma.attachment.findMany({
+      where: { tccId, mimeType: 'application/pdf' },
+      select: { fileUrl: true },
+    })
+
+    // Baixar cada PDF do Vercel Blob e converter para base64
+    const pdfParts = await Promise.all(
+      attachments.map(async (a) => {
+        const res = await fetch(a.fileUrl, {
+          headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
+        })
+        if (!res.ok) throw new Error(`Falha ao baixar anexo: ${res.status}`)
+        const base64 = Buffer.from(await res.arrayBuffer()).toString('base64')
+        return { data: base64, mimeType: 'application/pdf' as const }
+      })
+    )
 
     const regrasCitacao = pdfParts.length > 0
       ? `- Você recebeu documentos PDF em anexo. Avalie se o conteúdo deles tem relação lógica com o tema "${tema}".

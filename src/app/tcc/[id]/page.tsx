@@ -91,16 +91,6 @@ function computeLinguisticFidelity(original: string, suggestion: string): number
   return Math.min(Math.max(base, 72), 97)
 }
 
-// ─── PDF / Gemini helpers ─────────────────────────────────────────────────────
-
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
-}
 
 function markdownToHtml(md: string): string {
   const html = md
@@ -414,7 +404,6 @@ export default function TccWorkspacePage() {
   const [activeTab, setActiveTab] = React.useState<"chat" | "metricas">("chat")
   const [attachmentsMeta, setAttachmentsMeta] = React.useState<{ count: number; limit: number } | null>(null)
   const [uploading, setUploading] = React.useState(false)
-  const [pdfFiles, setPdfFiles] = React.useState<File[]>([])
   const [isGenerating, setIsGenerating] = React.useState(false)
   const [selectedChapter, setSelectedChapter] = React.useState("Introdução")
   const [upgradeOpen, setUpgradeOpen] = React.useState(false)
@@ -631,7 +620,6 @@ export default function TccWorkspacePage() {
     formData.append("file", file)
     try {
       await fetch(`/api/tcc/${id}/attachments`, { method: "POST", body: formData })
-      if (file.type === "application/pdf") setPdfFiles(prev => [...prev, file])
       setMessages(prev => [...prev, { id: Date.now().toString(), role: "bot", content: `📎 Arquivo "${file.name}" anexado com sucesso.` }])
       fetchAttachments()
     } catch { } finally {
@@ -641,21 +629,20 @@ export default function TccWorkspacePage() {
   }
 
   const handleGerarTcc = async () => {
-    if (pdfFiles.length === 0 || !tccMeta) return
+    if (!tccMeta) return
     setIsGenerating(true)
     setActiveTab("chat")
     try {
-      const pdfsBase64 = await Promise.all(pdfFiles.map(fileToBase64))
       const res = await fetch('/api/gerar-tcc', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          tccId: id,
           tema: tccMeta.title,
           tipoTrabalho: tccMeta.workType,
           objetivo: tccMeta.objective,
           norma: tccMeta.norma,
           curso: tccMeta.course,
-          pdfsBase64,
           capitulo: selectedChapter,
           contextoAnterior: stripHtmlTags(tccContent)
         })
@@ -673,14 +660,13 @@ export default function TccWorkspacePage() {
         }
         setMessages(prev => [...prev, botMsg])
       } else {
-        setMessages(prev => [...prev, { id: Date.now().toString(), role: "bot", content: `⚠️ ${data.error ?? "Erro ao gerar introdução."}` }])
+        setMessages(prev => [...prev, { id: Date.now().toString(), role: "bot", content: `⚠️ ${data.error ?? "Erro ao gerar capítulo."}` }])
       }
     } catch (e) {
       console.error(e)
       setMessages(prev => [...prev, { id: Date.now().toString(), role: "bot", content: "⚠️ Falha na conexão com a IA. Tente novamente." }])
     } finally {
       setIsGenerating(false)
-      setPdfFiles([])
     }
   }
 
@@ -936,8 +922,8 @@ export default function TccWorkspacePage() {
                         className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-orange-700/10 border border-orange-700/30 text-orange-600 text-xs font-semibold rounded-xl hover:bg-orange-700/20 transition-colors disabled:opacity-50">
                         {isGenerating
                           ? <><Loader2 size={12} className="animate-spin" /> Gerando Inteligência...</>
-                          : pdfFiles.length > 0
-                            ? <><Sparkles size={12} /> Gerar com {pdfFiles.length} PDF{pdfFiles.length > 1 ? 's' : ''}</>
+                          : attachmentsMeta && attachmentsMeta.count > 0
+                            ? <><Sparkles size={12} /> Gerar usando {attachmentsMeta.count} Referência{attachmentsMeta.count > 1 ? 's' : ''}</>
                             : <><Sparkles size={12} /> Gerar sem Referências</>}
                       </button>
                     </div>
