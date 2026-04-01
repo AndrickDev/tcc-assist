@@ -649,7 +649,16 @@ export default function TccWorkspacePage() {
       const res = await fetch('/api/gerar-tcc', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tema: tccMeta.title, pdfsBase64, capitulo: selectedChapter, contextoAnterior: stripHtmlTags(tccContent) })
+        body: JSON.stringify({
+          tema: tccMeta.title,
+          tipoTrabalho: tccMeta.workType,
+          objetivo: tccMeta.objective,
+          norma: tccMeta.norma,
+          curso: tccMeta.course,
+          pdfsBase64,
+          capitulo: selectedChapter,
+          contextoAnterior: stripHtmlTags(tccContent)
+        })
       })
       const data = await res.json()
       if (data.sucesso) {

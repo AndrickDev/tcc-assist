@@ -10,7 +10,10 @@ export async function POST(request: Request) {
     if (!userId) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 
     const body = await request.json()
-    const { tema, pdfsBase64, capitulo = 'Introdução', contextoAnterior = '', tccId } = body
+    const {
+      tema, pdfsBase64, capitulo = 'Introdução', contextoAnterior = '', tccId,
+      tipoTrabalho, objetivo, norma, curso
+    } = body
 
     // Verificar que o TCC pertence ao usuário autenticado (quando fornecido)
     if (tccId) {
@@ -19,10 +22,7 @@ export async function POST(request: Request) {
     }
 
     if (!tema) {
-      return NextResponse.json(
-        { error: 'Tema é obrigatório' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Tema é obrigatório' }, { status: 400 })
     }
 
     const pdfParts = (pdfsBase64 && pdfsBase64.length > 0)
@@ -39,19 +39,32 @@ export async function POST(request: Request) {
       : `- Como não foram fornecidos documentos base, utilize seu vasto conhecimento acadêmico para embasar o texto.
      - Cite apenas autores reais, teorias reais e livros consolidados da área acadêmica do tema.`
 
-    const prompt = `Você é um professor universitário rigoroso.
-Tema do TCC: "${tema}".
-Escreva APENAS o capítulo: "${capitulo}".
+    const bussolaAcademica = `
+[BÚSSOLA ACADÊMICA - DIRETRIZES IMUTÁVEIS DO TRABALHO]
+Tipo de Trabalho: ${tipoTrabalho || 'TCC / Monografia'}
+Área / Curso: ${curso || 'Não informado'}
+Norma: ${norma || 'ABNT'}
+Tema Central: ${tema}
+Objetivo Principal: ${objetivo || 'Não definido. Foque no tema central.'}
 
-REGRAS ESTRITAS:
-- Mantenha tom formal e impessoal (3ª pessoa). Formato Markdown.
+REGRA 1: Tudo o que você escrever DEVE estar alinhado para alcançar o Objetivo Principal e responder ao Tema Central acima. Nunca desvie desse escopo.`
+
+    const prompt = `Você é um acadêmico rigoroso nível doutorado.
+${bussolaAcademica}
+
+[TAREFA ATUAL]
+Escreva APENAS o seguinte capítulo/seção: "${capitulo}".
+
+[REGRAS DE ESCRITA E CITAÇÃO]
+- Tom formal, impessoal (3ª pessoa). Formato Markdown.
 ${regrasCitacao}
 
-CONTEXTO ANTERIOR (O que o aluno já escreveu):
+[CONTINUIDADE E COERÊNCIA]
+O que já foi escrito no documento:
 """
 ${contextoAnterior || 'Nenhum texto escrito ainda.'}
 """
-Construa o novo capítulo como uma continuação natural e não repita o contexto.`
+Construa a nova seção como continuação lógica. NÃO REPITA o que já foi dito acima.`
 
     const texto = pdfParts.length > 0
       ? await callGeminiWithFiles(pdfParts, prompt)
