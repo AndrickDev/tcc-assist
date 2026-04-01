@@ -97,7 +97,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     step = "blob_upload"
     const safeName = safeFileName(file.name)
     const blobPath = `attachments/${userId}/${tccId}/${Date.now()}-${safeName}`
-    const blob = await put(blobPath, file, { access: "public" })
+    const blob = await put(blobPath, file, { access: "private" })
 
     step = "db_save"
     const attachment = await prisma.attachment.create({
