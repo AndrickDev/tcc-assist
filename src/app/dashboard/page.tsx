@@ -631,7 +631,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-8">
 
                 {/* Left */}
-                <div className="space-y-8">
+                <div className="space-y-8 min-w-0">
                   {/* Active projects */}
                   <section>
                     <div className="flex items-center justify-between mb-4">
