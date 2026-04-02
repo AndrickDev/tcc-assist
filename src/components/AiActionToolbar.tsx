@@ -67,10 +67,10 @@ export function AiActionToolbar({ userPlan, content, onApplyAction, onUpgrade, c
   }
 
   return (
-    <div className="bg-[#1a1a18] border-b border-white/[0.06] px-3 py-2 flex flex-col gap-2 relative">
+    <div className="bg-[var(--brand-surface)] border-b border-[var(--brand-border)] px-3 py-2 flex flex-col gap-2 relative">
       <div className="flex items-center gap-1.5 overflow-x-auto p-1 custom-scroll">
-        <div className="flex items-center gap-1.5 px-2 text-[10px] font-bold tracking-widest text-white/40 uppercase shrink-0">
-          <Sparkles size={12} className="text-white/30" />
+        <div className="flex items-center gap-1.5 px-2 text-[10px] font-bold tracking-widest text-[var(--brand-muted)]/70 uppercase shrink-0">
+          <Sparkles size={12} className="text-[var(--brand-muted)]/60" />
           Ações
         </div>
 
@@ -78,7 +78,7 @@ export function AiActionToolbar({ userPlan, content, onApplyAction, onUpgrade, c
           onClick={() => handleAction('revisar')}
           disabled={loadingAction !== null}
           aria-label={userPlan === 'VIP' ? 'Revisão Crítica VIP' : 'Revisão Gramatical'}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] transition-colors rounded-lg border border-white/[0.06] text-[11px] font-medium text-white/70 whitespace-nowrap shrink-0 disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--brand-surface)] hover:bg-[var(--brand-hover)] transition-colors rounded-lg border border-[var(--brand-border)] text-[11px] font-medium text-[var(--brand-text)]/70 whitespace-nowrap shrink-0 disabled:opacity-50"
         >
           {loadingAction === 'revisar' ? <Loader2 size={13} className="animate-spin" /> : <Edit3 size={13} className="text-blue-400" />}
           {userPlan === 'VIP' ? 'Revisão Crítica' : 'Revisão Gramatical'}
@@ -88,7 +88,7 @@ export function AiActionToolbar({ userPlan, content, onApplyAction, onUpgrade, c
           onClick={() => handleAction('abnt')}
           disabled={loadingAction !== null}
           aria-label="Formatar nas Normas ABNT"
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] transition-colors rounded-lg border border-orange-700/20 text-[11px] font-medium text-orange-100 whitespace-nowrap shrink-0 disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--brand-surface)] hover:bg-[var(--brand-hover)] transition-colors rounded-lg border border-orange-700/20 text-[11px] font-medium text-orange-100 whitespace-nowrap shrink-0 disabled:opacity-50"
         >
           {loadingAction === 'abnt' ? <Loader2 size={13} className="animate-spin" /> : <BookOpen size={13} className="text-orange-600" />}
           Formatar ABNT
@@ -99,7 +99,7 @@ export function AiActionToolbar({ userPlan, content, onApplyAction, onUpgrade, c
           onClick={() => handleAction('citacoes')}
           disabled={loadingAction !== null}
           aria-label="Melhorar Citações e Referências"
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] transition-colors rounded-lg border border-orange-700/20 text-[11px] font-medium text-orange-100 whitespace-nowrap shrink-0 disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--brand-surface)] hover:bg-[var(--brand-hover)] transition-colors rounded-lg border border-orange-700/20 text-[11px] font-medium text-orange-100 whitespace-nowrap shrink-0 disabled:opacity-50"
         >
           {loadingAction === 'citacoes' ? <Loader2 size={13} className="animate-spin" /> : <Quote size={13} className="text-orange-600" />}
           Melhorar Citações

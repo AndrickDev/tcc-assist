@@ -160,37 +160,37 @@ function ReviewPanel({
       className="flex-1 flex overflow-hidden"
     >
       {/* ── Col 1: Original Manuscript ── */}
-      <div className="flex-1 flex flex-col border-r border-white/[0.06] min-w-0">
-        <div className="px-6 py-3 border-b border-white/[0.05]">
-          <span className="text-[9px] font-bold tracking-widest text-white/25 uppercase">Manuscrito Original</span>
+      <div className="flex-1 flex flex-col border-r border-[var(--brand-border)] min-w-0">
+        <div className="px-6 py-3 border-b border-[var(--brand-border)]">
+          <span className="text-[9px] font-bold tracking-widest text-[var(--brand-muted)]/50 uppercase">Manuscrito Original</span>
         </div>
         <div className="flex-1 overflow-y-auto custom-scroll px-8 py-8">
           {original ? (
             <div
-              className="text-[15px] leading-[1.85] text-white/45 font-serif max-w-[480px]"
+              className="text-[15px] leading-[1.85] text-[var(--brand-muted)] font-serif max-w-[480px]"
               dangerouslySetInnerHTML={{ __html: original }}
             />
           ) : (
-            <p className="text-white/20 text-sm font-serif italic">Documento ainda sem conteúdo. A sugestão será adicionada ao final.</p>
+            <p className="text-[var(--brand-muted)]/40 text-sm font-serif italic">Documento ainda sem conteúdo. A sugestão será adicionada ao final.</p>
           )}
         </div>
       </div>
 
       {/* ── Col 2: Revision Suggestion ── */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#131311]">
+      <div className="flex-1 flex flex-col min-w-0 bg-[var(--brand-hover)]">
         {/* Header with REJECT / ACCEPT */}
-        <div className="px-6 py-3 border-b border-white/[0.06] flex items-center justify-between">
-          <span className="text-[9px] font-bold tracking-widest text-white/25 uppercase">Sugestão de Revisão</span>
+        <div className="px-6 py-3 border-b border-[var(--brand-border)] flex items-center justify-between">
+          <span className="text-[9px] font-bold tracking-widest text-[var(--brand-muted)]/50 uppercase">Sugestão de Revisão</span>
           <div className="flex items-center gap-3">
             <button
               onClick={onReject}
-              className="text-[11px] font-bold text-white/35 hover:text-red-400 tracking-wider uppercase transition-colors flex items-center gap-1"
+              className="text-[11px] font-bold text-[var(--brand-muted)]/60 hover:text-red-400 tracking-wider uppercase transition-colors flex items-center gap-1"
             >
               <XCircle size={13} /> Rejeitar
             </button>
             <button
               onClick={onAccept}
-              className="text-[11px] font-bold text-white/80 hover:text-white tracking-wider uppercase transition-colors flex items-center gap-1.5 bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.12] px-3 py-1.5 rounded-lg"
+              className="text-[11px] font-bold text-[var(--brand-text)]/80 hover:text-white tracking-wider uppercase transition-colors flex items-center gap-1.5 bg-[var(--brand-hover)] hover:bg-[var(--brand-hover)] border border-[var(--brand-border)] px-3 py-1.5 rounded-lg"
             >
               <Check size={13} /> Aceitar
             </button>
@@ -199,17 +199,17 @@ function ReviewPanel({
 
         <div className="flex-1 overflow-y-auto custom-scroll px-8 py-8">
           <div
-            className="text-[15px] leading-[1.85] text-white/85 font-serif max-w-[480px]"
+            className="text-[15px] leading-[1.85] text-[var(--brand-text)] font-serif max-w-[480px]"
             dangerouslySetInnerHTML={{ __html: suggestion }}
           />
         </div>
 
         {/* Bottom: regenerate */}
         {onRegenerate && (
-          <div className="px-6 py-3 border-t border-white/[0.05]">
+          <div className="px-6 py-3 border-t border-[var(--brand-border)]">
             <button
               onClick={onRegenerate}
-              className="flex items-center gap-1.5 text-[11px] text-white/30 hover:text-white/60 transition-colors font-medium"
+              className="flex items-center gap-1.5 text-[11px] text-[var(--brand-muted)]/60 hover:text-[var(--brand-muted)] transition-colors font-medium"
             >
               <RotateCcw size={11} /> Regerar sugestão
             </button>
@@ -218,19 +218,19 @@ function ReviewPanel({
       </div>
 
       {/* ── Col 3: Analysis Panel ── */}
-      <div className="w-[220px] shrink-0 border-l border-white/[0.06] flex flex-col overflow-y-auto custom-scroll">
-        <div className="px-5 py-3 border-b border-white/[0.05]">
-          <span className="text-[9px] font-bold tracking-widest text-white/25 uppercase">Análise</span>
+      <div className="w-[220px] shrink-0 border-l border-[var(--brand-border)] flex flex-col overflow-y-auto custom-scroll">
+        <div className="px-5 py-3 border-b border-[var(--brand-border)]">
+          <span className="text-[9px] font-bold tracking-widest text-[var(--brand-muted)]/50 uppercase">Análise</span>
         </div>
 
         <div className="p-5 space-y-6">
           {/* Linguistic Fidelity */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Fidelidade Linguística</span>
-              <span className="text-sm font-bold text-white/70">{fidelity}%</span>
+              <span className="text-[9px] font-bold text-[var(--brand-muted)]/60 uppercase tracking-widest">Fidelidade Linguística</span>
+              <span className="text-sm font-bold text-[var(--brand-text)]/70">{fidelity}%</span>
             </div>
-            <div className="h-0.5 bg-white/[0.07] rounded-full overflow-hidden">
+            <div className="h-0.5 bg-[var(--brand-surface)] rounded-full overflow-hidden">
               <motion.div
                 className="h-full bg-white/40 rounded-full"
                 initial={{ width: 0 }}
@@ -244,8 +244,8 @@ function ReviewPanel({
           <div className="space-y-4">
             {issues.map((issue, i) => (
               <div key={i}>
-                <p className="text-[9px] font-bold text-white/35 tracking-widest mb-1">{issue.label}</p>
-                <p className="text-[11px] text-white/30 leading-relaxed">{issue.detail}</p>
+                <p className="text-[9px] font-bold text-[var(--brand-muted)]/60 tracking-widest mb-1">{issue.label}</p>
+                <p className="text-[11px] text-[var(--brand-muted)]/60 leading-relaxed">{issue.detail}</p>
               </div>
             ))}
           </div>
@@ -253,8 +253,8 @@ function ReviewPanel({
           {/* Structural Metrics */}
           <div>
             <div className="flex items-center gap-1.5 mb-3">
-              <BarChart2 size={11} className="text-white/25" />
-              <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Métricas Estruturais</span>
+              <BarChart2 size={11} className="text-[var(--brand-muted)]/50" />
+              <span className="text-[9px] font-bold text-[var(--brand-muted)]/60 uppercase tracking-widest">Métricas Estruturais</span>
             </div>
             <div className="space-y-2.5">
               {[
@@ -263,9 +263,9 @@ function ReviewPanel({
               ].map(m => (
                 <div key={m.label}>
                   <div className="flex justify-between mb-1">
-                    <span className="text-[10px] text-white/25">{m.label}</span>
+                    <span className="text-[10px] text-[var(--brand-muted)]/50">{m.label}</span>
                   </div>
-                  <div className="h-0.5 bg-white/[0.06] rounded-full overflow-hidden">
+                  <div className="h-0.5 bg-[var(--brand-surface)] rounded-full overflow-hidden">
                     <div className="h-full bg-white/20 rounded-full" style={{ width: `${m.value}%` }} />
                   </div>
                 </div>
@@ -274,8 +274,8 @@ function ReviewPanel({
           </div>
 
           {/* Tip quote */}
-          <div className="border-t border-white/[0.05] pt-4">
-            <p className="text-[11px] text-white/20 leading-relaxed italic font-serif">
+          <div className="border-t border-[var(--brand-border)] pt-4">
+            <p className="text-[11px] text-[var(--brand-muted)]/40 leading-relaxed italic font-serif">
               &ldquo;O contraste entre o &lsquo;objetivo&rsquo; e o &lsquo;subjetivo&rsquo; pode ser enfatizado na conclusão.&rdquo;
             </p>
           </div>
@@ -283,7 +283,7 @@ function ReviewPanel({
           {/* Apply Strategy */}
           <button
             onClick={onAccept}
-            className="w-full py-2 text-[10px] font-bold text-white/40 hover:text-white/70 border border-white/[0.08] hover:border-white/[0.16] rounded-lg transition-all uppercase tracking-widest"
+            className="w-full py-2 text-[10px] font-bold text-[var(--brand-muted)]/70 hover:text-[var(--brand-text)]/70 border border-[var(--brand-border)] hover:border-[var(--brand-border)] rounded-lg transition-all uppercase tracking-widest"
           >
             Aplicar Estratégia
           </button>
@@ -303,36 +303,36 @@ function UpgradeModal({ open, onClose, onPricing, currentPlan }: { open: boolean
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} transition={{ duration: 0.18, ease: "easeOut" }}
-            className="relative w-full max-w-md bg-[#1a1a18] rounded-2xl border border-white/[0.1] p-7 space-y-5">
-            <button onClick={onClose} className="absolute top-4 right-4 p-1.5 hover:bg-white/[0.08] rounded-lg transition-colors"><X size={14} className="text-white/40" /></button>
+            className="relative w-full max-w-md bg-[var(--brand-surface)] rounded-2xl border border-white/[0.1] p-7 space-y-5">
+            <button onClick={onClose} className="absolute top-4 right-4 p-1.5 hover:bg-[var(--brand-hover)] rounded-lg transition-colors"><X size={14} className="text-[var(--brand-muted)]/70" /></button>
             <div className="space-y-1">
-              <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">{isPro ? "Upgrade para VIP" : "Escolha seu plano"}</p>
+              <p className="text-[10px] font-bold text-[var(--brand-muted)]/60 uppercase tracking-widest">{isPro ? "Upgrade para VIP" : "Escolha seu plano"}</p>
               <h2 className="text-xl font-bold text-white">{isPro ? "O melhor resultado para seu TCC" : "Escreva seu TCC sem limites"}</h2>
             </div>
             {!isPro && (
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-4 rounded-xl border border-white/[0.08] bg-white/[0.03] space-y-3">
-                  <div><p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">PRO</p><p className="text-lg font-black text-white leading-none mt-1">R$ 200</p><p className="text-[10px] text-white/30 mt-0.5">por TCC</p></div>
-                  <ul className="space-y-1.5">{["50 mensagens/dia", "Revisão por cap.", "PDF sem marca"].map(f => (<li key={f} className="text-[11px] text-white/45 flex items-center gap-1.5"><CheckCircle2 size={10} className="text-white/25 shrink-0" /> {f}</li>))}</ul>
-                  <button onClick={onPricing} className="w-full py-2 text-[11px] font-bold border border-white/[0.12] rounded-lg text-white/60 hover:bg-white/[0.06] transition-colors">Ver PRO</button>
+                <div className="p-4 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] space-y-3">
+                  <div><p className="text-[10px] font-bold text-[var(--brand-muted)]/70 uppercase tracking-wider">PRO</p><p className="text-lg font-black text-white leading-none mt-1">R$ 200</p><p className="text-[10px] text-[var(--brand-muted)]/60 mt-0.5">por TCC</p></div>
+                  <ul className="space-y-1.5">{["50 mensagens/dia", "Revisão por cap.", "PDF sem marca"].map(f => (<li key={f} className="text-[11px] text-[var(--brand-muted)] flex items-center gap-1.5"><CheckCircle2 size={10} className="text-[var(--brand-muted)]/50 shrink-0" /> {f}</li>))}</ul>
+                  <button onClick={onPricing} className="w-full py-2 text-[11px] font-bold border border-[var(--brand-border)] rounded-lg text-[var(--brand-muted)] hover:bg-[var(--brand-hover)] transition-colors">Ver PRO</button>
                 </div>
                 <div className="p-4 rounded-xl border border-orange-700/30 bg-orange-700/[0.05] space-y-3 relative">
                   <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-orange-700 text-black text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap">Premium</div>
-                  <div><p className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">VIP</p><p className="text-lg font-black text-white leading-none mt-1">R$ 1.000</p><p className="text-[10px] text-white/30 mt-0.5">2 TCCs</p></div>
-                  <ul className="space-y-1.5">{["Ilimitado", "Revisão completa", "Consistência global"].map(f => (<li key={f} className="text-[11px] text-white/70 flex items-center gap-1.5"><CheckCircle2 size={10} className="text-orange-600 shrink-0" /> {f}</li>))}</ul>
+                  <div><p className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">VIP</p><p className="text-lg font-black text-white leading-none mt-1">R$ 1.000</p><p className="text-[10px] text-[var(--brand-muted)]/60 mt-0.5">2 TCCs</p></div>
+                  <ul className="space-y-1.5">{["Ilimitado", "Revisão completa", "Consistência global"].map(f => (<li key={f} className="text-[11px] text-[var(--brand-text)]/70 flex items-center gap-1.5"><CheckCircle2 size={10} className="text-orange-600 shrink-0" /> {f}</li>))}</ul>
                   <button onClick={onPricing} className="w-full py-2 text-[11px] font-bold bg-orange-700 text-black rounded-lg hover:bg-orange-600 transition-colors">Ver VIP</button>
                 </div>
               </div>
             )}
             {isPro && (
               <div className="p-5 rounded-xl border border-orange-700/30 bg-orange-700/[0.05] space-y-3">
-                <div className="flex items-center justify-between"><div><p className="text-sm font-bold text-orange-600">VIP</p><p className="text-2xl font-black text-white">R$ 1.000 <span className="text-sm font-normal text-white/30">/ 2 TCCs</span></p></div><Crown size={26} className="text-orange-600/50" /></div>
-                <ul className="space-y-2">{["Mensagens ilimitadas", "2 projetos simultâneos", "Revisão completa", "Consistência automática", "50 uploads de referências", "Suporte VIP"].map(f => (<li key={f} className="text-sm text-white/65 flex items-center gap-2"><CheckCircle2 size={12} className="text-orange-600 shrink-0" /> {f}</li>))}</ul>
+                <div className="flex items-center justify-between"><div><p className="text-sm font-bold text-orange-600">VIP</p><p className="text-2xl font-black text-white">R$ 1.000 <span className="text-sm font-normal text-[var(--brand-muted)]/60">/ 2 TCCs</span></p></div><Crown size={26} className="text-orange-600/50" /></div>
+                <ul className="space-y-2">{["Mensagens ilimitadas", "2 projetos simultâneos", "Revisão completa", "Consistência automática", "50 uploads de referências", "Suporte VIP"].map(f => (<li key={f} className="text-sm text-[var(--brand-text)]/70 flex items-center gap-2"><CheckCircle2 size={12} className="text-orange-600 shrink-0" /> {f}</li>))}</ul>
               </div>
             )}
             <div className="space-y-2 pt-1">
-              <button onClick={onPricing} className="w-full py-3 bg-white text-[#0F0F0E] font-bold text-sm rounded-xl hover:opacity-80 transition-opacity">{isPro ? "Fazer upgrade para VIP" : "Ver planos e preços"}</button>
-              <button onClick={onClose} className="w-full py-2.5 text-sm text-white/35 hover:text-white/60 transition-colors">Continuar no plano atual</button>
+              <button onClick={onPricing} className="w-full py-3 bg-[var(--brand-accent)] text-white font-bold text-sm rounded-xl hover:opacity-80 transition-opacity">{isPro ? "Fazer upgrade para VIP" : "Ver planos e preços"}</button>
+              <button onClick={onClose} className="w-full py-2.5 text-sm text-[var(--brand-muted)]/60 hover:text-[var(--brand-muted)] transition-colors">Continuar no plano atual</button>
             </div>
           </motion.div>
         </motion.div>
@@ -346,10 +346,10 @@ function LimitModal({ open, onClose, onUpgrade, dailyLimit, planName }: { open: 
     <AnimatePresence>
       {open && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} transition={{ duration: 0.18, ease: "easeOut" }} className="w-full max-w-sm bg-[#1a1a18] rounded-2xl border border-white/[0.1] p-7 text-center space-y-5">
-            <div className="w-12 h-12 rounded-full bg-white/[0.05] border border-white/[0.07] flex items-center justify-center mx-auto"><Clock size={20} className="text-white/40" /></div>
-            <div className="space-y-1.5"><h2 className="text-lg font-bold text-white">Limite diário atingido</h2><p className="text-sm text-white/50 leading-relaxed">Você usou suas {dailyLimit} mensagens de hoje no plano {planName}.</p></div>
-            <div className="space-y-2"><button onClick={() => { onUpgrade(); onClose() }} className="w-full py-3 bg-white text-[#0F0F0E] font-bold text-sm rounded-xl hover:opacity-80 transition-opacity">Fazer upgrade</button><button onClick={onClose} className="w-full py-2.5 text-sm text-white/35 hover:text-white/60 transition-colors">Voltar amanhã</button></div>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} transition={{ duration: 0.18, ease: "easeOut" }} className="w-full max-w-sm bg-[var(--brand-surface)] rounded-2xl border border-white/[0.1] p-7 text-center space-y-5">
+            <div className="w-12 h-12 rounded-full bg-[var(--brand-surface)] border border-[var(--brand-border)] flex items-center justify-center mx-auto"><Clock size={20} className="text-[var(--brand-muted)]/70" /></div>
+            <div className="space-y-1.5"><h2 className="text-lg font-bold text-white">Limite diário atingido</h2><p className="text-sm text-[var(--brand-muted)] leading-relaxed">Você usou suas {dailyLimit} mensagens de hoje no plano {planName}.</p></div>
+            <div className="space-y-2"><button onClick={() => { onUpgrade(); onClose() }} className="w-full py-3 bg-[var(--brand-accent)] text-white font-bold text-sm rounded-xl hover:opacity-80 transition-opacity">Fazer upgrade</button><button onClick={onClose} className="w-full py-2.5 text-sm text-[var(--brand-muted)]/60 hover:text-[var(--brand-muted)] transition-colors">Voltar amanhã</button></div>
           </motion.div>
         </motion.div>
       )}
@@ -362,10 +362,10 @@ function ExportModal({ open, onClose, onExport, onUpgrade }: { open: boolean; on
     <AnimatePresence>
       {open && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} transition={{ duration: 0.18, ease: "easeOut" }} className="w-full max-w-sm bg-[#1a1a18] rounded-2xl border border-white/[0.1] p-7 space-y-5">
-            <div className="flex items-center gap-3"><div className="w-9 h-9 rounded-xl bg-white/[0.06] grid place-items-center shrink-0"><Download size={16} className="text-white/50" /></div><div><h2 className="text-base font-bold text-white">Exportar TCC</h2><p className="text-[11px] text-white/40">Plano gratuito</p></div></div>
-            <p className="text-sm text-white/50 leading-relaxed">Seu PDF será exportado com a marca d&apos;água do Teseo. Com o <span className="text-white/70 font-medium">Plano PRO</span>, você exporta sem marca e com formatação ABNT.</p>
-            <div className="space-y-2"><button onClick={() => { onUpgrade(); onClose() }} className="w-full py-3 bg-white text-[#0F0F0E] font-bold text-sm rounded-xl hover:opacity-80 transition-opacity">Fazer upgrade PRO</button><button onClick={() => { onExport(); onClose() }} className="w-full py-2.5 text-sm text-white/35 hover:text-white/60 transition-colors">Exportar com marca d&apos;água</button></div>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} transition={{ duration: 0.18, ease: "easeOut" }} className="w-full max-w-sm bg-[var(--brand-surface)] rounded-2xl border border-white/[0.1] p-7 space-y-5">
+            <div className="flex items-center gap-3"><div className="w-9 h-9 rounded-xl bg-[var(--brand-surface)] grid place-items-center shrink-0"><Download size={16} className="text-[var(--brand-muted)]" /></div><div><h2 className="text-base font-bold text-white">Exportar TCC</h2><p className="text-[11px] text-[var(--brand-muted)]/70">Plano gratuito</p></div></div>
+            <p className="text-sm text-[var(--brand-muted)] leading-relaxed">Seu PDF será exportado com a marca d&apos;água do Teseo. Com o <span className="text-[var(--brand-text)]/70 font-medium">Plano PRO</span>, você exporta sem marca e com formatação ABNT.</p>
+            <div className="space-y-2"><button onClick={() => { onUpgrade(); onClose() }} className="w-full py-3 bg-[var(--brand-accent)] text-white font-bold text-sm rounded-xl hover:opacity-80 transition-opacity">Fazer upgrade PRO</button><button onClick={() => { onExport(); onClose() }} className="w-full py-2.5 text-sm text-[var(--brand-muted)]/60 hover:text-[var(--brand-muted)] transition-colors">Exportar com marca d&apos;água</button></div>
           </motion.div>
         </motion.div>
       )}
@@ -684,25 +684,25 @@ export default function TccWorkspacePage() {
   }
 
   if (loading) return (
-    <div className="h-screen bg-[#0F0F0E] flex items-center justify-center">
-      <Loader2 className="w-7 h-7 text-white/40 animate-spin" />
+    <div className="h-screen bg-[var(--brand-bg)] flex items-center justify-center">
+      <Loader2 className="w-7 h-7 text-[var(--brand-muted)]/70 animate-spin" />
     </div>
   )
 
   return (
-    <div className="h-[100dvh] bg-[#0F0F0E] text-[#F1F0EC] overflow-hidden flex font-sans">
+    <div className="h-[100dvh] bg-[var(--brand-bg)] text-[var(--brand-text)] overflow-hidden flex font-sans">
       {/* ── Left nav rail ── */}
-      <nav className="w-[52px] shrink-0 flex flex-col items-center py-4 gap-3 border-r border-white/[0.06] bg-[#0A0A09] z-20">
-        <button onClick={() => router.push("/dashboard")} className="p-2 hover:bg-white/[0.08] rounded-lg transition-colors" title="Voltar ao dashboard">
+      <nav className="w-[52px] shrink-0 flex flex-col items-center py-4 gap-3 border-r border-[var(--brand-border)] bg-[var(--brand-bg)] z-20">
+        <button onClick={() => router.push("/dashboard")} className="p-2 hover:bg-[var(--brand-hover)] rounded-lg transition-colors" title="Voltar ao dashboard">
           <ArrowLeft size={16} />
         </button>
-        <div className="w-8 h-8 rounded-full bg-white/[0.10] grid place-items-center mt-1 shrink-0">
-          <span className="text-white/80 font-bold text-sm leading-none uppercase">{(session?.user?.name || session?.user?.email || "?")[0]}</span>
+        <div className="w-8 h-8 rounded-full bg-[var(--brand-hover)] grid place-items-center mt-1 shrink-0">
+          <span className="text-[var(--brand-text)]/80 font-bold text-sm leading-none uppercase">{(session?.user?.name || session?.user?.email || "?")[0]}</span>
         </div>
         <div className="flex-1" />
         <div
           className={cn("px-2 py-1 rounded-md text-[9px] font-bold tracking-widest uppercase select-none",
-            isVip ? "bg-orange-700/20 text-orange-600" : userPlan === "PRO" ? "bg-white/15 text-white/80" : "bg-white/[0.07] text-white/50 border border-white/[0.10]"
+            isVip ? "bg-orange-700/20 text-orange-600" : userPlan === "PRO" ? "bg-[var(--brand-hover)] text-[var(--brand-text)]/80" : "bg-[var(--brand-surface)] text-[var(--brand-muted)] border border-[var(--brand-border)]"
           )}
           style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
         >
@@ -713,19 +713,19 @@ export default function TccWorkspacePage() {
       {/* ── Main area ── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header */}
-        <header className="h-[52px] border-b border-white/[0.06] bg-[#111110] flex items-center justify-between px-6 shrink-0 z-10">
+        <header className="h-[52px] border-b border-[var(--brand-border)] bg-[var(--brand-surface)] flex items-center justify-between px-6 shrink-0 z-10">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded-lg bg-white/[0.03] border border-white/5 flex items-center justify-center shrink-0">
-                <FileText size={14} className="text-white/50" />
+              <div className="w-7 h-7 rounded-lg bg-[var(--brand-surface)] border border-white/5 flex items-center justify-center shrink-0">
+                <FileText size={14} className="text-[var(--brand-muted)]" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="font-bold text-sm text-white/85 leading-tight">{tccMeta?.title || "Seu TCC"}</h1>
-                  <span className={cn("px-1.5 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase", isVip ? "bg-orange-700/20 text-orange-600" : userPlan === "PRO" ? "bg-white/15 text-white/80" : "bg-white/[0.07] text-white/50")}>{userPlan}</span>
+                  <h1 className="font-bold text-sm text-[var(--brand-text)] leading-tight">{tccMeta?.title || "Seu TCC"}</h1>
+                  <span className={cn("px-1.5 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase", isVip ? "bg-orange-700/20 text-orange-600" : userPlan === "PRO" ? "bg-[var(--brand-hover)] text-[var(--brand-text)]/80" : "bg-[var(--brand-surface)] text-[var(--brand-muted)]")}>{userPlan}</span>
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-[10px] text-white/35">{tccMeta?.course || "—"}</span>
+                  <span className="text-[10px] text-[var(--brand-muted)]/60">{tccMeta?.course || "—"}</span>
                   {reviewState && <span className="text-[10px] text-orange-700/70 font-bold tracking-widest">· MODO REVISÃO</span>}
                 </div>
               </div>
@@ -740,16 +740,16 @@ export default function TccWorkspacePage() {
                   <Save size={10} /> Salvar
                 </button>
               )}
-              {savingStatus === "idle" && tccContent === tccSavedContent && <span className="text-white/25">Atualizado</span>}
+              {savingStatus === "idle" && tccContent === tccSavedContent && <span className="text-[var(--brand-muted)]/50">Atualizado</span>}
             </div>
           </div>
           <div className="flex items-center gap-2">
             {reviewState && (
               <div className="flex items-center gap-2 mr-2">
-                <button onClick={handleRejectReview} className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-white/40 hover:text-red-400 border border-white/[0.08] hover:border-red-500/30 rounded-lg transition-all">
+                <button onClick={handleRejectReview} className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-[var(--brand-muted)]/70 hover:text-red-400 border border-[var(--brand-border)] hover:border-red-500/30 rounded-lg transition-all">
                   <XCircle size={12} /> Rejeitar
                 </button>
-                <button onClick={handleAcceptReview} className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-white bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.14] rounded-lg transition-all">
+                <button onClick={handleAcceptReview} className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-white bg-[var(--brand-hover)] hover:bg-[var(--brand-hover)] border border-[var(--brand-border)] rounded-lg transition-all">
                   <Check size={12} /> Aceitar
                 </button>
               </div>
@@ -785,13 +785,13 @@ export default function TccWorkspacePage() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
-                className="flex-1 overflow-y-auto custom-scroll bg-[#0A0A09]"
+                className="flex-1 overflow-y-auto custom-scroll bg-[var(--brand-bg)]"
               >
                 <div className="min-h-full py-10 flex justify-center gap-4 px-4 sm:px-8">
                   {/* TOC — só aparece em telas largas quando há headings */}
                   {headings.length > 0 && (
                     <aside className="hidden xl:flex w-[170px] shrink-0 self-start sticky top-10 flex-col gap-1">
-                      <p className="text-[9px] font-bold tracking-widest uppercase text-white/25 mb-1">Índice</p>
+                      <p className="text-[9px] font-bold tracking-widest uppercase text-[var(--brand-muted)]/50 mb-1">Índice</p>
                       {headings.map((h, i) => (
                         <button
                           key={i}
@@ -799,7 +799,7 @@ export default function TccWorkspacePage() {
                             const el = document.querySelector(`[data-heading-index="${i}"]`)
                             el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                           }}
-                          className="text-left text-[11px] text-white/35 hover:text-white/70 transition-colors leading-snug py-0.5 truncate"
+                          className="text-left text-[11px] text-[var(--brand-muted)]/60 hover:text-[var(--brand-text)]/70 transition-colors leading-snug py-0.5 truncate"
                           style={{ paddingLeft: `${(h.level - 1) * 8}px` }}
                         >
                           {h.text}
@@ -810,7 +810,7 @@ export default function TccWorkspacePage() {
 
                   {/* Editor */}
                   <div className="w-full max-w-[850px]">
-                    <div className="w-full bg-[#111110] border border-white/[0.08] shadow-2xl rounded-sm min-h-[90vh]">
+                    <div className="w-full bg-[var(--brand-surface)] border border-[var(--brand-border)] shadow-2xl rounded-sm min-h-[90vh]">
                       <EditableRichText value={tccContent} onChange={setTccContent} editorRef={editorRef} className="border-none shadow-none bg-transparent" />
                     </div>
                   </div>
@@ -824,13 +824,13 @@ export default function TccWorkspacePage() {
 
           {/* ── Right sidebar (chat / metrics) — hidden in review mode ── */}
           {!reviewState && (
-            <aside className="w-[340px] shrink-0 border-l border-white/[0.06] bg-[#111110] flex flex-col z-20">
+            <aside className="w-[340px] shrink-0 border-l border-[var(--brand-border)] bg-[var(--brand-surface)] flex flex-col z-20">
               {/* Tabs */}
-              <div className="flex items-center border-b border-white/[0.06] px-1 pt-1 shrink-0 bg-[#161615]">
-                <button onClick={() => setActiveTab("chat")} className={cn("flex-1 py-2.5 text-xs font-bold uppercase tracking-wider transition-all border-b-2", activeTab === "chat" ? "border-orange-700 text-orange-600" : "border-transparent text-white/40 hover:text-white/70")}>
+              <div className="flex items-center border-b border-[var(--brand-border)] px-1 pt-1 shrink-0 bg-[#161615]">
+                <button onClick={() => setActiveTab("chat")} className={cn("flex-1 py-2.5 text-xs font-bold uppercase tracking-wider transition-all border-b-2", activeTab === "chat" ? "border-orange-700 text-orange-600" : "border-transparent text-[var(--brand-muted)]/70 hover:text-[var(--brand-text)]/70")}>
                   <span className="flex items-center justify-center gap-2"><BrainCircuit size={13} /> Sugestões</span>
                 </button>
-                <button onClick={() => setActiveTab("metricas")} className={cn("flex-1 py-2.5 text-xs font-bold uppercase tracking-wider transition-all border-b-2", activeTab === "metricas" ? "border-orange-700 text-orange-600" : "border-transparent text-white/40 hover:text-white/70")}>
+                <button onClick={() => setActiveTab("metricas")} className={cn("flex-1 py-2.5 text-xs font-bold uppercase tracking-wider transition-all border-b-2", activeTab === "metricas" ? "border-orange-700 text-orange-600" : "border-transparent text-[var(--brand-muted)]/70 hover:text-[var(--brand-text)]/70")}>
                   Métricas
                 </button>
               </div>
@@ -848,34 +848,34 @@ export default function TccWorkspacePage() {
                     {messages.length === 0 && (
                       <div className="h-full flex flex-col items-center justify-center text-center opacity-60 px-5 space-y-3 pt-12">
                         <div className="w-12 h-12 rounded-2xl bg-orange-700/10 flex items-center justify-center border border-orange-700/20 text-orange-700 mb-2"><Sparkles size={22} /></div>
-                        <h3 className="text-white/90 font-bold text-sm">Boas-vindas ao seu TCC!</h3>
-                        <p className="text-[12px] text-white/40 leading-relaxed font-serif">Peça para a IA gerar um capítulo. A sugestão aparecerá no modo de revisão lado a lado com seu texto.</p>
+                        <h3 className="text-[var(--brand-text)] font-bold text-sm">Boas-vindas ao seu TCC!</h3>
+                        <p className="text-[12px] text-[var(--brand-muted)]/70 leading-relaxed font-serif">Peça para a IA gerar um capítulo. A sugestão aparecerá no modo de revisão lado a lado com seu texto.</p>
                       </div>
                     )}
                     <AnimatePresence>
                       {messages.map(m => (
                         <motion.div key={m.id} initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className={cn("flex flex-col w-full", m.role === "user" ? "items-end" : "items-start")}>
                           {m.role === "user" ? (
-                            <div className="max-w-[85%] px-3 py-2.5 text-[13px] bg-[#1E1D19] border border-white/[0.08] rounded-[1rem_0_1rem_1rem] text-white/85 leading-relaxed">{m.content}</div>
+                            <div className="max-w-[85%] px-3 py-2.5 text-[13px] bg-[#1E1D19] border border-[var(--brand-border)] rounded-[1rem_0_1rem_1rem] text-[var(--brand-text)] leading-relaxed">{m.content}</div>
                           ) : (
                             <div className="w-full bg-[#181816] border border-orange-700/20 rounded-xl overflow-hidden">
                               <div className="px-3 py-2 bg-orange-700/[0.06] border-b border-orange-700/10 flex items-center justify-between">
                                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-orange-700/70 tracking-widest uppercase"><Sparkles size={11} /> Sugestão da IA</div>
                                 <button
                                   onClick={() => setReviewState({ messageId: m.id, suggestionHtml: m.editorContent || m.content, userPrompt: m.userPrompt })}
-                                  className="text-[10px] font-bold tracking-wider uppercase transition-colors px-2 py-0.5 rounded text-white/30 hover:text-white/60"
+                                  className="text-[10px] font-bold tracking-wider uppercase transition-colors px-2 py-0.5 rounded text-[var(--brand-muted)]/60 hover:text-[var(--brand-muted)]"
                                 >
                                   Revisar
                                 </button>
                               </div>
-                              <div className="p-3 text-[12px] leading-relaxed text-white/50 font-serif max-h-[160px] overflow-hidden relative">
+                              <div className="p-3 text-[12px] leading-relaxed text-[var(--brand-muted)] font-serif max-h-[160px] overflow-hidden relative">
                                 <div dangerouslySetInnerHTML={{ __html: m.editorContent || m.content }} />
                                 <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#181816] to-transparent" />
                               </div>
                               <div className="px-3 py-2 border-t border-white/[0.04] flex gap-2">
                                 <button
                                   onClick={() => setReviewState({ messageId: m.id, suggestionHtml: m.editorContent || m.content, userPrompt: m.userPrompt })}
-                                  className="flex-1 py-1.5 text-[10px] font-bold text-white/40 hover:text-white/70 border border-white/[0.08] hover:border-white/[0.16] rounded-lg transition-all"
+                                  className="flex-1 py-1.5 text-[10px] font-bold text-[var(--brand-muted)]/70 hover:text-[var(--brand-text)]/70 border border-[var(--brand-border)] hover:border-[var(--brand-border)] rounded-lg transition-all"
                                 >
                                   Ver revisão lado a lado
                                 </button>
@@ -888,7 +888,7 @@ export default function TccWorkspacePage() {
                                 {m.userPrompt && (
                                   <button
                                     onClick={() => { setMessages(prev => prev.filter(x => x.id !== m.id)); handleSendPrompt(m.userPrompt) }}
-                                    className="p-1.5 text-white/25 hover:text-white/50 border border-white/[0.08] rounded-lg transition-all"
+                                    className="p-1.5 text-[var(--brand-muted)]/50 hover:text-[var(--brand-muted)] border border-[var(--brand-border)] rounded-lg transition-all"
                                   >
                                     <RotateCcw size={12} />
                                   </button>
@@ -906,12 +906,12 @@ export default function TccWorkspacePage() {
                   </div>
 
                   {/* Chat input */}
-                  <div className="absolute bottom-0 right-0 w-[340px] bg-[#111110] border-t border-white/[0.06] p-3 z-10 space-y-2">
+                  <div className="absolute bottom-0 right-0 w-[340px] bg-[var(--brand-surface)] border-t border-[var(--brand-border)] p-3 z-10 space-y-2">
                     <div className="space-y-1.5">
                       <select
                         value={selectedChapter}
                         onChange={e => setSelectedChapter(e.target.value)}
-                        className="w-full bg-[#1a1a18] border border-white/10 text-white/70 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-orange-700/50"
+                        className="w-full bg-[var(--brand-surface)] border border-white/10 text-[var(--brand-text)]/70 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-orange-700/50"
                       >
                         <option>Introdução</option>
                         <option>Revisão Bibliográfica (Referencial Teórico)</option>
@@ -929,10 +929,10 @@ export default function TccWorkspacePage() {
                       </button>
                     </div>
                     <div className="flex gap-2 overflow-x-auto pb-1 custom-scroll">
-                      <button onClick={() => handleSendPrompt("Continue a introdução deste TCC")} disabled={isTyping} className="shrink-0 px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-[10px] text-white/50 font-medium whitespace-nowrap transition-colors flex items-center gap-1">
+                      <button onClick={() => handleSendPrompt("Continue a introdução deste TCC")} disabled={isTyping} className="shrink-0 px-3 py-1.5 rounded-full bg-[var(--brand-surface)] hover:bg-[var(--brand-hover)] border border-[var(--brand-border)] text-[10px] text-[var(--brand-muted)] font-medium whitespace-nowrap transition-colors flex items-center gap-1">
                         <RefreshCw size={9} /> Continuar introdução
                       </button>
-                      <button onClick={() => handleSendPrompt("Melhore a coesão geral dos parágrafos do TCC")} disabled={isTyping} className="shrink-0 px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-[10px] text-white/50 font-medium whitespace-nowrap transition-colors flex items-center gap-1">
+                      <button onClick={() => handleSendPrompt("Melhore a coesão geral dos parágrafos do TCC")} disabled={isTyping} className="shrink-0 px-3 py-1.5 rounded-full bg-[var(--brand-surface)] hover:bg-[var(--brand-hover)] border border-[var(--brand-border)] text-[10px] text-[var(--brand-muted)] font-medium whitespace-nowrap transition-colors flex items-center gap-1">
                         <Sparkles size={9} /> Melhorar coesão
                       </button>
                     </div>
@@ -940,12 +940,12 @@ export default function TccWorkspacePage() {
                       <textarea value={inputVal} onChange={e => setInputVal(e.target.value)}
                         onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendPrompt() } }}
                         placeholder="Peça para gerar ou revisar..."
-                        className="w-full bg-[#181816] border border-white/[0.08] rounded-xl pl-9 pr-9 py-2.5 text-[13px] text-white/85 placeholder:text-white/25 focus:outline-none focus:border-orange-700/30 resize-none" rows={1} />
-                      <button onClick={() => fileInputRef.current?.click()} disabled={uploading} className="absolute left-2.5 top-1/2 -translate-y-1/2 p-1 text-white/25 hover:text-white/50">
+                        className="w-full bg-[#181816] border border-[var(--brand-border)] rounded-xl pl-9 pr-9 py-2.5 text-[13px] text-[var(--brand-text)] placeholder:text-[var(--brand-muted)]/50 focus:outline-none focus:border-orange-700/30 resize-none" rows={1} />
+                      <button onClick={() => fileInputRef.current?.click()} disabled={uploading} className="absolute left-2.5 top-1/2 -translate-y-1/2 p-1 text-[var(--brand-muted)]/50 hover:text-[var(--brand-muted)]">
                         {uploading ? <Loader2 size={14} className="animate-spin" /> : <Paperclip size={14} />}
                       </button>
                       <input type="file" ref={fileInputRef} onChange={handleUpload} accept=".pdf,.doc,.docx" className="hidden" />
-                      <button onClick={() => handleSendPrompt()} disabled={!inputVal.trim() || isTyping} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 bg-orange-700 text-black rounded-lg hover:bg-orange-600 disabled:opacity-30 disabled:bg-white/10 disabled:text-white/30 transition-all">
+                      <button onClick={() => handleSendPrompt()} disabled={!inputVal.trim() || isTyping} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 bg-orange-700 text-black rounded-lg hover:bg-orange-600 disabled:opacity-30 disabled:bg-white/10 disabled:text-[var(--brand-muted)]/60 transition-all">
                         <ArrowRight size={13} />
                       </button>
                     </div>
