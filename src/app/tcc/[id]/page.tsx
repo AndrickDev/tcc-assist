@@ -659,6 +659,7 @@ export default function TccWorkspacePage() {
           userPrompt: `Gerar ${selectedChapter} — ${tccMeta.title}`,
         }
         setMessages(prev => [...prev, botMsg])
+        setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100)
       } else {
         setMessages(prev => [...prev, { id: Date.now().toString(), role: "bot", content: `⚠️ ${data.error ?? "Erro ao gerar capítulo."}` }])
       }
