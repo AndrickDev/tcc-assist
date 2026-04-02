@@ -12,7 +12,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import {
   ArrowRight, Plus, X, ArrowLeft, Sparkles, Loader2,
   Book, School, Calendar, Target, FileCheck, Trash2, Crown,
-  BookOpen, Layers, GraduationCap, Clock, Bell,
+  BookOpen, Layers, GraduationCap, Clock, Bell, FolderOpen,
   TrendingUp, Zap, CheckCircle2, MessageSquare, LayoutGrid, List,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -572,7 +572,7 @@ export default function DashboardPage() {
   const slotsLeft = tccSlotLimit - tccs.length
 
   return (
-    <div className="flex min-h-[100dvh] bg-[#0F0F0E] text-white font-sans">
+    <div className="flex min-h-[100dvh] bg-[var(--brand-bg)] text-[var(--brand-text)] font-sans">
 
       {/* ── Left nav sidebar ── */}
       <AppSidebar />
@@ -581,24 +581,24 @@ export default function DashboardPage() {
       <div className="flex-1 flex flex-col pl-[52px]">
 
         {/* Top bar */}
-        <header className="h-[52px] border-b border-white/[0.06] bg-[#0F0F0E] sticky top-0 z-30 flex items-center justify-between px-6">
+        <header className="h-[52px] border-b border-[var(--brand-border)] bg-[var(--brand-bg)] sticky top-0 z-30 flex items-center justify-between px-6">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold text-white/25 uppercase tracking-widest">PROJETOS</span>
-            <span className="text-white/10">·</span>
-            <span className="text-[11px] text-white/15 uppercase tracking-widest">ESBOÇOS</span>
-            <span className="text-white/10">·</span>
-            <span className="text-[11px] text-white/15 uppercase tracking-widest">ARQUIVO</span>
+            <span className="text-[11px] font-bold text-[var(--brand-muted)] uppercase tracking-widest">PROJETOS</span>
+            <span className="text-[var(--brand-border)]">·</span>
+            <span className="text-[11px] text-[var(--brand-muted)]/60 uppercase tracking-widest">ESBOÇOS</span>
+            <span className="text-[var(--brand-border)]">·</span>
+            <span className="text-[11px] text-[var(--brand-muted)]/40 uppercase tracking-widest">ARQUIVO</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 bg-[#161614] border border-white/[0.07] rounded-lg px-3 py-1.5">
-              <span className="text-[11px] text-white/25">Buscar...</span>
+            <div className="flex items-center gap-2 bg-[var(--brand-surface)] border border-[var(--brand-border)] rounded-lg px-3 py-1.5">
+              <span className="text-[11px] text-[var(--brand-muted)]">Buscar...</span>
             </div>
-            <button className="w-8 h-8 rounded-lg flex items-center justify-center text-white/25 hover:text-white/50 hover:bg-white/[0.05] transition-all">
+            <button className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--brand-muted)] hover:text-[var(--brand-text)] hover:bg-[var(--brand-hover)] transition-all">
               <Bell size={14} />
             </button>
             <PlanBadge plan={userPlan} />
             <button onClick={() => setModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-[#111110] text-xs font-bold hover:opacity-90 transition-opacity">
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--brand-accent)] text-white text-xs font-bold hover:bg-[var(--brand-accent-hover)] transition-colors">
               <Plus size={13} /> Novo TCC
             </button>
           </div>
@@ -607,7 +607,7 @@ export default function DashboardPage() {
         {/* Main */}
         <main className="flex-1 px-8 py-8 overflow-y-auto">
           {loadingTccs ? (
-            <div className="flex items-center justify-center py-32"><Loader2 className="w-5 h-5 animate-spin text-white/20" /></div>
+            <div className="flex items-center justify-center py-32"><Loader2 className="w-5 h-5 animate-spin text-[var(--brand-muted)]" /></div>
           ) : tccs.length === 0 ? (
             <EmptyState onNew={() => setModalOpen(true)} />
           ) : (
@@ -615,17 +615,44 @@ export default function DashboardPage() {
 
               {/* Overview */}
               <div className="mb-8">
-                <p className="text-[9px] font-bold uppercase tracking-widest text-white/25 mb-1">OVERVIEW</p>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--brand-muted)] mb-1">OVERVIEW</p>
                 <div className="flex items-end justify-between gap-4">
-                  <h1 className="text-3xl font-bold text-white/90 font-serif">
+                  <h1 className="text-3xl font-bold text-[var(--brand-text)] font-serif">
                     {getHour()}{firstName ? `, ${firstName}` : ""}.
                   </h1>
                   <button onClick={() => setModalOpen(true)}
-                    className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 border border-white/[0.12] bg-white/[0.04] hover:bg-white/[0.08] text-white/70 text-sm font-bold rounded-xl transition-all">
+                    className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 border border-[var(--brand-border)] bg-[var(--brand-surface)] hover:bg-[var(--brand-hover)] text-[var(--brand-text)] text-sm font-bold rounded-xl transition-all">
                     <Plus size={14} /> Novo Manuscrito
                   </button>
                 </div>
               </div>
+
+              {/* KPI Cards */}
+              {(() => {
+                const totalInteracoes = tccs.reduce((sum, t) => sum + (t._count?.messages ?? 0), 0)
+                const ativos = tccs.filter(t => t.status !== "COMPLETED" && t.status !== "ARCHIVED").length
+                const progressoMedio = tccs.length > 0 ? Math.round(tccs.reduce((sum, t) => sum + estimateProgress(t), 0) / tccs.length) : 0
+                return (
+                  <div className="grid grid-cols-3 gap-3 mb-8">
+                    {[
+                      { label: "Projetos ativos", value: ativos, total: tccs.length, icon: FolderOpen, suffix: `de ${tccs.length}` },
+                      { label: "Interações IA", value: totalInteracoes, icon: Sparkles, suffix: "mensagens" },
+                      { label: "Progresso médio", value: progressoMedio, icon: TrendingUp, suffix: "%" },
+                    ].map(({ label, value, icon: Icon, suffix }) => (
+                      <div key={label} className="bg-[var(--brand-surface)] border border-[var(--brand-border)] rounded-2xl px-5 py-4 flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--brand-muted)]">{label}</span>
+                          <Icon size={13} className="text-[var(--brand-muted)]/60" />
+                        </div>
+                        <div className="flex items-end gap-1.5">
+                          <span className="text-2xl font-bold text-[var(--brand-text)] leading-none tabular-nums">{value}</span>
+                          <span className="text-[11px] text-[var(--brand-muted)] mb-0.5">{suffix}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()}
 
               {/* Two-column */}
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-8">
@@ -635,7 +662,7 @@ export default function DashboardPage() {
                   {/* Active projects */}
                   <section>
                     <div className="flex items-center justify-between mb-4">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-white/30">ACTIVE PROJECTS</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--brand-muted)]">ACTIVE PROJECTS</p>
                       <div className="flex items-center gap-1">
                         <button onClick={() => setView("grid")} className={cn("p-1.5 rounded-lg transition-colors", view === "grid" ? "bg-white/[0.08] text-white/70" : "text-white/25 hover:text-white/50")}><LayoutGrid size={13} /></button>
                         <button onClick={() => setView("list")} className={cn("p-1.5 rounded-lg transition-colors", view === "list" ? "bg-white/[0.08] text-white/70" : "text-white/25 hover:text-white/50")}><List size={13} /></button>
@@ -685,7 +712,7 @@ export default function DashboardPage() {
 
                   {/* Intelligence Feed */}
                   <section>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-4">INTELLIGENCE FEED</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--brand-muted)] mb-4">INTELLIGENCE FEED</p>
                     <IntelligenceFeed tccs={tccs} />
                   </section>
                 </div>

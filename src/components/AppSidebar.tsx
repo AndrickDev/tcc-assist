@@ -3,7 +3,8 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
-import { LayoutDashboard, FolderOpen, BookOpen, Settings, LogOut, HelpCircle } from "lucide-react"
+import { useTheme } from "next-themes"
+import { LayoutDashboard, FolderOpen, BookOpen, Settings, LogOut, HelpCircle, Sun, Moon } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const NAV = [
@@ -13,8 +14,25 @@ const NAV = [
   { icon: Settings,        href: "/configuracoes",   label: "Configurações",   match: "/configuracoes" },
 ]
 
+function TeseoLogo({ size = 32 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="32" height="32" rx="8" fill="#d97757" />
+      {/* Celtic-inspired knot mark */}
+      <path d="M16 6 C16 6 22 10 22 16 C22 22 16 26 16 26 C16 26 10 22 10 16 C10 10 16 6 16 6Z" stroke="white" strokeWidth="1.5" fill="none" />
+      <path d="M6 16 C6 16 10 10 16 10 C22 10 26 16 26 16 C26 16 22 22 16 22 C10 22 6 16 6 16Z" stroke="white" strokeWidth="1.5" fill="none" />
+      <circle cx="16" cy="16" r="2.5" fill="white" />
+      <circle cx="16" cy="9" r="1.5" fill="white" fillOpacity="0.6" />
+      <circle cx="16" cy="23" r="1.5" fill="white" fillOpacity="0.6" />
+      <circle cx="9" cy="16" r="1.5" fill="white" fillOpacity="0.6" />
+      <circle cx="23" cy="16" r="1.5" fill="white" fillOpacity="0.6" />
+    </svg>
+  )
+}
+
 export function AppSidebar() {
   const pathname = usePathname()
+  const { resolvedTheme, setTheme } = useTheme()
 
   const isActive = (item: typeof NAV[0]) => {
     if (item.match) return pathname.startsWith(item.match)
@@ -22,13 +40,13 @@ export function AppSidebar() {
   }
 
   return (
-    <nav className="group/sidebar w-[52px] hover:w-[180px] shrink-0 flex flex-col items-center hover:items-start py-3 gap-1 border-r border-white/[0.06] bg-[#0A0A09] z-40 fixed top-0 left-0 h-full overflow-hidden transition-all duration-200">
+    <nav className="group/sidebar w-[52px] hover:w-[180px] shrink-0 flex flex-col items-center hover:items-start py-3 gap-1 border-r border-[var(--brand-border)] bg-[var(--brand-bg)] z-40 fixed top-0 left-0 h-full overflow-hidden transition-all duration-200">
       {/* Logo */}
       <div className="w-full flex items-center px-2 mb-4 mt-1 shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-white grid place-items-center shrink-0">
-          <span className="text-[#0A0A09] font-bold text-sm leading-none">T</span>
+        <div className="shrink-0">
+          <TeseoLogo size={32} />
         </div>
-        <span className="ml-2.5 text-white font-bold text-sm opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-150 whitespace-nowrap">Teseo</span>
+        <span className="ml-2.5 text-[var(--brand-text)] font-bold text-sm opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-150 whitespace-nowrap">Teseo</span>
       </div>
 
       {/* Nav items */}
@@ -43,8 +61,8 @@ export function AppSidebar() {
               className={cn(
                 "w-full flex items-center gap-2.5 px-2 h-9 rounded-xl transition-all",
                 active
-                  ? "bg-white/[0.10] text-white"
-                  : "text-white/30 hover:text-white/60 hover:bg-white/[0.05]"
+                  ? "bg-[var(--brand-accent)]/10 text-[var(--brand-accent)]"
+                  : "text-[var(--brand-muted)] hover:text-[var(--brand-text)] hover:bg-[var(--brand-hover)]"
               )}
             >
               <item.icon size={16} className="shrink-0" />
@@ -58,10 +76,25 @@ export function AppSidebar() {
 
       {/* Bottom actions */}
       <div className="flex flex-col items-start w-full gap-0.5 px-1.5 pb-2">
+        {/* Theme toggle */}
+        <button
+          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+          title={resolvedTheme === "dark" ? "Tema claro" : "Tema escuro"}
+          className="w-full flex items-center gap-2.5 px-2 h-9 rounded-xl text-[var(--brand-muted)] hover:text-[var(--brand-text)] hover:bg-[var(--brand-hover)] transition-all"
+        >
+          {resolvedTheme === "dark"
+            ? <Sun size={16} className="shrink-0" />
+            : <Moon size={16} className="shrink-0" />
+          }
+          <span className="text-[13px] font-medium opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-150 whitespace-nowrap">
+            {resolvedTheme === "dark" ? "Tema claro" : "Tema escuro"}
+          </span>
+        </button>
+
         <Link
           href="/suporte"
           title="Ajuda"
-          className="w-full flex items-center gap-2.5 px-2 h-9 rounded-xl text-white/20 hover:text-white/50 hover:bg-white/[0.05] transition-all"
+          className="w-full flex items-center gap-2.5 px-2 h-9 rounded-xl text-[var(--brand-muted)] hover:text-[var(--brand-text)] hover:bg-[var(--brand-hover)] transition-all"
         >
           <HelpCircle size={16} className="shrink-0" />
           <span className="text-[13px] font-medium opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-150 whitespace-nowrap">
@@ -71,7 +104,7 @@ export function AppSidebar() {
         <button
           onClick={() => signOut({ callbackUrl: "/" })}
           title="Sair"
-          className="w-full flex items-center gap-2.5 px-2 h-9 rounded-xl text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all"
+          className="w-full flex items-center gap-2.5 px-2 h-9 rounded-xl text-[var(--brand-muted)] hover:text-red-500 hover:bg-red-500/10 transition-all"
         >
           <LogOut size={15} className="shrink-0" />
           <span className="text-[13px] font-medium opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-150 whitespace-nowrap">
