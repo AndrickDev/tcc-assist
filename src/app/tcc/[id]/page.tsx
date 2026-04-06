@@ -6,7 +6,7 @@ import {
   ArrowLeft, FileText, X,
   Loader2, AlertCircle, ArrowRight, Paperclip, Sparkles,
   CheckCircle2, Clock, Crown, Download, RefreshCw, BrainCircuit, Plus, Trash2, Save, RotateCcw,
-  Check, XCircle, BarChart2
+  Check, XCircle, BarChart2, ChevronLeft, PanelRightClose
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { useParams, useRouter } from "next/navigation"
@@ -417,6 +417,7 @@ export default function TccWorkspacePage() {
   const [upgradeOpen, setUpgradeOpen] = React.useState(false)
   const [limitOpen, setLimitOpen] = React.useState(false)
   const [exportOpen, setExportOpen] = React.useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false)
 
   const headings = React.useMemo(() => extractHeadings(tccContent), [tccContent])
 
@@ -863,7 +864,36 @@ export default function TccWorkspacePage() {
 
           {/* ── Right sidebar (chat / metrics) — hidden in review mode ── */}
           {!reviewState && (
-            <aside className="w-[280px] shrink-0 border-l border-[var(--brand-border)] bg-[var(--brand-surface)] flex flex-col z-20">
+            <aside
+              className="shrink-0 border-l border-[var(--brand-border)] bg-[var(--brand-surface)] flex flex-col z-20 transition-all duration-200"
+              style={{ width: sidebarCollapsed ? '40px' : '340px' }}
+            >
+              {/* Collapse toggle */}
+              <button
+                onClick={() => setSidebarCollapsed(c => !c)}
+                title={sidebarCollapsed ? 'Expandir painel' : 'Minimizar painel'}
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full z-30 w-4 h-8 bg-[var(--brand-surface)] border border-l-0 border-[var(--brand-border)] rounded-r-md flex items-center justify-center text-[var(--brand-muted)]/50 hover:text-[var(--brand-text)] transition-colors"
+                style={{ position: 'absolute', right: sidebarCollapsed ? '-16px' : '-16px' }}
+              >
+                {sidebarCollapsed
+                  ? <ChevronLeft size={11} style={{ transform: 'rotate(180deg)' }} />
+                  : <ChevronLeft size={11} />}
+              </button>
+
+              {sidebarCollapsed ? (
+                /* Collapsed state: stacked icon tabs */
+                <div className="flex flex-col items-center gap-3 py-4 flex-1">
+                  <button onClick={() => { setSidebarCollapsed(false); setActiveTab('chat') }}
+                    title="IA" className="p-2 rounded-lg text-[var(--brand-muted)]/60 hover:text-[var(--brand-accent)] hover:bg-[var(--brand-hover)] transition-colors">
+                    <BrainCircuit size={15} />
+                  </button>
+                  <button onClick={() => { setSidebarCollapsed(false); setActiveTab('metricas') }}
+                    title="Métricas" className="p-2 rounded-lg text-[var(--brand-muted)]/60 hover:text-[var(--brand-accent)] hover:bg-[var(--brand-hover)] transition-colors">
+                    <BarChart2 size={15} />
+                  </button>
+                </div>
+              ) : (
+                <>
               {/* Tabs */}
               <div className="flex items-center border-b border-[var(--brand-border)] px-1 pt-1 shrink-0 bg-[var(--brand-bg)]">
                 <button onClick={() => setActiveTab("chat")} className={cn("flex-1 py-2 text-[11px] font-bold uppercase tracking-wider transition-all border-b-2", activeTab === "chat" ? "border-[var(--brand-accent)] text-[var(--brand-accent)]" : "border-transparent text-[var(--brand-muted)]/60 hover:text-[var(--brand-text)]/70")}>
@@ -871,6 +901,10 @@ export default function TccWorkspacePage() {
                 </button>
                 <button onClick={() => setActiveTab("metricas")} className={cn("flex-1 py-2 text-[11px] font-bold uppercase tracking-wider transition-all border-b-2", activeTab === "metricas" ? "border-[var(--brand-accent)] text-[var(--brand-accent)]" : "border-transparent text-[var(--brand-muted)]/60 hover:text-[var(--brand-text)]/70")}>
                   Métricas
+                </button>
+                <button onClick={() => setSidebarCollapsed(true)} title="Minimizar"
+                  className="p-1.5 mr-1 rounded-md text-[var(--brand-muted)]/40 hover:text-[var(--brand-muted)] hover:bg-[var(--brand-hover)] transition-colors">
+                  <PanelRightClose size={13} />
                 </button>
               </div>
 
@@ -881,16 +915,16 @@ export default function TccWorkspacePage() {
                 </div>
               )}
 
-              {activeTab === "chat" && (
-                <>
-                  <div className="flex-1 overflow-y-auto custom-scroll p-4 space-y-4 pb-[130px]">
-                    {messages.length === 0 && (
-                      <div className="h-full flex flex-col items-center justify-center text-center opacity-60 px-5 space-y-3 pt-12">
-                        <div className="w-12 h-12 rounded-2xl bg-orange-700/10 flex items-center justify-center border border-orange-700/20 text-orange-700 mb-2"><Sparkles size={22} /></div>
-                        <h3 className="text-[var(--brand-text)] font-bold text-sm">Boas-vindas ao seu TCC!</h3>
-                        <p className="text-[12px] text-[var(--brand-muted)]/70 leading-relaxed font-serif">Peça para a IA gerar um capítulo. A sugestão aparecerá no modo de revisão lado a lado com seu texto.</p>
-                      </div>
-                    )}
+                {activeTab === "chat" && (
+                  <>
+                    <div className="flex-1 overflow-y-auto custom-scroll p-4 space-y-4 pb-[160px]">
+                      {messages.length === 0 && (
+                        <div className="h-full flex flex-col items-center justify-center text-center opacity-60 px-5 space-y-3 pt-12">
+                          <div className="w-12 h-12 rounded-2xl bg-[var(--brand-accent)]/10 flex items-center justify-center border border-[var(--brand-accent)]/20 text-[var(--brand-accent)] mb-2"><Sparkles size={22} /></div>
+                          <h3 className="text-[var(--brand-text)] font-bold text-sm">IA do seu TCC</h3>
+                          <p className="text-[12px] text-[var(--brand-muted)]/70 leading-relaxed font-serif">Gere capítulos, peça revisões ou compare sugestões lado a lado com seu texto atual.</p>
+                        </div>
+                      )}
                     <AnimatePresence>
                       {messages.map(m => (
                         <motion.div key={m.id} initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className={cn("flex flex-col w-full", m.role === "user" ? "items-end" : "items-start")}>
@@ -939,18 +973,22 @@ export default function TccWorkspacePage() {
                       ))}
                     </AnimatePresence>
                     {isTyping && (
-                      <div className="flex gap-1.5 px-2"><span className="w-1.5 h-1.5 rounded-full bg-orange-700/50 animate-bounce" /><span className="w-1.5 h-1.5 rounded-full bg-orange-700/50 animate-bounce delay-75" /><span className="w-1.5 h-1.5 rounded-full bg-orange-700/50 animate-bounce delay-150" /></div>
+                      <div className="flex gap-1.5 px-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-accent)]/60 animate-bounce" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-accent)]/60 animate-bounce delay-75" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-accent)]/60 animate-bounce delay-150" />
+                      </div>
                     )}
                     <div ref={chatEndRef} />
                   </div>
 
-                  {/* Chat input */}
-                  <div className="absolute bottom-0 right-0 w-[280px] bg-[var(--brand-surface)] border-t border-[var(--brand-border)] p-3 z-10 space-y-2">
+                  {/* Chat input — fixed at bottom of sidebar, width follows sidebar */}
+                  <div className="absolute bottom-0 right-0 bg-[var(--brand-surface)] border-t border-[var(--brand-border)] p-3 z-10 space-y-2" style={{width: '340px'}}>
                     <div className="space-y-1.5">
                       <select
                         value={selectedChapter}
                         onChange={e => setSelectedChapter(e.target.value)}
-                        className="w-full bg-[var(--brand-surface)] border border-white/10 text-[var(--brand-text)]/70 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-orange-700/50"
+                        className="w-full bg-[var(--brand-bg)] border border-[var(--brand-border)] text-[var(--brand-text)]/70 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-[var(--brand-accent)]/40 transition-colors"
                       >
                         <option>Introdução</option>
                         <option>Revisão Bibliográfica (Referencial Teórico)</option>
@@ -959,7 +997,7 @@ export default function TccWorkspacePage() {
                         <option>Conclusão</option>
                       </select>
                       <button onClick={handleGerarTcc} disabled={isGenerating}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-orange-700/10 border border-orange-700/30 text-orange-600 text-xs font-semibold rounded-xl hover:bg-orange-700/20 transition-colors disabled:opacity-50">
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[var(--brand-accent)]/10 border border-[var(--brand-accent)]/30 text-[var(--brand-accent)] text-xs font-semibold rounded-xl hover:bg-[var(--brand-accent)]/20 transition-colors disabled:opacity-50">
                         {isGenerating
                           ? <><Loader2 size={12} className="animate-spin" /> Gerando Inteligência...</>
                           : attachmentsMeta && attachmentsMeta.count > 0
@@ -979,18 +1017,20 @@ export default function TccWorkspacePage() {
                       <textarea value={inputVal} onChange={e => setInputVal(e.target.value)}
                         onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendPrompt() } }}
                         placeholder="Peça para gerar ou revisar..."
-                        className="w-full bg-[#181816] border border-[var(--brand-border)] rounded-xl pl-9 pr-9 py-2.5 text-[13px] text-[var(--brand-text)] placeholder:text-[var(--brand-muted)]/50 focus:outline-none focus:border-orange-700/30 resize-none" rows={1} />
+                        className="w-full bg-[var(--brand-bg)] border border-[var(--brand-border)] rounded-xl pl-9 pr-9 py-2.5 text-[13px] text-[var(--brand-text)] placeholder:text-[var(--brand-muted)]/50 focus:outline-none focus:border-[var(--brand-accent)]/30 resize-none transition-colors" rows={1} />
                       <button onClick={() => fileInputRef.current?.click()} disabled={uploading} className="absolute left-2.5 top-1/2 -translate-y-1/2 p-1 text-[var(--brand-muted)]/50 hover:text-[var(--brand-muted)]">
                         {uploading ? <Loader2 size={14} className="animate-spin" /> : <Paperclip size={14} />}
                       </button>
                       <input type="file" ref={fileInputRef} onChange={handleUpload} accept=".pdf,.doc,.docx" className="hidden" />
-                      <button onClick={() => handleSendPrompt()} disabled={!inputVal.trim() || isTyping} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 bg-orange-700 text-black rounded-lg hover:bg-orange-600 disabled:opacity-30 disabled:bg-white/10 disabled:text-[var(--brand-muted)]/60 transition-all">
+                      <button onClick={() => handleSendPrompt()} disabled={!inputVal.trim() || isTyping} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 bg-[var(--brand-accent)] text-white rounded-lg hover:opacity-90 disabled:opacity-30 disabled:bg-[var(--brand-muted)]/10 disabled:text-[var(--brand-muted)]/60 transition-all">
                         <ArrowRight size={13} />
                       </button>
                     </div>
                   </div>
                 </>
               )}
+              </>
+            )}
             </aside>
           )}
         </div>

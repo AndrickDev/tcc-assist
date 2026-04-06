@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import * as React from "react"
 import Link from "next/link"
@@ -65,9 +65,9 @@ function getHour() {
 function PlanBadge({ plan }: { plan: string }) {
   const cls =
     plan === "VIP"
-      ? "bg-orange-700/20 text-orange-600 border-orange-700/30"
+      ? "bg-[var(--brand-accent)]/15 text-[var(--brand-accent)] border-[var(--brand-accent)]/30"
       : plan === "PRO"
-      ? "bg-white/10 text-[var(--brand-text)]/80 border-[var(--brand-border)]"
+      ? "bg-[var(--brand-hover)] text-[var(--brand-text)]/80 border-[var(--brand-border)]"
       : "bg-[var(--brand-hover)] text-[var(--brand-muted)]/70 border-[var(--brand-border)]"
   return (
     <span className={cn("px-2.5 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase border", cls)}>
@@ -82,7 +82,7 @@ function ProgressBar({ value, accent = false }: { value: number; accent?: boolea
   return (
     <div className="h-0.5 w-full bg-[var(--brand-border)] rounded-full overflow-hidden">
       <div
-        className={cn("h-full rounded-full transition-all duration-700", accent ? "bg-orange-700" : "bg-white/30")}
+        className={cn("h-full rounded-full transition-all duration-700", accent ? "bg-[var(--brand-accent)]" : "bg-[var(--brand-muted)]/30")}
         style={{ width: `${value}%` }}
       />
     </div>
@@ -119,7 +119,7 @@ function TccCardGrid({ tcc, confirmDeleteId, deletingId, onConfirmDelete, onCanc
         <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
           <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", isActive ? "bg-emerald-400" : "bg-white/20")} />
           {tcc.workType && (
-            <span className="px-2 py-0.5 rounded-md bg-orange-700/10 text-[10px] font-bold text-orange-700/80 tracking-wide border border-orange-700/20">{tcc.workType}</span>
+            <span className="px-2 py-0.5 rounded-md bg-[var(--brand-accent)]/10 text-[10px] font-bold text-[var(--brand-accent)]/80 tracking-wide border border-[var(--brand-accent)]/20">{tcc.workType}</span>
           )}
           {tcc.norma && <span className="text-[10px] text-[var(--brand-muted)]/50">{tcc.norma}</span>}
         </div>
@@ -190,15 +190,15 @@ function TccCardList({ tcc, confirmDeleteId, deletingId, onConfirmDelete, onCanc
     <motion.div layout initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }} transition={{ duration: 0.15 }}
       className="group flex items-center gap-4 px-5 py-4 bg-[var(--brand-surface)] border border-[var(--brand-border)] rounded-xl hover:border-[var(--brand-border)] transition-all">
-      <div className="w-8 h-8 rounded-lg bg-orange-700/10 border border-orange-700/20 flex items-center justify-center shrink-0">
-        <BookOpen size={14} className="text-orange-700/70" />
+      <div className="w-8 h-8 rounded-lg bg-[var(--brand-accent)]/10 border border-[var(--brand-accent)]/20 flex items-center justify-center shrink-0">
+        <BookOpen size={14} className="text-[var(--brand-accent)]/70" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
           <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", isActive ? "bg-emerald-400" : "bg-white/20")} />
           <h3 className="text-sm font-semibold text-[var(--brand-text)] truncate font-serif">{tcc.title}</h3>
           {tcc.workType && (
-            <span className="hidden sm:inline px-1.5 py-0.5 rounded text-[9px] font-bold bg-orange-700/10 text-orange-700/70 border border-orange-700/20">{tcc.workType}</span>
+            <span className="hidden sm:inline px-1.5 py-0.5 rounded text-[9px] font-bold bg-[var(--brand-accent)]/10 text-[var(--brand-accent)]/80 border border-[var(--brand-accent)]/20">{tcc.workType}</span>
           )}
         </div>
         <p className="text-[11px] text-[var(--brand-muted)]/60 truncate">{tcc.course} · {tcc.institution}</p>
@@ -321,14 +321,14 @@ function SidebarStats({ tccs, userPlan }: { tccs: Tcc[]; userPlan: string }) {
             <ProgressBar value={(tccs.length / slotLimit) * 100} />
           </div>
         </div>
-        <Link href="/pricing" className="mt-4 block text-center text-[10px] font-bold text-orange-700/70 hover:text-orange-600 transition-colors tracking-wide">
+        <Link href="/pricing" className="mt-4 block text-center text-[10px] font-bold text-[var(--brand-accent)]/80 hover:text-[var(--brand-accent)] transition-colors tracking-wide">
           GERENCIAR PLANO →
         </Link>
       </div>
-      <div className="p-4 rounded-xl border border-orange-700/20 bg-orange-700/[0.04]">
+      <div className="p-4 rounded-xl border border-[var(--brand-accent)]/20 bg-[var(--brand-accent)]/[0.04]">
         <div className="flex items-center gap-2 mb-2">
-          <Sparkles size={12} className="text-orange-700/70" />
-          <span className="text-[10px] font-bold text-orange-700/70 tracking-wide">NOTA DO TESEO</span>
+          <Sparkles size={12} className="text-[var(--brand-accent)]/70" />
+          <span className="text-[10px] font-bold text-[var(--brand-accent)]/70 tracking-wide">NOTA DO TESEO</span>
         </div>
         <p className="text-[11px] text-[var(--brand-muted)]/60 leading-relaxed">
           Comece sempre pela Introdução e Metodologia — são as seções que mais reprovam por falta de clareza.
@@ -344,8 +344,8 @@ function EmptyState({ onNew }: { onNew: () => void }) {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
       className="flex flex-col items-center justify-center text-center px-4 py-24 max-w-sm mx-auto">
-      <div className="w-16 h-16 rounded-2xl bg-orange-700/10 border border-orange-700/20 flex items-center justify-center mb-6">
-        <BookOpen className="w-7 h-7 text-orange-700/70" />
+      <div className="w-16 h-16 rounded-2xl bg-[var(--brand-accent)]/10 border border-[var(--brand-accent)]/20 flex items-center justify-center mb-6">
+        <BookOpen className="w-7 h-7 text-[var(--brand-accent)]/70" />
       </div>
       <h2 className="text-2xl font-bold font-serif text-[var(--brand-text)] leading-snug mb-3">Seu próximo capítulo começa aqui</h2>
       <p className="text-sm text-[var(--brand-muted)]/60 leading-relaxed mb-8">O Teseo te acompanha do tema à entrega — estruturando, revisando e orientando cada etapa.</p>
@@ -356,7 +356,7 @@ function EmptyState({ onNew }: { onNew: () => void }) {
           { Icon: Sparkles, label: "IA especializada" },
         ] as const).map(({ Icon, label }) => (
           <div key={label} className="bg-[var(--brand-surface)] border border-[var(--brand-border)] rounded-xl p-3 flex flex-col items-center gap-1.5">
-            <Icon className="w-4 h-4 text-orange-700/60" />
+            <Icon className="w-4 h-4 text-[var(--brand-accent)]/60" />
             <span className="text-[10px] font-medium text-[var(--brand-muted)]/70 text-center leading-tight">{label}</span>
           </div>
         ))}
@@ -428,7 +428,7 @@ function NewTccModal({ open, onClose, onCreated, userPlan, tccCount }: {
             exit={{ opacity: 0, y: 8, scale: 0.97 }} transition={{ duration: 0.2, ease: "easeOut" }}
             className="relative w-full max-w-lg bg-[var(--brand-surface)] rounded-2xl shadow-2xl overflow-hidden border border-[var(--brand-border)]">
             <div className="h-[2px] bg-[var(--brand-hover)]">
-              <motion.div className="h-full bg-orange-700" animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }} transition={{ duration: 0.25, ease: "easeOut" }} />
+              <motion.div className="h-full bg-[var(--brand-accent)]" animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }} transition={{ duration: 0.25, ease: "easeOut" }} />
             </div>
             <div className="p-7">
               <div className="flex items-center justify-between mb-7">
@@ -494,7 +494,7 @@ function NewTccModal({ open, onClose, onCreated, userPlan, tccCount }: {
                     ) : (
                       <>
                         <div className="text-center">
-                          <div className="w-12 h-12 bg-orange-700/10 border border-orange-700/20 rounded-full flex items-center justify-center mx-auto mb-3"><Sparkles className="w-5 h-5 text-orange-700" /></div>
+                          <div className="w-12 h-12 bg-[var(--brand-accent)]/10 border border-[var(--brand-accent)]/20 rounded-full flex items-center justify-center mx-auto mb-3"><Sparkles className="w-5 h-5 text-[var(--brand-accent)]" /></div>
                           <h2 className="text-lg font-bold text-[var(--brand-text)] font-serif">Tudo certo — pronto para começar</h2>
                           <p className="mt-1 text-sm text-[var(--brand-muted)]/60">O Teseo vai preparar seu workspace com este contexto.</p>
                         </div>
@@ -701,12 +701,12 @@ export default function DashboardPage() {
 
                   {!canAddMore && (
                     <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-                      className="p-4 rounded-xl border border-orange-700/20 bg-orange-700/[0.04] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                      className="p-4 rounded-xl border border-[var(--brand-accent)]/20 bg-[var(--brand-accent)]/[0.04] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <Crown className="w-4 h-4 text-orange-700/70 shrink-0" />
+                        <Crown className="w-4 h-4 text-[var(--brand-accent)]/70 shrink-0" />
                         <p className="text-sm text-[var(--brand-muted)]/70">Limite do plano <strong className="text-[var(--brand-muted)]">{userPlan === "FREE" ? "Gratuito" : userPlan}</strong> atingido.</p>
                       </div>
-                      <Link href="/pricing" className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-orange-700 hover:bg-orange-600 text-black text-xs font-bold transition-colors">Ver planos</Link>
+                      <Link href="/pricing" className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-hover)] text-white text-xs font-bold transition-colors">Ver planos</Link>
                     </motion.div>
                   )}
 
