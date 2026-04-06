@@ -31,16 +31,16 @@ export default function SuportePage() {
 
   if (status === "sent") {
     return (
-      <div className="flex min-h-screen bg-[#0A0A09] text-white">
+      <div className="flex min-h-screen bg-[var(--brand-bg)] text-[var(--brand-text)]">
         <AppSidebar />
         <main className="flex-1 pl-[52px] flex items-center justify-center">
           <div className="text-center space-y-3">
-            <CheckCircle2 size={36} className="text-emerald-400 mx-auto" />
-            <h2 className="text-lg font-bold text-white/85">Mensagem enviada!</h2>
-            <p className="text-sm text-white/35">Nossa equipe responderá em até 24h no seu e-mail.</p>
+            <CheckCircle2 size={36} className="text-emerald-500 mx-auto" />
+            <h2 className="text-lg font-bold text-[var(--brand-text)]">Mensagem enviada!</h2>
+            <p className="text-sm text-[var(--brand-muted)]">Nossa equipe responderá em até 24h no seu e-mail.</p>
             <button
               onClick={() => { setMensagem(""); setStatus("idle") }}
-              className="mt-2 text-xs text-white/30 hover:text-white/60 transition-colors"
+              className="mt-2 text-xs text-[var(--brand-muted)]/50 hover:text-[var(--brand-muted)] transition-colors"
             >
               Enviar outra mensagem
             </button>
@@ -51,36 +51,36 @@ export default function SuportePage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#0A0A09] text-white">
+    <div className="flex min-h-screen bg-[var(--brand-bg)] text-[var(--brand-text)]">
       <AppSidebar />
       <main className="flex-1 pl-[52px] flex justify-center py-16 px-6">
         <div className="w-full max-w-[520px] space-y-6">
 
           {/* Header */}
           <div>
-            <h1 className="text-xl font-bold text-white/90 flex items-center gap-2">
-              <MessageSquare size={18} className="text-white/40" /> Suporte
+            <h1 className="text-xl font-bold text-[var(--brand-text)] flex items-center gap-2">
+              <MessageSquare size={18} className="text-[var(--brand-muted)]" /> Suporte
             </h1>
-            <p className="text-sm text-white/35 mt-0.5">Descreva sua dúvida ou problema e retornaremos em breve.</p>
+            <p className="text-sm text-[var(--brand-muted)] mt-0.5">Descreva sua dúvida ou problema e retornaremos em breve.</p>
           </div>
 
-          <div className="p-5 bg-[#111110] border border-white/[0.07] rounded-2xl space-y-4">
+          <div className="p-5 bg-[var(--brand-surface)] border border-[var(--brand-border)] rounded-2xl space-y-4">
             {/* De */}
             <div className="space-y-1">
-              <label className="text-[11px] text-white/40 uppercase tracking-widest">De</label>
-              <div className="px-3 py-2.5 bg-[#0A0A09] border border-white/[0.06] rounded-xl text-sm text-white/35">
-                {user?.name && <span className="text-white/50 mr-2">{user.name}</span>}
+              <label className="text-[11px] text-[var(--brand-muted)] uppercase tracking-widest">De</label>
+              <div className="px-3 py-2.5 bg-[var(--brand-bg)] border border-[var(--brand-border)] rounded-xl text-sm text-[var(--brand-muted)]">
+                {user?.name && <span className="text-[var(--brand-text)]/70 mr-2">{user.name}</span>}
                 {user?.email ?? "—"}
               </div>
             </div>
 
             {/* Assunto */}
             <div className="space-y-1">
-              <label className="text-[11px] text-white/40 uppercase tracking-widest">Assunto</label>
+              <label className="text-[11px] text-[var(--brand-muted)] uppercase tracking-widest">Assunto</label>
               <select
                 value={assunto}
                 onChange={e => setAssunto(e.target.value)}
-                className="w-full bg-[#0A0A09] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-white/70 focus:outline-none focus:border-white/20"
+                className="w-full bg-[var(--brand-bg)] border border-[var(--brand-border)] rounded-xl px-3 py-2.5 text-sm text-[var(--brand-text)] focus:outline-none focus:border-[var(--brand-accent)]/50 transition-colors"
               >
                 {ASSUNTOS.map(a => <option key={a}>{a}</option>)}
               </select>
@@ -88,20 +88,20 @@ export default function SuportePage() {
 
             {/* Mensagem */}
             <div className="space-y-1">
-              <label className="text-[11px] text-white/40 uppercase tracking-widest">Mensagem</label>
+              <label className="text-[11px] text-[var(--brand-muted)] uppercase tracking-widest">Mensagem</label>
               <textarea
                 value={mensagem}
                 onChange={e => setMensagem(e.target.value)}
                 rows={6}
                 placeholder="Descreva sua situação com detalhes..."
-                className="w-full bg-[#0A0A09] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-white/70 placeholder:text-white/20 focus:outline-none focus:border-white/20 resize-none"
+                className="w-full bg-[var(--brand-bg)] border border-[var(--brand-border)] rounded-xl px-3 py-2.5 text-sm text-[var(--brand-text)] placeholder:text-[var(--brand-muted)]/40 focus:outline-none focus:border-[var(--brand-accent)]/50 resize-none transition-colors"
               />
             </div>
 
             <button
               onClick={handleEnviar}
               disabled={!mensagem.trim() || status === "sending"}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-white/[0.07] hover:bg-white/[0.11] border border-white/[0.09] text-white/70 text-sm font-semibold rounded-xl transition-all disabled:opacity-40"
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-[var(--brand-accent)] hover:opacity-90 text-white text-sm font-semibold rounded-xl transition-all disabled:opacity-40"
             >
               {status === "sending"
                 ? <><Loader2 size={14} className="animate-spin" /> Enviando...</>
@@ -109,7 +109,7 @@ export default function SuportePage() {
             </button>
           </div>
 
-          <p className="text-[11px] text-white/20 text-center">
+          <p className="text-[11px] text-[var(--brand-muted)]/50 text-center">
             Tempo médio de resposta: 24h · Atendimento via e-mail
           </p>
         </div>

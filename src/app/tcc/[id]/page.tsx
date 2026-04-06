@@ -74,10 +74,18 @@ function stripHtmlTags(html: string) {
 function extractHeadings(html: string): { id: string; text: string; level: number }[] {
   const matches = [...html.matchAll(/<(h[1-3])[^>]*>(.*?)<\/h[1-3]>/gi)]
   return matches.map((m, i) => ({
-    id: `heading-${i}`,
+    id: `toc-heading-${i}`,
     text: stripHtmlTags(m[2]),
     level: parseInt(m[1].replace('h', ''))
   }))
+}
+
+/** Inject stable id attrs into all h1/h2/h3 in the editor DOM */
+function injectHeadingIds(container: Element) {
+  let idx = 0
+  container.querySelectorAll('h1,h2,h3').forEach(el => {
+    el.id = `toc-heading-${idx++}`
+  })
 }
 
 function computeLinguisticFidelity(original: string, suggestion: string): number {
@@ -778,7 +786,7 @@ export default function TccWorkspacePage() {
                 onRegenerate={reviewState.userPrompt ? handleRegenerateReview : undefined}
               />
             ) : (
-              /* ── Normal editor mode ── */
+              /* ── Normal editor mode — 3-column grid ── */
               <motion.div
                 key="editor"
                 initial={{ opacity: 0 }}
@@ -786,37 +794,58 @@ export default function TccWorkspacePage() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
                 className="flex-1 overflow-y-auto custom-scroll bg-[var(--brand-bg)]"
+                id="editor-scroll-container"
               >
-                <div className="min-h-full py-10 flex justify-center gap-4 px-4 sm:px-8">
-                  {/* TOC — só aparece em telas largas quando há headings */}
-                  {headings.length > 0 && (
-                    <aside className="hidden xl:flex w-[170px] shrink-0 self-start sticky top-10 flex-col gap-1">
-                      <p className="text-[9px] font-bold tracking-widest uppercase text-[var(--brand-muted)]/50 mb-1">Índice</p>
-                      {headings.map((h, i) => (
-                        <button
-                          key={i}
-                          onClick={() => {
-                            const el = document.querySelector(`[data-heading-index="${i}"]`)
-                            el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                          }}
-                          className="text-left text-[11px] text-[var(--brand-muted)]/60 hover:text-[var(--brand-text)]/70 transition-colors leading-snug py-0.5 truncate"
-                          style={{ paddingLeft: `${(h.level - 1) * 8}px` }}
-                        >
-                          {h.text}
-                        </button>
-                      ))}
-                    </aside>
-                  )}
+                <div className="min-h-full py-10 flex gap-0 px-4 sm:px-6 xl:px-10">
 
-                  {/* Editor */}
-                  <div className="w-full max-w-[850px]">
-                    <div className="w-full bg-[var(--brand-surface)] border border-[var(--brand-border)] shadow-2xl rounded-sm min-h-[90vh]">
-                      <EditableRichText value={tccContent} onChange={setTccContent} editorRef={editorRef} className="border-none shadow-none bg-transparent" />
+                  {/* ── Col 1: TOC Index 20% ── */}
+                  <aside className="hidden xl:flex w-[20%] shrink-0 self-start sticky top-10 flex-col gap-0.5 pr-6">
+                    <p className="text-[9px] font-bold tracking-widest uppercase text-[var(--brand-muted)]/40 mb-2 px-1">Índice</p>
+                    {headings.length === 0 ? (
+                      <p className="text-[11px] text-[var(--brand-muted)]/30 italic px-1">Sem seções ainda</p>
+                    ) : headings.map((h, i) => (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          const scrollEl = document.getElementById('editor-scroll-container')
+                          const target = document.getElementById(h.id)
+                          if (target && scrollEl) {
+                            const top = target.getBoundingClientRect().top - scrollEl.getBoundingClientRect().top + scrollEl.scrollTop - 16
+                            scrollEl.scrollTo({ top, behavior: 'smooth' })
+                          }
+                        }}
+                        className="text-left text-[11px] text-[var(--brand-muted)]/55 hover:text-[var(--brand-accent)] hover:bg-[var(--brand-hover)] transition-all leading-snug py-1 px-2 rounded-md truncate"
+                        style={{ paddingLeft: `${8 + (h.level - 1) * 10}px` }}
+                      >
+                        {h.text}
+                      </button>
+                    ))}
+                  </aside>
+
+                  {/* ── Col 2: Editor Central 55% (A4 paper) ── */}
+                  <div className="flex-1 xl:w-[55%] flex flex-col items-center">
+                    <div
+                      className="w-full max-w-[800px] bg-[var(--brand-surface)] min-h-[90vh] rounded-sm"
+                      style={{
+                        boxShadow: '0 2px 16px rgba(0,0,0,0.08), 0 0 0 1px var(--brand-border)'
+                      }}
+                      ref={(el) => {
+                        if (el) injectHeadingIds(el)
+                      }}
+                    >
+                      <EditableRichText
+                        value={tccContent}
+                        onChange={setTccContent}
+                        editorRef={editorRef}
+                        tccId={String(id)}
+                        imageCount={attachmentsMeta?.count ?? 0}
+                        onImageInserted={fetchAttachments}
+                      />
                     </div>
                   </div>
 
-                  {/* Phantom para manter editor centralizado quando TOC aparece */}
-                  {headings.length > 0 && <div className="hidden xl:block w-[170px] shrink-0" />}
+                  {/* ── Col 3: phantom spacer 25% on xl+ (sidebar is outside this flow) ── */}
+                  <div className="hidden xl:block w-[25%] shrink-0" />
                 </div>
               </motion.div>
             )}
@@ -824,13 +853,13 @@ export default function TccWorkspacePage() {
 
           {/* ── Right sidebar (chat / metrics) — hidden in review mode ── */}
           {!reviewState && (
-            <aside className="w-[340px] shrink-0 border-l border-[var(--brand-border)] bg-[var(--brand-surface)] flex flex-col z-20">
+            <aside className="w-[280px] shrink-0 border-l border-[var(--brand-border)] bg-[var(--brand-surface)] flex flex-col z-20">
               {/* Tabs */}
-              <div className="flex items-center border-b border-[var(--brand-border)] px-1 pt-1 shrink-0 bg-[#161615]">
-                <button onClick={() => setActiveTab("chat")} className={cn("flex-1 py-2.5 text-xs font-bold uppercase tracking-wider transition-all border-b-2", activeTab === "chat" ? "border-orange-700 text-orange-600" : "border-transparent text-[var(--brand-muted)]/70 hover:text-[var(--brand-text)]/70")}>
-                  <span className="flex items-center justify-center gap-2"><BrainCircuit size={13} /> Sugestões</span>
+              <div className="flex items-center border-b border-[var(--brand-border)] px-1 pt-1 shrink-0 bg-[var(--brand-bg)]">
+                <button onClick={() => setActiveTab("chat")} className={cn("flex-1 py-2 text-[11px] font-bold uppercase tracking-wider transition-all border-b-2", activeTab === "chat" ? "border-[var(--brand-accent)] text-[var(--brand-accent)]" : "border-transparent text-[var(--brand-muted)]/60 hover:text-[var(--brand-text)]/70")}>
+                  <span className="flex items-center justify-center gap-1.5"><BrainCircuit size={12} /> IA</span>
                 </button>
-                <button onClick={() => setActiveTab("metricas")} className={cn("flex-1 py-2.5 text-xs font-bold uppercase tracking-wider transition-all border-b-2", activeTab === "metricas" ? "border-orange-700 text-orange-600" : "border-transparent text-[var(--brand-muted)]/70 hover:text-[var(--brand-text)]/70")}>
+                <button onClick={() => setActiveTab("metricas")} className={cn("flex-1 py-2 text-[11px] font-bold uppercase tracking-wider transition-all border-b-2", activeTab === "metricas" ? "border-[var(--brand-accent)] text-[var(--brand-accent)]" : "border-transparent text-[var(--brand-muted)]/60 hover:text-[var(--brand-text)]/70")}>
                   Métricas
                 </button>
               </div>
@@ -856,41 +885,41 @@ export default function TccWorkspacePage() {
                       {messages.map(m => (
                         <motion.div key={m.id} initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className={cn("flex flex-col w-full", m.role === "user" ? "items-end" : "items-start")}>
                           {m.role === "user" ? (
-                            <div className="max-w-[85%] px-3 py-2.5 text-[13px] bg-[#1E1D19] border border-[var(--brand-border)] rounded-[1rem_0_1rem_1rem] text-[var(--brand-text)] leading-relaxed">{m.content}</div>
+                            <div className="max-w-[88%] px-2.5 py-2 text-[12px] bg-[var(--brand-hover)] border border-[var(--brand-border)] rounded-[0.75rem_0_0.75rem_0.75rem] text-[var(--brand-text)] leading-relaxed">{m.content}</div>
                           ) : (
-                            <div className="w-full bg-[#181816] border border-orange-700/20 rounded-xl overflow-hidden">
-                              <div className="px-3 py-2 bg-orange-700/[0.06] border-b border-orange-700/10 flex items-center justify-between">
-                                <div className="flex items-center gap-1.5 text-[10px] font-bold text-orange-700/70 tracking-widest uppercase"><Sparkles size={11} /> Sugestão da IA</div>
+                            <div className="w-full bg-[var(--brand-bg)] border border-[var(--brand-border)] rounded-lg overflow-hidden">
+                              <div className="px-2.5 py-1.5 border-b border-[var(--brand-border)] flex items-center justify-between">
+                                <div className="flex items-center gap-1 text-[9px] font-bold text-[var(--brand-accent)]/70 tracking-widest uppercase"><Sparkles size={10} /> IA</div>
                                 <button
                                   onClick={() => setReviewState({ messageId: m.id, suggestionHtml: m.editorContent || m.content, userPrompt: m.userPrompt })}
-                                  className="text-[10px] font-bold tracking-wider uppercase transition-colors px-2 py-0.5 rounded text-[var(--brand-muted)]/60 hover:text-[var(--brand-muted)]"
+                                  className="text-[9px] font-bold tracking-wider uppercase transition-colors px-1.5 py-0.5 rounded text-[var(--brand-muted)]/50 hover:text-[var(--brand-accent)]"
                                 >
                                   Revisar
                                 </button>
                               </div>
-                              <div className="p-3 text-[12px] leading-relaxed text-[var(--brand-muted)] font-serif max-h-[160px] overflow-hidden relative">
+                              <div className="px-2.5 py-2 text-[11px] leading-relaxed text-[var(--brand-muted)] font-serif max-h-[120px] overflow-hidden relative">
                                 <div dangerouslySetInnerHTML={{ __html: m.editorContent || m.content }} />
-                                <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#181816] to-transparent" />
+                                <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-[var(--brand-bg)] to-transparent" />
                               </div>
-                              <div className="px-3 py-2 border-t border-white/[0.04] flex gap-2">
+                              <div className="px-2.5 py-1.5 border-t border-[var(--brand-border)] flex gap-1.5">
                                 <button
                                   onClick={() => setReviewState({ messageId: m.id, suggestionHtml: m.editorContent || m.content, userPrompt: m.userPrompt })}
-                                  className="flex-1 py-1.5 text-[10px] font-bold text-[var(--brand-muted)]/70 hover:text-[var(--brand-text)]/70 border border-[var(--brand-border)] hover:border-[var(--brand-border)] rounded-lg transition-all"
+                                  className="flex-1 py-1 text-[9px] font-bold text-[var(--brand-muted)]/60 hover:text-[var(--brand-text)]/70 border border-[var(--brand-border)] rounded-md transition-all"
                                 >
-                                  Ver revisão lado a lado
+                                  Comparar
                                 </button>
                                 <button
                                   onClick={() => handleInsertDocument(m.editorContent || m.content, 'end')}
-                                  className="flex-1 py-1.5 text-[10px] font-bold bg-orange-700/80 hover:bg-orange-700 text-black rounded-lg transition-all"
+                                  className="flex-1 py-1 text-[9px] font-bold bg-[var(--brand-accent)] hover:opacity-90 text-white rounded-md transition-all"
                                 >
-                                  Inserir direto
+                                  Inserir
                                 </button>
                                 {m.userPrompt && (
                                   <button
                                     onClick={() => { setMessages(prev => prev.filter(x => x.id !== m.id)); handleSendPrompt(m.userPrompt) }}
-                                    className="p-1.5 text-[var(--brand-muted)]/50 hover:text-[var(--brand-muted)] border border-[var(--brand-border)] rounded-lg transition-all"
+                                    className="p-1 text-[var(--brand-muted)]/40 hover:text-[var(--brand-muted)] border border-[var(--brand-border)] rounded-md transition-all"
                                   >
-                                    <RotateCcw size={12} />
+                                    <RotateCcw size={10} />
                                   </button>
                                 )}
                               </div>
@@ -906,7 +935,7 @@ export default function TccWorkspacePage() {
                   </div>
 
                   {/* Chat input */}
-                  <div className="absolute bottom-0 right-0 w-[340px] bg-[var(--brand-surface)] border-t border-[var(--brand-border)] p-3 z-10 space-y-2">
+                  <div className="absolute bottom-0 right-0 w-[280px] bg-[var(--brand-surface)] border-t border-[var(--brand-border)] p-3 z-10 space-y-2">
                     <div className="space-y-1.5">
                       <select
                         value={selectedChapter}

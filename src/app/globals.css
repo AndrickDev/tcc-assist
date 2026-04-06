@@ -83,14 +83,14 @@
     --radius: 0.5rem;
 
     /* Brand tokens (light) - calm, academic, lots of whitespace */
-    --brand-bg: #FAF9F5;
-    --brand-surface: #FFFFFF;
-    --brand-border: #E7E2DA;
+    --brand-bg: #f0ede6;
+    --brand-surface: #f7f6f2;
+    --brand-border: #E0DAD0;
     --brand-muted: #6B7280;
     --brand-text: #262624;
-    --brand-hover: #F0EEE6;
-    --brand-accent: #d97757;
-    --brand-accent-hover: #e88b6c;
+    --brand-hover: #eae7df;
+    --brand-accent: #da7756;
+    --brand-accent-hover: #c96745;
   }
 
   /* ── Dark mode ──────────────────────────────────────── */
@@ -115,14 +115,14 @@
     --input: 0 0% 100% / 8%;
     --ring: 14 58% 59%;
 
-    --brand-bg: #262624;
-    --brand-surface: #2F2F2C;
-    --brand-border: #3A3A37;
+    --brand-bg: #171614;
+    --brand-surface: #1c1b19;
+    --brand-border: #2e2d2b;
     --brand-muted: #9CA3AF;
-    --brand-text: #FFFFFF;
-    --brand-hover: #141413;
-    --brand-accent: #d97757;
-    --brand-accent-hover: #e88b6c;
+    --brand-text: #F0EDEA;
+    --brand-hover: #232220;
+    --brand-accent: #da7756;
+    --brand-accent-hover: #c96745;
   }
 }
 

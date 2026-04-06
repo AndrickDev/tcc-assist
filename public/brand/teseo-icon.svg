@@ -1,23 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Teseo icon">
-  <!-- Placeholder icon (replace with the official SVG when provided).
-       Hardcoded stroke color to avoid accidental recoloring. -->
-  <g fill="none" stroke="#B8735A" stroke-width="10" stroke-linecap="round">
-    <path d="M128 38c28 0 52 10 70 28" />
-    <path d="M198 66c18 18 28 42 28 70" />
-    <path d="M226 136c0 28-10 52-28 70" />
-    <path d="M198 206c-18 18-42 28-70 28" />
-    <path d="M128 234c-28 0-52-10-70-28" />
-    <path d="M58 206c-18-18-28-42-28-70" />
-    <path d="M30 136c0-28 10-52 28-70" />
-    <path d="M58 66c18-18 42-28 70-28" />
-    <path d="M128 70c16 0 30 6 40 16" opacity="0.9"/>
-    <path d="M168 86c10 10 16 24 16 40" opacity="0.9"/>
-    <path d="M184 126c0 16-6 30-16 40" opacity="0.9"/>
-    <path d="M168 166c-10 10-24 16-40 16" opacity="0.9"/>
-    <path d="M128 182c-16 0-30-6-40-16" opacity="0.9"/>
-    <path d="M88 166c-10-10-16-24-16-40" opacity="0.9"/>
-    <path d="M72 126c0-16 6-30 16-40" opacity="0.9"/>
-    <path d="M88 86c10-10 24-16 40-16" opacity="0.9"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Teseo logo">
+  <rect width="256" height="256" fill="#f0ede6"/>
+  <!-- Celtic knot: 4-fold interlaced heart loops, terracotta stroke, matching brand image -->
+  <g fill="none" stroke="#c4663a" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Top loop -->
+    <path d="M128 28 C104 28 84 48 84 72 C84 96 104 112 128 128 C152 112 172 96 172 72 C172 48 152 28 128 28 Z"/>
+    <!-- Bottom loop -->
+    <path d="M128 228 C104 228 84 208 84 184 C84 160 104 144 128 128 C152 144 172 160 172 184 C172 208 152 228 128 228 Z"/>
+    <!-- Left loop -->
+    <path d="M28 128 C28 104 48 84 72 84 C96 84 112 104 128 128 C112 152 96 172 72 172 C48 172 28 152 28 128 Z"/>
+    <!-- Right loop -->
+    <path d="M228 128 C228 104 208 84 184 84 C160 84 144 104 128 128 C144 152 160 172 184 172 C208 172 228 152 228 128 Z"/>
+    <!-- Inner interlacing details -->
+    <path d="M108 88 C108 88 118 108 128 128 C138 148 148 168 148 168" stroke-opacity="0.7"/>
+    <path d="M148 88 C148 88 138 108 128 128 C118 148 108 168 108 168" stroke-opacity="0.7"/>
+    <path d="M88 108 C88 108 108 118 128 128 C148 138 168 148 168 148" stroke-opacity="0.7"/>
+    <path d="M88 148 C88 148 108 138 128 128 C148 118 168 108 168 108" stroke-opacity="0.7"/>
   </g>
+  <!-- Center square dots (characteristic of this Celtic knot style) -->
+  <rect x="122" y="56" width="12" height="12" rx="2" fill="#c4663a"/>
+  <rect x="122" y="188" width="12" height="12" rx="2" fill="#c4663a"/>
+  <rect x="56" y="122" width="12" height="12" rx="2" fill="#c4663a"/>
+  <rect x="188" y="122" width="12" height="12" rx="2" fill="#c4663a"/>
 </svg>
-

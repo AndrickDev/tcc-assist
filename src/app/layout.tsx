@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className={`${inter.variable} ${lora.variable} font-sans antialiased min-h-[100dvh] custom-scroll relative overflow-x-hidden`}
       >
         <SessionProvider>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange storageKey="teseo-theme">
             {children}
           </ThemeProvider>
         </SessionProvider>
