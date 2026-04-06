@@ -19,13 +19,12 @@ export function AiActionToolbar({ userPlan, content, onApplyAction, onUpgrade, c
 
   const handleAction = async (action: string) => {
     trackEvent('AI_ACTION_CLICK', { action, plan: userPlan, tccId })
-    
+
     if (userPlan === 'FREE') {
       trackEvent('AI_ACTION_BLOCK_PLAN', { action, required: 'PRO_OR_VIP', current: 'FREE' })
       onUpgrade()
       return
     }
-    // PRO can only review. ABNT, citacoes, proximopasso are VIP.
     const isVipAction = ['abnt', 'citacoes', 'proximopasso'].includes(action)
     if (isVipAction && userPlan !== 'VIP') {
       trackEvent('AI_ACTION_BLOCK_PLAN', { action, required: 'VIP', current: userPlan })
@@ -59,98 +58,117 @@ export function AiActionToolbar({ userPlan, content, onApplyAction, onUpgrade, c
       }
     } catch (e) {
       console.error(e)
-      setActionError("Ocorreu um erro ao processar a solicitação. Tente novamente.")
+      setActionError("Erro ao processar. Tente novamente.")
       trackEvent('AI_ACTION_ERROR', { action, error: 'Network/Unknown', durationMs: Date.now() - startTime })
     } finally {
       setLoadingAction(null)
     }
   }
 
+  // Compact button styling — theme-aware
+  const btnBase =
+    "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] font-medium whitespace-nowrap shrink-0 disabled:opacity-40 transition-colors"
+  const btnSubtle =
+    `${btnBase} bg-[var(--brand-surface)] hover:bg-[var(--brand-hover)] border-[var(--brand-border)] text-[var(--brand-text)]/70 hover:text-[var(--brand-text)]`
+  const btnVip =
+    `${btnBase} bg-[var(--brand-hover)] hover:bg-[var(--brand-border)] border-[var(--brand-border)] text-[var(--brand-muted)] hover:text-[var(--brand-text)]`
+
   return (
-    <div className="bg-[var(--brand-surface)] border-b border-[var(--brand-border)] px-3 py-2 flex flex-col gap-2 relative">
-      <div className="flex items-center gap-1.5 overflow-x-auto p-1 custom-scroll">
-        <div className="flex items-center gap-1.5 px-2 text-[10px] font-bold tracking-widest text-[var(--brand-muted)]/70 uppercase shrink-0">
-          <Sparkles size={12} className="text-[var(--brand-muted)]/60" />
+    <div className="flex flex-col gap-1.5 relative">
+      <div className="flex items-center gap-1 overflow-x-auto custom-scroll">
+        {/* Label */}
+        <div className="flex items-center gap-1 px-1.5 text-[10px] font-bold tracking-widest text-[var(--brand-muted)]/60 uppercase shrink-0">
+          <Sparkles size={11} />
           Ações
         </div>
 
-        <button 
+        {/* Revisar — PRO + VIP */}
+        <button
           onClick={() => handleAction('revisar')}
           disabled={loadingAction !== null}
-          aria-label={userPlan === 'VIP' ? 'Revisão Crítica VIP' : 'Revisão Gramatical'}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--brand-surface)] hover:bg-[var(--brand-hover)] transition-colors rounded-lg border border-[var(--brand-border)] text-[11px] font-medium text-[var(--brand-text)]/70 whitespace-nowrap shrink-0 disabled:opacity-50"
+          className={btnSubtle}
         >
-          {loadingAction === 'revisar' ? <Loader2 size={13} className="animate-spin" /> : <Edit3 size={13} className="text-blue-400" />}
-          {userPlan === 'VIP' ? 'Revisão Crítica' : 'Revisão Gramatical'}
+          {loadingAction === 'revisar'
+            ? <Loader2 size={12} className="animate-spin" />
+            : <Edit3 size={12} className="text-[var(--brand-muted)]" />}
+          {userPlan === 'VIP' ? 'Revisão Crítica' : 'Revisar'}
         </button>
 
-        <button 
+        {/* ABNT — VIP only */}
+        <button
           onClick={() => handleAction('abnt')}
           disabled={loadingAction !== null}
-          aria-label="Formatar nas Normas ABNT"
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--brand-surface)] hover:bg-[var(--brand-hover)] transition-colors rounded-lg border border-orange-700/20 text-[11px] font-medium text-orange-100 whitespace-nowrap shrink-0 disabled:opacity-50"
+          className={btnVip}
         >
-          {loadingAction === 'abnt' ? <Loader2 size={13} className="animate-spin" /> : <BookOpen size={13} className="text-orange-600" />}
-          Formatar ABNT
-          {userPlan !== 'VIP' && <Crown size={10} className="text-orange-700/50" />}
+          {loadingAction === 'abnt'
+            ? <Loader2 size={12} className="animate-spin" />
+            : <BookOpen size={12} />}
+          ABNT
+          {userPlan !== 'VIP' && <Crown size={9} className="opacity-50" />}
         </button>
 
-        <button 
+        {/* Citações — VIP only */}
+        <button
           onClick={() => handleAction('citacoes')}
           disabled={loadingAction !== null}
-          aria-label="Melhorar Citações e Referências"
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--brand-surface)] hover:bg-[var(--brand-hover)] transition-colors rounded-lg border border-orange-700/20 text-[11px] font-medium text-orange-100 whitespace-nowrap shrink-0 disabled:opacity-50"
+          className={btnVip}
         >
-          {loadingAction === 'citacoes' ? <Loader2 size={13} className="animate-spin" /> : <Quote size={13} className="text-orange-600" />}
-          Melhorar Citações
-          {userPlan !== 'VIP' && <Crown size={10} className="text-orange-700/50" />}
+          {loadingAction === 'citacoes'
+            ? <Loader2 size={12} className="animate-spin" />
+            : <Quote size={12} />}
+          Citações
+          {userPlan !== 'VIP' && <Crown size={9} className="opacity-50" />}
         </button>
 
-        <div className="w-px h-4 bg-white/[0.1] mx-1 shrink-0" />
+        <div className="w-px h-4 bg-[var(--brand-border)] mx-0.5 shrink-0" />
 
-        <button 
+        {/* Próximo Passo — VIP only, now subtle */}
+        <button
           onClick={() => handleAction('proximopasso')}
           disabled={loadingAction !== null}
-          aria-label="Orientação sobre o próximo passo"
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-700 hover:bg-orange-600 transition-colors rounded-lg text-[11px] font-bold text-black whitespace-nowrap shrink-0 disabled:opacity-50"
+          className={btnVip}
         >
-          {loadingAction === 'proximopasso' ? <Loader2 size={13} className="animate-spin" /> : <ChevronRight size={13} />}
-          Próximo Passo
-          {userPlan !== 'VIP' && <Crown size={10} className="text-black/50" />}
+          {loadingAction === 'proximopasso'
+            ? <Loader2 size={12} className="animate-spin" />
+            : <ChevronRight size={12} />}
+          Próx. Passo
+          {userPlan !== 'VIP' && <Crown size={9} className="opacity-50" />}
         </button>
-
       </div>
 
+      {/* Error message */}
       {actionError && (
-        <div className="mx-2 mt-1 px-3 py-2 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-2 text-red-200">
-          <span className="text-[11px] leading-relaxed">{actionError}</span>
-          <button onClick={() => setActionError(null)} className="text-[10px] text-red-400 hover:text-red-300 ml-auto pt-0.5">X</button>
+        <div className="mx-1 px-2.5 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-2 text-red-500">
+          <span className="text-[11px] leading-relaxed flex-1">{actionError}</span>
+          <button onClick={() => setActionError(null)} className="text-[10px] opacity-60 hover:opacity-100 mt-0.5">✕</button>
         </div>
       )}
 
+      {/* Next step panel */}
       <AnimatePresence>
         {nextStep && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0, marginTop: 0 }}
-            animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
-            exit={{ opacity: 0, height: 0, marginTop: 0 }}
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="bg-orange-700/10 border border-orange-700/30 rounded-xl p-3 text-sm text-orange-200 flex gap-3">
-              <ChevronRight className="shrink-0 text-orange-600 mt-0.5" size={16} />
-              <div>
-                <p className="font-bold text-orange-600 text-xs mb-1 uppercase tracking-wider">Orientação VIP</p>
-                <p>{nextStep}</p>
-                <button onClick={() => {
-                  setNextStep(null)
-                  trackEvent('AI_PANEL_TOGGLE_NEXT_STEP', { state: 'closed' })
-                }} className="text-[10px] text-orange-600/50 mt-2 hover:text-orange-600">Fechar</button>
+            <div className="bg-[var(--brand-hover)] border border-[var(--brand-border)] rounded-xl p-3 text-sm text-[var(--brand-text)] flex gap-3">
+              <ChevronRight className="shrink-0 text-[var(--brand-accent)] mt-0.5" size={15} />
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-[var(--brand-accent)] text-[10px] mb-1 uppercase tracking-wider">Orientação VIP</p>
+                <p className="text-[13px] text-[var(--brand-text)]/80 leading-relaxed">{nextStep}</p>
+                <button
+                  onClick={() => { setNextStep(null); trackEvent('AI_PANEL_TOGGLE_NEXT_STEP', { state: 'closed' }) }}
+                  className="text-[10px] text-[var(--brand-muted)]/50 mt-2 hover:text-[var(--brand-muted)] transition-colors"
+                >
+                  Fechar
+                </button>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
   )
 }

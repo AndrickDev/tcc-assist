@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
-import { put } from "@vercel/blob"
 import { prisma as db } from "@/lib/prisma"
 
 const IMAGE_LIMIT = 10
@@ -21,9 +20,7 @@ export async function POST(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  // Count existing images for this TCC stored in blob (stored as imageCount metadata on TCC or count from attachments)
-  // We track image count via a simple metadata field or by counting blob attachments with type image
-  // For simplicity, count attachments of type image
+  // Count existing images for this TCC
   const imageCount = await db.attachment.count({
     where: { tccId, mimeType: { startsWith: "image/" } }
   })
@@ -40,9 +37,9 @@ export async function POST(
   if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 })
 
   // Validate image type
-  const validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"]
+  const validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"]
   if (!validTypes.includes(file.type)) {
-    return NextResponse.json({ error: "Tipo de arquivo inválido. Use JPEG, PNG, WebP ou GIF." }, { status: 400 })
+    return NextResponse.json({ error: "Tipo inválido. Use JPEG, PNG, WebP ou GIF." }, { status: 400 })
   }
 
   // Max 5MB
@@ -50,24 +47,52 @@ export async function POST(
     return NextResponse.json({ error: "Imagem muito grande. Máximo 5MB." }, { status: 400 })
   }
 
-  const ext = file.name.split(".").pop() ?? "jpg"
-  const filename = `tcc-images/${tccId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+  let imageUrl: string
 
-  const blob = await put(filename, file, {
-    access: "public",
-    contentType: file.type,
-  })
-
-  // Record attachment
-  await db.attachment.create({
-    data: {
-      tccId,
-      fileName: file.name,
-      fileUrl: blob.url,
-      fileSize: file.size,
-      mimeType: file.type,
+  // Try Vercel Blob first; fall back to base64 data URL in development
+  const blobToken = process.env.BLOB_READ_WRITE_TOKEN
+  if (blobToken) {
+    try {
+      const { put } = await import("@vercel/blob")
+      const ext = file.name.split(".").pop() ?? "jpg"
+      const filename = `tcc-images/${tccId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const blob = await put(filename, file, {
+        access: "public",
+        contentType: file.type,
+        token: blobToken,
+      })
+      imageUrl = blob.url
+    } catch (err) {
+      console.error("[image/route] Blob upload failed, falling back to base64:", err)
+      // Fallback: return base64 data URL (works in dev, not recommended for prod)
+      const bytes = await file.arrayBuffer()
+      const base64 = Buffer.from(bytes).toString("base64")
+      imageUrl = `data:${file.type};base64,${base64}`
     }
-  })
+  } else {
+    // No blob token: use base64 inline (dev only)
+    const bytes = await file.arrayBuffer()
+    const base64 = Buffer.from(bytes).toString("base64")
+    imageUrl = `data:${file.type};base64,${base64}`
+  }
 
-  return NextResponse.json({ url: blob.url, remaining: IMAGE_LIMIT - imageCount - 1 })
+  // Record attachment when we have a real URL (skip for base64 to avoid storing large data)
+  if (!imageUrl.startsWith("data:")) {
+    try {
+      await db.attachment.create({
+        data: {
+          tccId,
+          fileName: file.name,
+          fileUrl: imageUrl,
+          fileSize: file.size,
+          mimeType: file.type,
+        }
+      })
+    } catch (e) {
+      console.error("[image/route] Failed to record attachment:", e)
+      // Non-fatal — still return the URL
+    }
+  }
+
+  return NextResponse.json({ url: imageUrl, remaining: IMAGE_LIMIT - imageCount - 1 })
 }

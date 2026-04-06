@@ -2,10 +2,11 @@
   <!--
     Celtic 4-fold love knot — quatro laços em formato de coração
     entrelaçados simetricamente, cor terracota #c4663a
+    Aproximação fiel ao logo fornecido pelo usuário
   -->
   <g fill="none" stroke="#c4663a" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
 
-    <!-- Laço Superior -->
+    <!-- Laço Superior (coração apontando para baixo) -->
     <path d="
       M100 52
       C 100 52, 80 32, 60 40
@@ -16,7 +17,7 @@
       C 120 32, 100 52, 100 52 Z
     "/>
 
-    <!-- Laço Inferior -->
+    <!-- Laço Inferior (coração apontando para cima) -->
     <path d="
       M100 148
       C 100 148, 80 168, 60 160
@@ -27,7 +28,7 @@
       C 120 168, 100 148, 100 148 Z
     "/>
 
-    <!-- Laço Esquerdo -->
+    <!-- Laço Esquerdo (coração apontando para a direita) -->
     <path d="
       M52 100
       C 52 100, 32 80, 40 60
@@ -38,7 +39,7 @@
       C 32 120, 52 100, 52 100 Z
     "/>
 
-    <!-- Laço Direito -->
+    <!-- Laço Direito (coração apontando para a esquerda) -->
     <path d="
       M148 100
       C 148 100, 168 80, 160 60
@@ -51,7 +52,7 @@
 
   </g>
 
-  <!-- Quadrados nos 4 pontos cardeais -->
+  <!-- Quadrados característicos nos 4 pontos cardeais (como na imagem) -->
   <rect x="93" y="16" width="14" height="14" rx="2" fill="#c4663a"/>
   <rect x="93" y="170" width="14" height="14" rx="2" fill="#c4663a"/>
   <rect x="16" y="93" width="14" height="14" rx="2" fill="#c4663a"/>

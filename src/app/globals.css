@@ -165,3 +165,27 @@
   }
 
 }
+
+/* ── Tiptap / ProseMirror editor overrides ──────────── */
+.ProseMirror {
+  background: var(--brand-surface) !important;
+  color: var(--brand-text) !important;
+  outline: none !important;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: var(--brand-muted);
+  opacity: 0.45;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.ProseMirror img {
+  border-radius: 0.5rem;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.5rem auto;
+}

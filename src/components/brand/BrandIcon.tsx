@@ -14,13 +14,12 @@ export function BrandIcon({
 }) {
   return (
     <Image
-      src="/brand/teseo-icon.svg"
+      src="/brand/teseo-icon.png"
       alt={alt}
       width={size}
       height={size}
-      className={cn("select-none", className)}
+      className={cn("select-none object-contain", className)}
       priority
     />
   )
 }
-

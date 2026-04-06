@@ -420,6 +420,19 @@ export default function TccWorkspacePage() {
 
   const headings = React.useMemo(() => extractHeadings(tccContent), [tccContent])
 
+  // Inject stable IDs into Tiptap headings after content renders
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      const container = document.getElementById('editor-scroll-container')
+      if (!container) return
+      let idx = 0
+      container.querySelectorAll('h1,h2,h3').forEach(el => {
+        el.id = `toc-heading-${idx++}`
+      })
+    }, 80)
+    return () => clearTimeout(timer)
+  }, [tccContent])
+
   // ── Review mode state ──────────────────────────────────────────────────────
   const [reviewState, setReviewState] = React.useState<ReviewState | null>(null)
 
@@ -828,9 +841,6 @@ export default function TccWorkspacePage() {
                       className="w-full max-w-[800px] bg-[var(--brand-surface)] min-h-[90vh] rounded-sm"
                       style={{
                         boxShadow: '0 2px 16px rgba(0,0,0,0.08), 0 0 0 1px var(--brand-border)'
-                      }}
-                      ref={(el) => {
-                        if (el) injectHeadingIds(el)
                       }}
                     >
                       <EditableRichText
