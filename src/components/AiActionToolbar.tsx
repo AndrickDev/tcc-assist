@@ -67,73 +67,109 @@ export function AiActionToolbar({ userPlan, content, onApplyAction, onUpgrade, c
 
   // Compact button styling — theme-aware
   const btnBase =
-    "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] font-medium whitespace-nowrap shrink-0 disabled:opacity-40 transition-colors"
+    "flex items-center gap-1.5 px-3 py-2 rounded-lg border text-[11px] font-bold whitespace-nowrap shrink-0 disabled:opacity-40 transition-all relative overflow-hidden"
   const btnSubtle =
     `${btnBase} bg-[var(--brand-surface)] hover:bg-[var(--brand-hover)] border-[var(--brand-border)] text-[var(--brand-text)]/70 hover:text-[var(--brand-text)]`
   const btnVip =
     `${btnBase} bg-[var(--brand-hover)] hover:bg-[var(--brand-border)] border-[var(--brand-border)] text-[var(--brand-muted)] hover:text-[var(--brand-text)]`
+  const btnDanger =
+    `${btnBase} bg-red-500/10 hover:bg-red-500/20 border-red-500/30 text-red-500`
 
   return (
-    <div className="flex flex-col gap-1.5 relative">
-      <div className="flex items-center gap-1 overflow-x-auto custom-scroll">
+    <div className="flex flex-col gap-2 relative">
+      <div className="flex flex-wrap items-center gap-2">
         {/* Label */}
-        <div className="flex items-center gap-1 px-1.5 text-[10px] font-bold tracking-widest text-[var(--brand-muted)]/60 uppercase shrink-0">
-          <Sparkles size={11} />
+        <div className="flex items-center gap-1.5 pr-2 py-1 text-[10px] font-black tracking-widest text-[var(--brand-muted)]/60 uppercase">
+          <Sparkles size={13} />
           Ações
         </div>
 
-        {/* Revisar — PRO + VIP */}
-        <button
-          onClick={() => handleAction('revisar')}
-          disabled={loadingAction !== null}
-          className={btnSubtle}
-        >
-          {loadingAction === 'revisar'
-            ? <Loader2 size={12} className="animate-spin" />
-            : <Edit3 size={12} className="text-[var(--brand-muted)]" />}
-          {userPlan === 'VIP' ? 'Revisão Crítica' : 'Revisar'}
-        </button>
+        {/* Revisão Crítica — PRO + VIP */}
+        <div className="relative group">
+          <button
+            onClick={() => handleAction('revisar')}
+            disabled={loadingAction !== null}
+            className={userPlan === 'VIP' ? btnDanger : btnSubtle}
+          >
+            {loadingAction === 'revisar'
+              ? <Loader2 size={13} className="animate-spin" />
+              : <Edit3 size={13} className={userPlan === 'VIP' ? "text-red-500" : "text-[var(--brand-muted)]"} />}
+            {userPlan === 'VIP' ? 'Revisão Crítica' : 'Revisar'}
+          </button>
+          
+          <div className="absolute top-[110%] left-0 w-64 bg-[var(--brand-surface)] border border-[var(--brand-border)] rounded-xl p-3 shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none mt-1">
+            <h4 className="text-[11px] font-black text-red-500 uppercase tracking-widest mb-1">Impacto Sensível</h4>
+            <p className="text-[11px] text-[var(--brand-muted)] leading-relaxed">
+              Analisa e reescreve o texto elevando o nível semântico, melhorando a coesão léxica e aumentando a profundidade acadêmica do argumento.
+            </p>
+          </div>
+        </div>
 
         {/* ABNT — VIP only */}
-        <button
-          onClick={() => handleAction('abnt')}
-          disabled={loadingAction !== null}
-          className={btnVip}
-        >
-          {loadingAction === 'abnt'
-            ? <Loader2 size={12} className="animate-spin" />
-            : <BookOpen size={12} />}
-          ABNT
-          {userPlan !== 'VIP' && <Crown size={9} className="opacity-50" />}
-        </button>
+        <div className="relative group">
+          <button
+            onClick={() => handleAction('abnt')}
+            disabled={loadingAction !== null}
+            className={btnVip}
+          >
+            {loadingAction === 'abnt'
+              ? <Loader2 size={13} className="animate-spin" />
+              : <BookOpen size={13} />}
+            Norma ABNT
+            {userPlan !== 'VIP' && <Crown size={10} className="opacity-50" />}
+          </button>
+
+          <div className="absolute top-[110%] left-1/2 -translate-x-1/2 w-64 bg-[var(--brand-surface)] border border-[var(--brand-border)] rounded-xl p-3 shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none mt-1">
+            <h4 className="text-[11px] font-black text-[var(--brand-accent)] uppercase tracking-widest mb-1">Formatação ABNT</h4>
+            <p className="text-[11px] text-[var(--brand-muted)] leading-relaxed">
+              Corrige itálicos (ex: termos estrangeiros), formatação de recuos de citações diretas (mais de 3 linhas) e padroniza referências segundo as diretrizes ABNT.
+            </p>
+          </div>
+        </div>
 
         {/* Citações — VIP only */}
-        <button
-          onClick={() => handleAction('citacoes')}
-          disabled={loadingAction !== null}
-          className={btnVip}
-        >
-          {loadingAction === 'citacoes'
-            ? <Loader2 size={12} className="animate-spin" />
-            : <Quote size={12} />}
-          Citações
-          {userPlan !== 'VIP' && <Crown size={9} className="opacity-50" />}
-        </button>
+        <div className="relative group">
+          <button
+            onClick={() => handleAction('citacoes')}
+            disabled={loadingAction !== null}
+            className={btnVip}
+          >
+            {loadingAction === 'citacoes'
+              ? <Loader2 size={13} className="animate-spin" />
+              : <Quote size={13} />}
+            Citações
+            {userPlan !== 'VIP' && <Crown size={10} className="opacity-50" />}
+          </button>
 
-        <div className="w-px h-4 bg-[var(--brand-border)] mx-0.5 shrink-0" />
+          <div className="absolute top-[110%] right-0 w-64 bg-[var(--brand-surface)] border border-[var(--brand-border)] rounded-xl p-3 shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none mt-1">
+            <h4 className="text-[11px] font-black text-[var(--brand-accent)] uppercase tracking-widest mb-1">Gestão de Citações</h4>
+            <p className="text-[11px] text-[var(--brand-muted)] leading-relaxed">
+              Integra autores relevantes ao parágrafo para embasar afirmações fortes que carecem de comprovação teórica/bibliográfica.
+            </p>
+          </div>
+        </div>
 
-        {/* Próximo Passo — VIP only, now subtle */}
-        <button
-          onClick={() => handleAction('proximopasso')}
-          disabled={loadingAction !== null}
-          className={btnVip}
-        >
-          {loadingAction === 'proximopasso'
-            ? <Loader2 size={12} className="animate-spin" />
-            : <ChevronRight size={12} />}
-          Próx. Passo
-          {userPlan !== 'VIP' && <Crown size={9} className="opacity-50" />}
-        </button>
+        {/* Próximo Passo — VIP only */}
+        <div className="relative group">
+          <button
+            onClick={() => handleAction('proximopasso')}
+            disabled={loadingAction !== null}
+            className={btnVip}
+          >
+            {loadingAction === 'proximopasso'
+              ? <Loader2 size={13} className="animate-spin" />
+              : <ChevronRight size={13} />}
+            Próx. Passo
+            {userPlan !== 'VIP' && <Crown size={10} className="opacity-50" />}
+          </button>
+
+          <div className="absolute top-[110%] right-0 w-64 bg-[var(--brand-surface)] border border-[var(--brand-border)] rounded-xl p-3 shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none mt-1">
+            <h4 className="text-[11px] font-black text-[var(--brand-accent)] uppercase tracking-widest mb-1">Roteiro de Escrita</h4>
+            <p className="text-[11px] text-[var(--brand-muted)] leading-relaxed">
+              Lê o contexto atual e sugere logicamente sobre o que você deve escrever no próximo parágrafo para manter a fluidez metodológica.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Error message */}

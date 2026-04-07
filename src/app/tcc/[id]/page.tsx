@@ -19,6 +19,7 @@ import { getDailyMessageLimit } from "@/lib/plan"
 import { AiActionToolbar } from "@/components/AiActionToolbar"
 import { trackEvent } from "@/lib/analytics"
 import { Editor } from "@tiptap/react"
+import { BrandIcon } from "@/components/brand/BrandIcon"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -192,13 +193,13 @@ function ReviewPanel({
           <div className="flex items-center gap-3">
             <button
               onClick={onReject}
-              className="text-[11px] font-bold text-[var(--brand-muted)]/60 hover:text-red-400 tracking-wider uppercase transition-colors flex items-center gap-1"
+              className="text-[11px] font-bold text-[var(--brand-text)]/60 hover:text-red-500 tracking-wider uppercase transition-colors flex items-center gap-1"
             >
               <XCircle size={13} /> Rejeitar
             </button>
             <button
               onClick={onAccept}
-              className="text-[11px] font-bold text-[var(--brand-text)]/80 hover:text-white tracking-wider uppercase transition-colors flex items-center gap-1.5 bg-[var(--brand-hover)] hover:bg-[var(--brand-hover)] border border-[var(--brand-border)] px-3 py-1.5 rounded-lg"
+              className="text-[11px] font-bold text-white tracking-wider uppercase transition-colors flex items-center gap-1.5 bg-[var(--brand-accent)] hover:opacity-90 border border-[var(--brand-accent)] px-4 py-1.5 rounded-lg shadow-sm"
             >
               <Check size={13} /> Aceitar
             </button>
@@ -228,19 +229,19 @@ function ReviewPanel({
       {/* ── Col 3: Analysis Panel ── */}
       <div className="w-[220px] shrink-0 border-l border-[var(--brand-border)] flex flex-col overflow-y-auto custom-scroll">
         <div className="px-5 py-3 border-b border-[var(--brand-border)]">
-          <span className="text-[9px] font-bold tracking-widest text-[var(--brand-muted)]/50 uppercase">Análise</span>
+          <span className="text-[9px] font-bold tracking-widest text-[var(--brand-text)]/80 uppercase">Análise</span>
         </div>
 
         <div className="p-5 space-y-6">
           {/* Linguistic Fidelity */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[9px] font-bold text-[var(--brand-muted)]/60 uppercase tracking-widest">Fidelidade Linguística</span>
-              <span className="text-sm font-bold text-[var(--brand-text)]/70">{fidelity}%</span>
+              <span className="text-[9px] font-bold text-[var(--brand-text)]/80 uppercase tracking-widest">Fidelidade Linguística</span>
+              <span className="text-sm font-bold text-[var(--brand-accent)]">{fidelity}%</span>
             </div>
-            <div className="h-0.5 bg-[var(--brand-surface)] rounded-full overflow-hidden">
+            <div className="h-1 bg-[var(--brand-surface)] rounded-full overflow-hidden border border-[var(--brand-border)]/50">
               <motion.div
-                className="h-full bg-white/40 rounded-full"
+                className="h-full bg-[var(--brand-accent)] rounded-full"
                 initial={{ width: 0 }}
                 animate={{ width: `${fidelity}%` }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
@@ -252,8 +253,8 @@ function ReviewPanel({
           <div className="space-y-4">
             {issues.map((issue, i) => (
               <div key={i}>
-                <p className="text-[9px] font-bold text-[var(--brand-muted)]/60 tracking-widest mb-1">{issue.label}</p>
-                <p className="text-[11px] text-[var(--brand-muted)]/60 leading-relaxed">{issue.detail}</p>
+                <p className="text-[10px] font-black text-[var(--brand-text)] tracking-widest mb-1">{issue.label}</p>
+                <p className="text-[11px] text-[var(--brand-text)]/80 leading-relaxed font-medium">{issue.detail}</p>
               </div>
             ))}
           </div>
@@ -261,8 +262,8 @@ function ReviewPanel({
           {/* Structural Metrics */}
           <div>
             <div className="flex items-center gap-1.5 mb-3">
-              <BarChart2 size={11} className="text-[var(--brand-muted)]/50" />
-              <span className="text-[9px] font-bold text-[var(--brand-muted)]/60 uppercase tracking-widest">Métricas Estruturais</span>
+              <BarChart2 size={13} className="text-[var(--brand-accent)]" />
+              <span className="text-[9px] font-bold text-[var(--brand-text)]/90 uppercase tracking-widest">Métricas Estruturais</span>
             </div>
             <div className="space-y-2.5">
               {[
@@ -271,10 +272,10 @@ function ReviewPanel({
               ].map(m => (
                 <div key={m.label}>
                   <div className="flex justify-between mb-1">
-                    <span className="text-[10px] text-[var(--brand-muted)]/50">{m.label}</span>
+                    <span className="text-[11px] font-medium text-[var(--brand-text)]/80">{m.label}</span>
                   </div>
-                  <div className="h-0.5 bg-[var(--brand-surface)] rounded-full overflow-hidden">
-                    <div className="h-full bg-white/20 rounded-full" style={{ width: `${m.value}%` }} />
+                  <div className="h-1 bg-[var(--brand-surface)] rounded-full overflow-hidden border border-[var(--brand-border)]/50">
+                    <div className="h-full bg-[var(--brand-accent)]/80 rounded-full" style={{ width: `${m.value}%` }} />
                   </div>
                 </div>
               ))}
@@ -283,7 +284,7 @@ function ReviewPanel({
 
           {/* Tip quote */}
           <div className="border-t border-[var(--brand-border)] pt-4">
-            <p className="text-[11px] text-[var(--brand-muted)]/40 leading-relaxed italic font-serif">
+            <p className="text-[12px] text-[var(--brand-text)]/70 leading-relaxed italic font-serif">
               &ldquo;O contraste entre o &lsquo;objetivo&rsquo; e o &lsquo;subjetivo&rsquo; pode ser enfatizado na conclusão.&rdquo;
             </p>
           </div>
@@ -291,7 +292,7 @@ function ReviewPanel({
           {/* Apply Strategy */}
           <button
             onClick={onAccept}
-            className="w-full py-2 text-[10px] font-bold text-[var(--brand-muted)]/70 hover:text-[var(--brand-text)]/70 border border-[var(--brand-border)] hover:border-[var(--brand-border)] rounded-lg transition-all uppercase tracking-widest"
+            className="w-full py-2.5 text-[10px] font-black text-[var(--brand-accent)] hover:text-white border border-[var(--brand-accent)]/50 bg-[var(--brand-accent)]/10 hover:bg-[var(--brand-accent)] rounded-lg transition-all uppercase tracking-widest shadow-sm"
           >
             Aplicar Estratégia
           </button>
@@ -724,7 +725,7 @@ export default function TccWorkspacePage() {
         <div className="flex-1" />
         <div
           className={cn("px-2 py-1 rounded-md text-[9px] font-bold tracking-widest uppercase select-none",
-            isVip ? "bg-orange-700/20 text-orange-600" : userPlan === "PRO" ? "bg-[var(--brand-hover)] text-[var(--brand-text)]/80" : "bg-[var(--brand-surface)] text-[var(--brand-muted)] border border-[var(--brand-border)]"
+            isVip ? "bg-[var(--brand-accent)]/20 text-[var(--brand-accent)]" : userPlan === "PRO" ? "bg-[var(--brand-hover)] text-[var(--brand-text)]/80" : "bg-[var(--brand-surface)] text-[var(--brand-muted)] border border-[var(--brand-border)]"
           )}
           style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
         >
@@ -739,12 +740,12 @@ export default function TccWorkspacePage() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
               <div className="w-7 h-7 rounded-lg bg-[var(--brand-surface)] border border-white/5 flex items-center justify-center shrink-0">
-                <FileText size={14} className="text-[var(--brand-muted)]" />
+                <BrandIcon size={14} isGenerating={isGenerating || isTyping} />
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="font-bold text-sm text-[var(--brand-text)] leading-tight">{tccMeta?.title || "Seu TCC"}</h1>
-                  <span className={cn("px-1.5 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase", isVip ? "bg-orange-700/20 text-orange-600" : userPlan === "PRO" ? "bg-[var(--brand-hover)] text-[var(--brand-text)]/80" : "bg-[var(--brand-surface)] text-[var(--brand-muted)]")}>{userPlan}</span>
+                  <span className={cn("px-1.5 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase", isVip ? "bg-[var(--brand-accent)]/20 text-[var(--brand-accent)]" : userPlan === "PRO" ? "bg-[var(--brand-hover)] text-[var(--brand-text)]/80" : "bg-[var(--brand-surface)] text-[var(--brand-muted)]")}>{userPlan}</span>
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-[10px] text-[var(--brand-muted)]/60">{tccMeta?.course || "—"}</span>
@@ -822,10 +823,13 @@ export default function TccWorkspacePage() {
                         key={i}
                         onClick={() => {
                           const scrollEl = document.getElementById('editor-scroll-container')
-                          const target = document.getElementById(h.id)
-                          if (target && scrollEl) {
-                            const top = target.getBoundingClientRect().top - scrollEl.getBoundingClientRect().top + scrollEl.scrollTop - 16
-                            scrollEl.scrollTo({ top, behavior: 'smooth' })
+                          if (scrollEl) {
+                            const domHeadings = Array.from(scrollEl.querySelectorAll('.ProseMirror h1, .ProseMirror h2, .ProseMirror h3'))
+                            const target = domHeadings.find(el => el.textContent?.trim() === h.text.trim()) || document.getElementById(h.id)
+                            if (target) {
+                              const top = target.getBoundingClientRect().top - scrollEl.getBoundingClientRect().top + scrollEl.scrollTop - 16
+                              scrollEl.scrollTo({ top, behavior: 'smooth' })
+                            }
                           }
                         }}
                         className="text-left text-[11px] text-[var(--brand-muted)]/55 hover:text-[var(--brand-accent)] hover:bg-[var(--brand-hover)] transition-all leading-snug py-1 px-2 rounded-md truncate"
@@ -866,7 +870,7 @@ export default function TccWorkspacePage() {
           {!reviewState && (
             <aside
               className="shrink-0 border-l border-[var(--brand-border)] bg-[var(--brand-surface)] flex flex-col z-20 transition-all duration-200"
-              style={{ width: sidebarCollapsed ? '40px' : '340px' }}
+              style={{ width: sidebarCollapsed ? '40px' : '480px' }}
             >
               {/* Collapse toggle */}
               <button
@@ -983,7 +987,7 @@ export default function TccWorkspacePage() {
                   </div>
 
                   {/* Chat input — fixed at bottom of sidebar, width follows sidebar */}
-                  <div className="absolute bottom-0 right-0 bg-[var(--brand-surface)] border-t border-[var(--brand-border)] p-3 z-10 space-y-2" style={{width: '340px'}}>
+                  <div className="absolute bottom-0 right-0 bg-[var(--brand-surface)] border-t border-[var(--brand-border)] p-4 z-10 space-y-3" style={{width: '480px'}}>
                     <div className="space-y-1.5">
                       <select
                         value={selectedChapter}
@@ -997,7 +1001,7 @@ export default function TccWorkspacePage() {
                         <option>Conclusão</option>
                       </select>
                       <button onClick={handleGerarTcc} disabled={isGenerating}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[var(--brand-accent)]/10 border border-[var(--brand-accent)]/30 text-[var(--brand-accent)] text-xs font-semibold rounded-xl hover:bg-[var(--brand-accent)]/20 transition-colors disabled:opacity-50">
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[var(--brand-accent)]/10 border border-[var(--brand-accent)]/30 text-[var(--brand-accent)] text-sm font-semibold rounded-xl hover:bg-[var(--brand-accent)]/20 transition-colors disabled:opacity-50">
                         {isGenerating
                           ? <><Loader2 size={12} className="animate-spin" /> Gerando Inteligência...</>
                           : attachmentsMeta && attachmentsMeta.count > 0
@@ -1017,13 +1021,13 @@ export default function TccWorkspacePage() {
                       <textarea value={inputVal} onChange={e => setInputVal(e.target.value)}
                         onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendPrompt() } }}
                         placeholder="Peça para gerar ou revisar..."
-                        className="w-full bg-[var(--brand-bg)] border border-[var(--brand-border)] rounded-xl pl-9 pr-9 py-2.5 text-[13px] text-[var(--brand-text)] placeholder:text-[var(--brand-muted)]/50 focus:outline-none focus:border-[var(--brand-accent)]/30 resize-none transition-colors" rows={1} />
-                      <button onClick={() => fileInputRef.current?.click()} disabled={uploading} className="absolute left-2.5 top-1/2 -translate-y-1/2 p-1 text-[var(--brand-muted)]/50 hover:text-[var(--brand-muted)]">
-                        {uploading ? <Loader2 size={14} className="animate-spin" /> : <Paperclip size={14} />}
+                        className="w-full bg-[var(--brand-bg)] border border-[var(--brand-border)] rounded-xl pl-10 pr-12 py-3.5 text-[14px] text-[var(--brand-text)] placeholder:text-[var(--brand-muted)]/50 focus:outline-none focus:border-[var(--brand-accent)]/30 resize-none transition-colors" rows={1} />
+                      <button onClick={() => fileInputRef.current?.click()} disabled={uploading} className="absolute left-3 top-1/2 -translate-y-1/2 p-1.5 text-[var(--brand-muted)]/50 hover:text-[var(--brand-muted)]">
+                        {uploading ? <Loader2 size={16} className="animate-spin" /> : <Paperclip size={16} />}
                       </button>
                       <input type="file" ref={fileInputRef} onChange={handleUpload} accept=".pdf,.doc,.docx" className="hidden" />
-                      <button onClick={() => handleSendPrompt()} disabled={!inputVal.trim() || isTyping} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 bg-[var(--brand-accent)] text-white rounded-lg hover:opacity-90 disabled:opacity-30 disabled:bg-[var(--brand-muted)]/10 disabled:text-[var(--brand-muted)]/60 transition-all">
-                        <ArrowRight size={13} />
+                      <button onClick={() => handleSendPrompt()} disabled={!inputVal.trim() || isTyping} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-[var(--brand-accent)] text-white rounded-lg hover:opacity-90 disabled:opacity-30 disabled:bg-[var(--brand-muted)]/10 disabled:text-[var(--brand-muted)]/60 transition-all">
+                        <ArrowRight size={15} />
                       </button>
                     </div>
                   </div>
