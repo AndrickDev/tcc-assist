@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useSession } from "next-auth/react"
 import { AppSidebar } from "@/components/AppSidebar"
-import { User, Mail, Crown, Calendar, Save, Loader2, CheckCircle2 } from "lucide-react"
+import { User, Mail, Crown, Calendar, Save, Loader2, CheckCircle2, Shield, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const PLAN_LABEL: Record<string, string> = { FREE: "Gratuito", PRO: "PRO", VIP: "VIP" }
@@ -113,14 +113,28 @@ export default function ConfiguracoesPage() {
             <h2 className="text-xs font-bold uppercase tracking-widest text-[var(--brand-muted)]">Plano atual</h2>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Crown size={14} className="text-orange-600" />
+                {plan === "VIP"
+                  ? <Crown size={14} className="text-[var(--brand-accent)]" />
+                  : plan === "PRO"
+                    ? <Shield size={14} className="text-[var(--brand-text)]/80" />
+                    : <Sparkles size={14} className="text-[var(--brand-muted)]" />}
                 <span className="text-sm font-semibold text-[var(--brand-text)]">{PLAN_LABEL[plan] ?? plan}</span>
               </div>
-              {plan === "FREE" && (
-                <a href="/pricing" className="text-xs font-bold text-[var(--brand-accent)] hover:opacity-80 transition-colors">
-                  Fazer upgrade →
-                </a>
-              )}
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => update()}
+                  className="text-xs text-[var(--brand-muted)] hover:text-[var(--brand-text)] transition-colors"
+                  title="Re-verificar o plano no banco"
+                >
+                  Atualizar
+                </button>
+                {plan === "FREE" && (
+                  <a href="/pricing" className="text-xs font-bold text-[var(--brand-accent)] hover:opacity-80 transition-colors">
+                    Fazer upgrade →
+                  </a>
+                )}
+              </div>
             </div>
             <p className="text-xs text-[var(--brand-muted)]">
               {plan === "FREE" && "3 mensagens/dia · 1 projeto · 5 uploads"}
