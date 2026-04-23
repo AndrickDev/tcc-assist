@@ -53,8 +53,6 @@ export async function POST(
     { q: extractKeywords(query, 8) }, // 8 keywords em pt+en
     { q: extractKeywords(query, 5) }, // 5 keywords em pt+en
     { q: extractKeywords(query, 3) }, // 3 keywords em pt+en
-    { q: extractKeywords(query, 2) }, // 2 keywords em pt+en (fallback forte)
-    { q: extractKeywords(query, 1) }, // 1 keyword (último recurso)
     { q: extractKeywords(query, 3), langs: ["pt", "en", "es"] }, // 3 keywords amplia idiomas
   ]
   // Remove duplicatas e queries vazias

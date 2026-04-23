@@ -44,6 +44,7 @@ export function ReferencesDrawer({ tccId, tccTitle, open, onClose, onSelectedCou
   const [error, setError] = React.useState<string | null>(null)
   const [compareOpen, setCompareOpen] = React.useState(false)
   const [compareIds, setCompareIds] = React.useState<string[]>([])
+  const [searchQuery, setSearchQuery] = React.useState(tccTitle)
 
   // Fetch existing references when drawer opens (first time)
   React.useEffect(() => {
@@ -51,6 +52,7 @@ export function ReferencesDrawer({ tccId, tccTitle, open, onClose, onSelectedCou
     let cancelled = false
     setLoading(true)
     setError(null)
+    setSearchQuery(tccTitle) // Sync if title changes externally
     fetch(`/api/tcc/${tccId}/references`, { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
@@ -60,7 +62,7 @@ export function ReferencesDrawer({ tccId, tccTitle, open, onClose, onSelectedCou
       .catch(() => { if (!cancelled) setError("Não foi possível carregar suas referências.") })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [open, tccId])
+  }, [open, tccId, tccTitle])
 
   // Notify parent about selected count
   React.useEffect(() => {
@@ -76,12 +78,11 @@ export function ReferencesDrawer({ tccId, tccTitle, open, onClose, onSelectedCou
     return () => window.removeEventListener("keydown", handler)
   }, [open, onClose])
 
-  // Busca fixada no título do TCC. Também limpa resultados antigos não selecionados
-  // para evitar confusão quando o usuário renomeia o TCC ou testa em projetos diferentes.
+  // Busca baseada no termo digitado. Também limpa resultados antigos não selecionados
   const runSearch = async () => {
-    const finalQuery = tccTitle.trim()
+    const finalQuery = searchQuery.trim()
     if (finalQuery.length < 3) {
-      setError("O título do TCC está muito curto para buscar referências.")
+      setError("A busca deve ter no mínimo 3 caracteres.")
       return
     }
     setSearching(true)
@@ -177,27 +178,38 @@ export function ReferencesDrawer({ tccId, tccTitle, open, onClose, onSelectedCou
               </button>
             </header>
 
-            {/* Search — sempre baseada no título do TCC */}
+            {/* Search */}
             <div className="px-5 pt-4 pb-3 border-b border-[var(--brand-border)] space-y-3">
-              <button
-                type="button"
-                onClick={() => runSearch()}
-                disabled={searching || !tccTitle.trim()}
-                title={tccTitle ? `Busca referências sobre "${tccTitle.slice(0, 60)}${tccTitle.length > 60 ? "..." : ""}"` : "Título do TCC vazio"}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--brand-hover)] hover:bg-[var(--brand-accent)]/10 border border-[var(--brand-border)] hover:border-[var(--brand-accent)]/30 rounded-xl text-[12px] font-bold text-[var(--brand-text)] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                {searching
-                  ? <><Loader2 size={13} className="animate-spin" /> Buscando...</>
-                  : <><RefreshCw size={13} /> {refs.length > 0 ? "Atualizar referências" : "Buscar referências"}</>}
-              </button>
-              {tccTitle && (
-                <p className="text-[10px] text-[var(--brand-muted)]/60 px-1 leading-snug">
-                  <span className="font-semibold text-[var(--brand-muted)]/80">Tema:</span> {tccTitle.slice(0, 120)}{tccTitle.length > 120 ? "..." : ""}
+              <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-bold text-[var(--brand-muted)] uppercase tracking-widest">Tema da Busca</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") runSearch() }}
+                    placeholder="Digite os principais termos do seu TCC..."
+                    className="flex-1 px-3 py-2 bg-transparent border border-[var(--brand-border)] focus:border-[var(--brand-accent)]/50 rounded-xl text-[12px] text-[var(--brand-text)] placeholder:text-[var(--brand-muted)]/50 outline-none transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => runSearch()}
+                    disabled={searching || !searchQuery.trim()}
+                    title={searchQuery ? `Buscar referências sobre "${searchQuery}"` : "Termo vazio"}
+                    className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[var(--brand-hover)] hover:bg-[var(--brand-accent)]/10 border border-[var(--brand-border)] hover:border-[var(--brand-accent)]/30 rounded-xl text-[12px] font-bold text-[var(--brand-text)] transition-all disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                  >
+                    {searching
+                      ? <Loader2 size={13} className="animate-spin" />
+                      : <Search size={13} />}
+                  </button>
+                </div>
+                <p className="text-[10px] text-[var(--brand-muted)]/60 leading-snug px-1">
+                  Se a busca falhar, tente usar apenas os 2 ou 3 termos mais importantes (ex: "Domain-Driven Design").
                 </p>
-              )}
+              </div>
 
               {/* Filter chips */}
-              <div className="flex items-center gap-1.5 text-[11px]">
+              <div className="flex items-center gap-1.5 text-[11px] pt-1">
                 {([
                   { key: "all", label: `Todas`, count: counts.total },
                   { key: "selected", label: `Em uso`, count: counts.selected },
