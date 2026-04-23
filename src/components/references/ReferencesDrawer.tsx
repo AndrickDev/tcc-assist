@@ -3,8 +3,8 @@
 import * as React from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import {
-  X, Search, Loader2, RefreshCw, Star, Check, ChevronDown, ChevronUp,
-  ExternalLink, BookOpen, Sparkles, GitCompare,
+  X, Loader2, RefreshCw, Star, Check, ChevronDown, ChevronUp,
+  ExternalLink, BookOpen, Sparkles, GitCompare, Search,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ReferencesCompareModal } from "./ReferencesCompareModal"
@@ -38,7 +38,6 @@ type Props = {
 export function ReferencesDrawer({ tccId, tccTitle, open, onClose, onSelectedCountChange }: Props) {
   const [loading, setLoading] = React.useState(false)
   const [searching, setSearching] = React.useState(false)
-  const [query, setQuery] = React.useState("")
   const [refs, setRefs] = React.useState<ReferenceItem[]>([])
   const [filter, setFilter] = React.useState<Filter>("all")
   const [expandedId, setExpandedId] = React.useState<string | null>(null)
@@ -77,12 +76,20 @@ export function ReferencesDrawer({ tccId, tccTitle, open, onClose, onSelectedCou
     return () => window.removeEventListener("keydown", handler)
   }, [open, onClose])
 
-  const runSearch = async (rawQuery?: string) => {
-    const finalQuery = (rawQuery ?? query).trim() || tccTitle.trim()
-    if (finalQuery.length < 3) { setError("Termo muito curto."); return }
+  // Busca fixada no título do TCC. Também limpa resultados antigos não selecionados
+  // para evitar confusão quando o usuário renomeia o TCC ou testa em projetos diferentes.
+  const runSearch = async () => {
+    const finalQuery = tccTitle.trim()
+    if (finalQuery.length < 3) {
+      setError("O título do TCC está muito curto para buscar referências.")
+      return
+    }
     setSearching(true)
     setError(null)
     try {
+      // Limpa resultados anteriores não selecionados (mantém os que o aluno já marcou)
+      await fetch(`/api/tcc/${tccId}/references`, { method: "DELETE" }).catch(() => null)
+
       const res = await fetch(`/api/tcc/${tccId}/references/search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -91,7 +98,6 @@ export function ReferencesDrawer({ tccId, tccTitle, open, onClose, onSelectedCou
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? "Falha na busca."); return }
       setRefs(data.references ?? [])
-      setQuery(finalQuery)
     } catch {
       setError("Erro ao conectar com o servidor.")
     } finally { setSearching(false) }
@@ -166,28 +172,24 @@ export function ReferencesDrawer({ tccId, tccTitle, open, onClose, onSelectedCou
               </button>
             </header>
 
-            {/* Search */}
+            {/* Search — sempre baseada no título do TCC */}
             <div className="px-5 pt-4 pb-3 border-b border-[var(--brand-border)] space-y-3">
-              <form
-                onSubmit={(e) => { e.preventDefault(); runSearch() }}
-                className="relative"
+              <button
+                type="button"
+                onClick={() => runSearch()}
+                disabled={searching || !tccTitle.trim()}
+                title={tccTitle ? `Busca referências sobre "${tccTitle.slice(0, 60)}${tccTitle.length > 60 ? "..." : ""}"` : "Título do TCC vazio"}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--brand-hover)] hover:bg-[var(--brand-accent)]/10 border border-[var(--brand-border)] hover:border-[var(--brand-accent)]/30 rounded-xl text-[12px] font-bold text-[var(--brand-text)] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--brand-muted)]/50" />
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder={tccTitle ? `Buscar "${tccTitle.slice(0, 40)}..."` : "Buscar referências..."}
-                  className="w-full pl-9 pr-11 py-2.5 text-[13px] bg-[var(--brand-hover)] border border-[var(--brand-border)] rounded-xl text-[var(--brand-text)] placeholder:text-[var(--brand-muted)]/50 focus:outline-none focus:border-[var(--brand-accent)]/40 transition-colors"
-                />
-                <button
-                  type="submit"
-                  disabled={searching}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-[var(--brand-muted)]/60 hover:text-[var(--brand-accent)] disabled:opacity-40 transition-colors"
-                  title="Buscar"
-                >
-                  {searching ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-                </button>
-              </form>
+                {searching
+                  ? <><Loader2 size={13} className="animate-spin" /> Buscando...</>
+                  : <><RefreshCw size={13} /> {refs.length > 0 ? "Atualizar referências" : "Buscar referências"}</>}
+              </button>
+              {tccTitle && (
+                <p className="text-[10px] text-[var(--brand-muted)]/60 px-1 leading-snug">
+                  <span className="font-semibold text-[var(--brand-muted)]/80">Tema:</span> {tccTitle.slice(0, 120)}{tccTitle.length > 120 ? "..." : ""}
+                </p>
+              )}
 
               {/* Filter chips */}
               <div className="flex items-center gap-1.5 text-[11px]">
@@ -224,7 +226,7 @@ export function ReferencesDrawer({ tccId, tccTitle, open, onClose, onSelectedCou
                 <EmptyState
                   filter={filter}
                   hasAny={counts.total > 0}
-                  onSearch={() => runSearch(tccTitle)}
+                  onSearch={() => runSearch()}
                   searching={searching}
                   tccTitle={tccTitle}
                 />
