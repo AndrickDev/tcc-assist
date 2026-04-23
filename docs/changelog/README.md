@@ -15,6 +15,8 @@ Este changelog complementa o `git log` — aqui cada entrada explica **por que**
 
 | Data | Categoria | Título | Commit |
 |---|---|---|---|
+| 2026-04-23 | feat | [Botão "Gerar refs" monta a seção REFERÊNCIAS no final do TCC](2026-04-23-0830-gera-secao-referencias-automatica.md) | `34aa443` |
+| 2026-04-23 | fix | [Simplifica busca de referências (botão único baseado no título do TCC)](2026-04-23-0800-simplifica-busca-referencias.md) | `5cefd10` |
 | 2026-04-23 | feat | [Botão "Citação" no editor com picker das referências selecionadas](2026-04-23-0700-botao-inserir-citacao-editor.md) | `f1f4d74` |
 | 2026-04-23 | feat | [Comparação de referências com IA destacando diferenças em negrito](2026-04-23-0600-comparacao-referencias-ia.md) | `06d8786` |
 | 2026-04-23 | fix | [Fix de plano (ícone correto + atualização automática na sessão)](2026-04-23-0520-fix-plano-icone-refresh.md) | `8bdb890` |
