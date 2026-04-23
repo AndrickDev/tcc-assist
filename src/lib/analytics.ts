@@ -20,6 +20,7 @@ type EventName =
   | 'INSERT_SUGGESTION_DOCUMENT' // user inserted AI suggestion into document
   | 'AI_SUGGESTION_REGENERATE'   // user regenerated a suggestion
   | 'MESSAGE_DELETED'            // user deleted a chat message
+  | 'CITATION_INSERTED'          // user inserted a citation from the picker into the editor
   // ── AI Actions ─────────────────────────────────────────────────────────
   | 'AI_ACTION_CLICK'          // user clicked an action button
   | 'AI_ACTION_BLOCK_PLAN'     // action blocked due to plan restriction

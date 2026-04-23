@@ -18,11 +18,12 @@ interface MenuBarProps {
   tccId?: string
   onImageInserted?: () => void
   imageCount?: number
+  toolbarExtras?: React.ReactNode
 }
 
 // ─── MenuBar ─────────────────────────────────────────────────────────────────
 
-const MenuBar = ({ editor, tccId, onImageInserted, imageCount = 0 }: MenuBarProps) => {
+const MenuBar = ({ editor, tccId, onImageInserted, imageCount = 0, toolbarExtras }: MenuBarProps) => {
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = React.useState(false)
   const IMAGE_LIMIT = 10
@@ -165,6 +166,12 @@ const MenuBar = ({ editor, tccId, onImageInserted, imageCount = 0 }: MenuBarProp
           onChange={handleImageUpload}
         />
       </div>
+
+      {toolbarExtras && (
+        <div className="flex items-center gap-0.5 border-l border-[var(--brand-border)] pl-2 ml-1">
+          {toolbarExtras}
+        </div>
+      )}
     </div>
   )
 }
@@ -179,6 +186,7 @@ export function EditableRichText({
   tccId,
   imageCount,
   onImageInserted,
+  toolbarExtras,
 }: {
   value: string
   onChange: (next: string) => void
@@ -187,6 +195,7 @@ export function EditableRichText({
   tccId?: string
   imageCount?: number
   onImageInserted?: () => void
+  toolbarExtras?: React.ReactNode
 }) {
   const editor = useEditor({
     extensions: [
@@ -239,6 +248,7 @@ export function EditableRichText({
         tccId={tccId}
         imageCount={imageCount}
         onImageInserted={onImageInserted}
+        toolbarExtras={toolbarExtras}
       />
       <div className="flex-1 w-full">
         <EditorContent editor={editor} />

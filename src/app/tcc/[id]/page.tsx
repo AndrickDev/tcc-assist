@@ -9,6 +9,7 @@ import {
   Check, XCircle, BarChart2, ChevronLeft, PanelRightClose, BookOpen
 } from "lucide-react"
 import { ReferencesDrawer } from "@/components/references/ReferencesDrawer"
+import { CitationPickerButton } from "@/components/references/CitationPickerButton"
 import { useSession } from "next-auth/react"
 import { useParams, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -887,6 +888,15 @@ export default function TccWorkspacePage() {
                         tccId={String(id)}
                         imageCount={attachmentsMeta?.count ?? 0}
                         onImageInserted={fetchAttachments}
+                        toolbarExtras={
+                          <CitationPickerButton
+                            tccId={String(id)}
+                            onInsertCitation={(text) => {
+                              editorRef.current?.chain().focus().insertContent(text).run()
+                              trackEvent('CITATION_INSERTED', { plan: userPlan })
+                            }}
+                          />
+                        }
                       />
                     </div>
                   </div>
