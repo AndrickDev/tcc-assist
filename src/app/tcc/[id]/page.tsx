@@ -557,6 +557,17 @@ export default function TccWorkspacePage() {
     return () => clearTimeout(timeout)
   }, [tccContent, tccSavedContent, id])
 
+  const handleDeleteMessage = async (messageId: string) => {
+    // Otimista: remove da UI imediatamente; se já está persistido, apaga no banco em background.
+    setMessages((prev) => prev.filter((m) => m.id !== messageId))
+    try {
+      await fetch(`/api/tcc/${id}/messages/${messageId}`, { method: "DELETE" })
+      trackEvent("MESSAGE_DELETED", { plan: userPlan })
+    } catch {
+      // falha silenciosa — mensagem já saiu da UI e, se volta no reload, usuário apaga de novo
+    }
+  }
+
   const handleManualSave = async () => {
     if (!id || savingStatus === "saving") return
     setSavingStatus("saving")
@@ -945,19 +956,37 @@ export default function TccWorkspacePage() {
                       )}
                     <AnimatePresence>
                       {messages.map(m => (
-                        <motion.div key={m.id} initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className={cn("flex flex-col w-full", m.role === "user" ? "items-end" : "items-start")}>
+                        <motion.div key={m.id} initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, height: 0 }} className={cn("group/msg flex flex-col w-full", m.role === "user" ? "items-end" : "items-start")}>
                           {m.role === "user" ? (
-                            <div className="max-w-[88%] px-2.5 py-2 text-[12px] bg-[var(--brand-hover)] border border-[var(--brand-border)] rounded-[0.75rem_0_0.75rem_0.75rem] text-[var(--brand-text)] leading-relaxed">{m.content}</div>
+                            <div className="flex items-start gap-1.5 max-w-[92%]">
+                              <button
+                                onClick={() => handleDeleteMessage(m.id)}
+                                className="opacity-0 group-hover/msg:opacity-100 mt-1 p-1 rounded text-[var(--brand-muted)]/40 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                                title="Apagar mensagem"
+                              >
+                                <Trash2 size={10} />
+                              </button>
+                              <div className="px-2.5 py-2 text-[12px] bg-[var(--brand-hover)] border border-[var(--brand-border)] rounded-[0.75rem_0_0.75rem_0.75rem] text-[var(--brand-text)] leading-relaxed">{m.content}</div>
+                            </div>
                           ) : (
                             <div className="w-full bg-[var(--brand-bg)] border border-[var(--brand-border)] rounded-lg overflow-hidden">
                               <div className="px-2.5 py-1.5 border-b border-[var(--brand-border)] flex items-center justify-between">
                                 <div className="flex items-center gap-1 text-[9px] font-bold text-[var(--brand-accent)]/70 tracking-widest uppercase"><Sparkles size={10} /> IA</div>
-                                <button
-                                  onClick={() => setReviewState({ messageId: m.id, suggestionHtml: m.editorContent || m.content, userPrompt: m.userPrompt })}
-                                  className="text-[9px] font-bold tracking-wider uppercase transition-colors px-1.5 py-0.5 rounded text-[var(--brand-muted)]/50 hover:text-[var(--brand-accent)]"
-                                >
-                                  Revisar
-                                </button>
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={() => setReviewState({ messageId: m.id, suggestionHtml: m.editorContent || m.content, userPrompt: m.userPrompt })}
+                                    className="text-[9px] font-bold tracking-wider uppercase transition-colors px-1.5 py-0.5 rounded text-[var(--brand-muted)]/50 hover:text-[var(--brand-accent)]"
+                                  >
+                                    Revisar
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteMessage(m.id)}
+                                    className="p-1 rounded text-[var(--brand-muted)]/40 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                                    title="Apagar esta geração do histórico"
+                                  >
+                                    <Trash2 size={10} />
+                                  </button>
+                                </div>
                               </div>
                               <div className="px-2.5 py-2 text-[11px] leading-relaxed text-[var(--brand-muted)] font-serif max-h-[120px] overflow-hidden relative">
                                 <div dangerouslySetInnerHTML={{ __html: m.editorContent || m.content }} />

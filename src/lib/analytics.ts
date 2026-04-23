@@ -19,6 +19,7 @@ type EventName =
   | 'MANUAL_SAVE_TCC'          // user clicked "Save now"
   | 'INSERT_SUGGESTION_DOCUMENT' // user inserted AI suggestion into document
   | 'AI_SUGGESTION_REGENERATE'   // user regenerated a suggestion
+  | 'MESSAGE_DELETED'            // user deleted a chat message
   // ── AI Actions ─────────────────────────────────────────────────────────
   | 'AI_ACTION_CLICK'          // user clicked an action button
   | 'AI_ACTION_BLOCK_PLAN'     // action blocked due to plan restriction
