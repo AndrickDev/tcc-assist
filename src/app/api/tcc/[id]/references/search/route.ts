@@ -45,9 +45,13 @@ export async function POST(
       yearFrom: body.yearFrom,
     })
   } catch (err) {
-    console.error("[references/search] Semantic Scholar error:", err)
+    const message = err instanceof Error ? err.message : String(err)
+    console.error("[references/search] provider error:", message)
     return NextResponse.json(
-      { error: "Falha ao buscar referências. Tente novamente em instantes." },
+      {
+        error: "Falha ao buscar referências. Tente novamente em instantes.",
+        detail: message.slice(0, 500),
+      },
       { status: 502 }
     )
   }
