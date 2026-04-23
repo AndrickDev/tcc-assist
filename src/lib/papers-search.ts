@@ -121,6 +121,47 @@ export type SearchOptions = {
   languages?: string[]
 }
 
+// Stopwords PT/EN + termos genéricos de TCC que não ajudam na busca.
+// Quando o aluno escreve um título longo tipo "Arquitetura Hexagonal e Domain-Driven
+// Design como fundamento de um sistema web para reencontro entre pets e tutores",
+// o OpenAlex busca por TODAS as palavras juntas e retorna 0 resultados. Extraindo
+// apenas os termos técnicos principais, conseguimos dezenas a milhares de hits.
+const STOPWORDS = new Set([
+  // PT - artigos, preposições, conjunções
+  "a", "o", "as", "os", "um", "uma", "uns", "umas",
+  "de", "do", "da", "dos", "das", "ao", "aos", "no", "na", "nos", "nas",
+  "em", "com", "por", "para", "entre", "sobre", "sob", "ate", "desde",
+  "e", "ou", "mas", "que", "se", "como", "porque", "pois", "porem",
+  "qual", "quais", "quando", "onde",
+  // PT - verbos e genéricos
+  "ser", "estar", "ter", "haver", "fazer", "e", "sao", "foi", "era",
+  // PT - termos comuns em TCC que raramente são keywords úteis sozinhos
+  "proposta", "estudo", "analise", "pesquisa", "uso", "utilizacao",
+  "aplicacao", "abordagem", "caso", "base", "forma", "modo",
+  "fundamento", "fundamentos", "processo", "processos",
+  // EN
+  "the", "of", "to", "for", "and", "or", "in", "on", "at", "by", "as",
+  "is", "are", "was", "were", "be", "been", "an", "a",
+  "with", "from", "this", "that", "these", "those",
+])
+
+/**
+ * Extrai até `maxWords` palavras-chave de um título/frase removendo stopwords,
+ * acentos e pontuação. Usado como query fallback quando a busca literal
+ * no OpenAlex retorna poucos ou zero resultados.
+ */
+export function extractKeywords(title: string, maxWords: number = 8): string {
+  return title
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9\s-]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length >= 3 && !STOPWORDS.has(w))
+    .slice(0, maxWords)
+    .join(" ")
+}
+
 export async function searchPapers(opts: SearchOptions): Promise<ScholarPaper[]> {
   const query = opts.query.trim()
   if (!query) return []

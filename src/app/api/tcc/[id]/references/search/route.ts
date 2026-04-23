@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { searchPapers } from "@/lib/papers-search"
+import { searchPapers, extractKeywords } from "@/lib/papers-search"
 
 export const dynamic = "force-dynamic"
 
@@ -37,13 +37,33 @@ export async function POST(
     return NextResponse.json({ error: "Query muito curta (mínimo 3 caracteres)." }, { status: 400 })
   }
 
-  let papers
+  // Títulos de TCC costumam ser longos e específicos (ex: "Arquitetura Hexagonal e
+  // DDD como fundamento de um sistema web para reencontro entre pets e tutores"),
+  // o que faz o OpenAlex retornar zero resultados por exigir match de todas as palavras.
+  // Estratégia: tenta a query original e, se vier pouco, re-tenta com palavras-chave.
+  let papers: Awaited<ReturnType<typeof searchPapers>> = []
+  let effectiveQuery = query
   try {
     papers = await searchPapers({
       query,
       limit: body.limit ?? 20,
       yearFrom: body.yearFrom,
     })
+
+    if (papers.length < 3) {
+      const keywords = extractKeywords(query)
+      if (keywords && keywords !== query) {
+        const fallback = await searchPapers({
+          query: keywords,
+          limit: body.limit ?? 20,
+          yearFrom: body.yearFrom,
+        })
+        if (fallback.length > papers.length) {
+          papers = fallback
+          effectiveQuery = keywords
+        }
+      }
+    }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
     console.error("[references/search] provider error:", message)
@@ -73,7 +93,7 @@ export async function POST(
         url: paper.url,
         doi: paper.doi,
         citationCount: paper.citationCount,
-        searchQuery: query,
+        searchQuery: effectiveQuery,
       },
       update: {
         title: paper.title,
@@ -84,7 +104,7 @@ export async function POST(
         url: paper.url,
         doi: paper.doi,
         citationCount: paper.citationCount,
-        searchQuery: query,
+        searchQuery: effectiveQuery,
       },
     })
   }
@@ -94,5 +114,10 @@ export async function POST(
     orderBy: [{ selected: "desc" }, { createdAt: "desc" }],
   })
 
-  return NextResponse.json({ query, found: papers.length, references })
+  return NextResponse.json({
+    query,
+    effectiveQuery,
+    found: papers.length,
+    references,
+  })
 }

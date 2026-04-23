@@ -776,8 +776,31 @@ export default function TccWorkspacePage() {
                 </div>
               </div>
             </div>
-            {/* Saving status */}
-            <div className="flex items-center gap-1.5 text-[10px] ml-2">
+            {/* Ações contextuais encostadas no título (esquerda) */}
+            <div className="flex items-center gap-2 ml-3 pl-3 border-l border-[var(--brand-border)]">
+              <button
+                onClick={() => setReferencesOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-[var(--brand-muted)]/70 hover:text-[var(--brand-text)] border border-[var(--brand-border)] hover:bg-[var(--brand-hover)] rounded-lg transition-all"
+                title="Referências bibliográficas"
+              >
+                <BookOpen size={12} />
+                <span>Referências</span>
+                {selectedRefsCount > 0 && (
+                  <span className="tabular-nums text-[var(--brand-accent)]">{selectedRefsCount}</span>
+                )}
+              </button>
+              <div className="bg-transparent border-none">
+                <AiActionToolbar
+                  userPlan={userPlan} content={tccContent}
+                  onApplyAction={handleApplyAiAction} onUpgrade={() => setUpgradeOpen(true)}
+                  tccId={String(id)} context={tccMeta ? Object.values(tccMeta).join(' ') : ""}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {/* Saving status — agora à direita */}
+            <div className="flex items-center gap-1.5 text-[10px]">
               {savingStatus === "saving" && <><Loader2 size={10} className="animate-spin text-orange-700" /><span className="text-orange-700">Salvando...</span></>}
               {savingStatus === "saved" && <><CheckCircle2 size={10} className="text-emerald-500" /><span className="text-emerald-500">Salvo</span></>}
               {savingStatus === "error" && <><AlertCircle size={10} className="text-red-500" /><span className="text-red-500">Erro</span></>}
@@ -788,10 +811,8 @@ export default function TccWorkspacePage() {
               )}
               {savingStatus === "idle" && tccContent === tccSavedContent && <span className="text-[var(--brand-muted)]/50">Atualizado</span>}
             </div>
-          </div>
-          <div className="flex items-center gap-2">
             {reviewState && (
-              <div className="flex items-center gap-2 mr-2">
+              <div className="flex items-center gap-2">
                 <button onClick={handleRejectReview} className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-[var(--brand-muted)]/70 hover:text-red-400 border border-[var(--brand-border)] hover:border-red-500/30 rounded-lg transition-all">
                   <XCircle size={12} /> Rejeitar
                 </button>
@@ -800,24 +821,6 @@ export default function TccWorkspacePage() {
                 </button>
               </div>
             )}
-            <button
-              onClick={() => setReferencesOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-[var(--brand-muted)]/70 hover:text-[var(--brand-text)] border border-[var(--brand-border)] hover:bg-[var(--brand-hover)] rounded-lg transition-all"
-              title="Referências bibliográficas"
-            >
-              <BookOpen size={12} />
-              <span>Referências</span>
-              {selectedRefsCount > 0 && (
-                <span className="tabular-nums text-[var(--brand-accent)]">{selectedRefsCount}</span>
-              )}
-            </button>
-            <div className="bg-transparent border-none">
-              <AiActionToolbar
-                userPlan={userPlan} content={tccContent}
-                onApplyAction={handleApplyAiAction} onUpgrade={() => setUpgradeOpen(true)}
-                tccId={String(id)} context={tccMeta ? Object.values(tccMeta).join(' ') : ""}
-              />
-            </div>
           </div>
         </header>
 
