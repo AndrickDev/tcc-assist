@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 import { ReferencesDrawer } from "@/components/references/ReferencesDrawer"
 import { CitationPickerButton } from "@/components/references/CitationPickerButton"
+import { GenerateReferencesButton } from "@/components/references/GenerateReferencesButton"
 import { useSession } from "next-auth/react"
 import { useParams, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -889,13 +890,33 @@ export default function TccWorkspacePage() {
                         imageCount={attachmentsMeta?.count ?? 0}
                         onImageInserted={fetchAttachments}
                         toolbarExtras={
-                          <CitationPickerButton
-                            tccId={String(id)}
-                            onInsertCitation={(text) => {
-                              editorRef.current?.chain().focus().insertContent(text).run()
-                              trackEvent('CITATION_INSERTED', { plan: userPlan })
-                            }}
-                          />
+                          <>
+                            <CitationPickerButton
+                              tccId={String(id)}
+                              onInsertCitation={(text) => {
+                                editorRef.current?.chain().focus().insertContent(text).run()
+                                trackEvent('CITATION_INSERTED', { plan: userPlan })
+                              }}
+                            />
+                            <GenerateReferencesButton
+                              tccId={String(id)}
+                              onInsertSection={(sectionHtml) => {
+                                const editor = editorRef.current
+                                if (!editor) return
+                                // Remove blocos antigos marcados com data-teseo-refs
+                                // (o buildSectionHtml sempre adiciona esse marcador),
+                                // depois insere a seção nova no final do documento.
+                                const current = editor.getHTML()
+                                const cleaned = current.replace(
+                                  /<(h[1-6]|p|div)[^>]*data-teseo-refs="true"[^>]*>[\s\S]*?<\/\1>/gi,
+                                  ""
+                                )
+                                editor.commands.setContent(cleaned + sectionHtml)
+                                editor.chain().focus("end").run()
+                                trackEvent('REFERENCES_SECTION_GENERATED', { plan: userPlan })
+                              }}
+                            />
+                          </>
                         }
                       />
                     </div>
