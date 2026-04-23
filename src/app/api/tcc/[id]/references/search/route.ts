@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { searchPapers } from "@/lib/semantic-scholar"
+import { searchPapers } from "@/lib/papers-search"
 
 export const dynamic = "force-dynamic"
 
@@ -60,7 +60,7 @@ export async function POST(
       create: {
         tccId: id,
         externalId: paper.externalId,
-        source: "semantic-scholar",
+        source: "openalex",
         title: paper.title,
         authors: paper.authors,
         year: paper.year,
