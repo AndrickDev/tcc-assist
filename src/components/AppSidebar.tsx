@@ -4,14 +4,13 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
 import { useTheme } from "next-themes"
-import { LayoutDashboard, FolderOpen, BookOpen, Settings, LogOut, HelpCircle, Sun, Moon } from "lucide-react"
+import { LayoutDashboard, FolderOpen, Settings, LogOut, HelpCircle, Sun, Moon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { BrandIcon } from "@/components/brand/BrandIcon"
 
 const NAV = [
   { icon: LayoutDashboard, href: "/dashboard",       label: "Dashboard" },
   { icon: FolderOpen,      href: "/dashboard",       label: "Projetos",        match: "/tcc" },
-  { icon: BookOpen,        href: "/dashboard",       label: "Referências" },
   { icon: Settings,        href: "/configuracoes",   label: "Configurações",   match: "/configuracoes" },
 ]
 

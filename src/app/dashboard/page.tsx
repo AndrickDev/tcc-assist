@@ -590,9 +590,6 @@ export default function DashboardPage() {
             <span className="text-[11px] text-[var(--brand-muted)]/40 uppercase tracking-widest">ARQUIVO</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 bg-[var(--brand-surface)] border border-[var(--brand-border)] rounded-lg px-3 py-1.5">
-              <span className="text-[11px] text-[var(--brand-muted)]">Buscar...</span>
-            </div>
             <button className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--brand-muted)] hover:text-[var(--brand-text)] hover:bg-[var(--brand-hover)] transition-all">
               <Bell size={14} />
             </button>
