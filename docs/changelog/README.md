@@ -15,6 +15,7 @@ Este changelog complementa o `git log` — aqui cada entrada explica **por que**
 
 | Data | Categoria | Título | Commit |
 |---|---|---|---|
+| 2026-04-23 | fix | [Busca de referências com keywords + header do workspace reorganizado](2026-04-23-0930-keywords-retry-e-header-reorganizado.md) | `244cfee` |
 | 2026-04-23 | feat | [Botão "Gerar refs" monta a seção REFERÊNCIAS no final do TCC](2026-04-23-0830-gera-secao-referencias-automatica.md) | `34aa443` |
 | 2026-04-23 | fix | [Simplifica busca de referências (botão único baseado no título do TCC)](2026-04-23-0800-simplifica-busca-referencias.md) | `5cefd10` |
 | 2026-04-23 | feat | [Botão "Citação" no editor com picker das referências selecionadas](2026-04-23-0700-botao-inserir-citacao-editor.md) | `f1f4d74` |
