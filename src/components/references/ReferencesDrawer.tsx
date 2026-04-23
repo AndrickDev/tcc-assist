@@ -7,6 +7,7 @@ import {
   ExternalLink, BookOpen, Sparkles, GitCompare,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { ReferencesCompareModal } from "./ReferencesCompareModal"
 
 export type ReferenceItem = {
   id: string
@@ -42,6 +43,8 @@ export function ReferencesDrawer({ tccId, tccTitle, open, onClose, onSelectedCou
   const [filter, setFilter] = React.useState<Filter>("all")
   const [expandedId, setExpandedId] = React.useState<string | null>(null)
   const [error, setError] = React.useState<string | null>(null)
+  const [compareOpen, setCompareOpen] = React.useState(false)
+  const [compareIds, setCompareIds] = React.useState<string[]>([])
 
   // Fetch existing references when drawer opens (first time)
   React.useEffect(() => {
@@ -250,13 +253,30 @@ export function ReferencesDrawer({ tccId, tccTitle, open, onClose, onSelectedCou
               </div>
               <button
                 disabled={counts.favorited < 2}
+                onClick={() => {
+                  const favoriteIds = refs.filter((r) => r.favorited).slice(0, 5).map((r) => r.id)
+                  if (favoriteIds.length < 2) return
+                  setCompareIds(favoriteIds)
+                  setCompareOpen(true)
+                }}
                 className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg bg-[var(--brand-hover)] border border-[var(--brand-border)] text-[var(--brand-muted)] hover:text-[var(--brand-text)] hover:border-[var(--brand-border)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                title={counts.favorited < 2 ? "Favorite 2 ou mais para comparar" : "Comparar favoritas"}
+                title={counts.favorited < 2 ? "Favorite 2 ou mais para comparar" : "Comparar até 5 favoritas"}
               >
-                <GitCompare size={12} /> Comparar
+                <GitCompare size={12} /> Comparar{counts.favorited >= 2 ? ` (${Math.min(counts.favorited, 5)})` : ""}
               </button>
             </footer>
           </motion.aside>
+
+          <ReferencesCompareModal
+            tccId={tccId}
+            open={compareOpen}
+            refIds={compareIds}
+            onClose={() => setCompareOpen(false)}
+            onSelectReference={async (refId) => {
+              await togglePatch(refId, { selected: true })
+              setCompareOpen(false)
+            }}
+          />
         </>
       )}
     </AnimatePresence>
