@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { callGemini, callGeminiWithFiles } from '@/lib/gemini'
+import { buildReferencesContext } from '@/lib/references'
 
 export async function POST(request: Request) {
   try {
@@ -23,6 +24,12 @@ export async function POST(request: Request) {
     const tcc = await prisma.tcc.findFirst({ where: { id: tccId, userId }, select: { id: true } })
     if (!tcc) return NextResponse.json({ error: 'TCC não encontrado.' }, { status: 404 })
 
+    // Buscar referências selecionadas pelo aluno (maior prioridade de embasamento)
+    const selectedRefs = await prisma.reference.findMany({
+      where: { tccId, selected: true },
+      orderBy: [{ citationCount: 'desc' }, { createdAt: 'desc' }],
+    })
+
     // Buscar attachments persistidos no banco
     const attachments = await prisma.attachment.findMany({
       where: { tccId, mimeType: 'application/pdf' },
@@ -41,11 +48,21 @@ export async function POST(request: Request) {
       })
     )
 
-    const regrasCitacao = pdfParts.length > 0
-      ? `- Você recebeu documentos PDF em anexo. Avalie se o conteúdo deles tem relação lógica com o tema "${tema}".
+    const referencesContext = buildReferencesContext(selectedRefs)
+
+    // Estratégia de citação em ordem de prioridade:
+    //   1. Se o aluno selecionou referências (OpenAlex) — usa EXCLUSIVAMENTE essas
+    //   2. Senão, se tem PDFs anexados — usa como base, com fallback pro conhecimento geral
+    //   3. Senão — só conhecimento geral da IA, com aviso forte contra alucinação
+    const regrasCitacao = selectedRefs.length > 0
+      ? `- Use EXCLUSIVAMENTE as referências listadas no bloco [REFERÊNCIAS SELECIONADAS].
+     - Cite no formato ABNT autor-data: (SOBRENOME, ANO).
+     - É PROIBIDO inventar autores ou obras. Se nenhuma referência combinar, escreva sem citação.`
+      : pdfParts.length > 0
+        ? `- Você recebeu documentos PDF em anexo. Avalie se o conteúdo deles tem relação lógica com o tema "${tema}".
      - Se TIVER relação: Use-os como referência principal e faça citações diretas/indiretas.
      - Se NÃO TIVER relação clara: Ignore-os e use seu próprio conhecimento acadêmico para citar autores clássicos da área.`
-      : `- Como não foram fornecidos documentos base, utilize seu vasto conhecimento acadêmico para embasar o texto.
+        : `- Como não foram fornecidos documentos base, utilize seu vasto conhecimento acadêmico para embasar o texto.
      - Cite apenas autores reais, teorias reais e livros consolidados da área acadêmica do tema.`
 
     const bussolaAcademica = `
@@ -60,7 +77,7 @@ REGRA 1: Tudo o que você escrever DEVE estar alinhado para alcançar o Objetivo
 
     const prompt = `Você é um acadêmico rigoroso nível doutorado.
 ${bussolaAcademica}
-
+${referencesContext ? `\n${referencesContext}\n` : ''}
 [TAREFA ATUAL]
 Escreva APENAS o seguinte capítulo/seção: "${capitulo}".
 
@@ -79,7 +96,12 @@ Construa a nova seção como continuação lógica. NÃO REPITA o que já foi di
       ? await callGeminiWithFiles(pdfParts, prompt)
       : await callGemini(prompt)
 
-    return NextResponse.json({ sucesso: true, capitulo, texto })
+    return NextResponse.json({
+      sucesso: true,
+      capitulo,
+      texto,
+      referenciasUsadas: selectedRefs.length,
+    })
   } catch (error) {
     console.error('Erro ao gerar TCC:', error)
     return NextResponse.json({ error: 'Falha na geração pela IA' }, { status: 500 })

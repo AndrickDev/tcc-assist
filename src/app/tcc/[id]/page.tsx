@@ -687,6 +687,7 @@ export default function TccWorkspacePage() {
       const data = await res.json()
       if (data.sucesso) {
         const html = markdownToHtml(data.texto)
+        const refsUsadas = typeof data.referenciasUsadas === "number" ? data.referenciasUsadas : 0
         const botMsg: ChatMessage = {
           id: Date.now().toString() + "bot",
           role: "bot",
@@ -695,7 +696,13 @@ export default function TccWorkspacePage() {
           editorContent: html,
           userPrompt: `Gerar ${selectedChapter} — ${tccMeta.title}`,
         }
-        setMessages(prev => [...prev, botMsg])
+        setMessages(prev => [
+          ...prev,
+          ...(refsUsadas > 0
+            ? [{ id: Date.now().toString() + "info", role: "bot" as const, content: `✓ Gerado com base em <strong>${refsUsadas}</strong> referência${refsUsadas > 1 ? "s" : ""} selecionada${refsUsadas > 1 ? "s" : ""}.` }]
+            : []),
+          botMsg,
+        ])
         setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100)
       } else {
         setMessages(prev => [...prev, { id: Date.now().toString(), role: "bot", content: `⚠️ ${data.error ?? "Erro ao gerar capítulo."}` }])

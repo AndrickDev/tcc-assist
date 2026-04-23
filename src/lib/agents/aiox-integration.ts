@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { generateAIContent } from '@/lib/ai/provider';
 import { getGeminiConfigForPlan } from '@/lib/gemini';
+import { buildReferencesContext } from '@/lib/references';
 import fs from 'fs';
 import path from 'path';
 
@@ -73,6 +74,15 @@ export async function runTccWorkflow(userId: string, tccId: string, message: str
       ? `\n[CONTEXTO DO TCC]:\n${tccContextParts.join('\n')}\n[FIM CONTEXTO DO TCC]\n`
       : '';
 
+    // Injeta as referências selecionadas pelo aluno no prompt, quando houver.
+    // Com isso, o chat e a geração passam a citar autores/obras reais escolhidas
+    // pelo próprio usuário em vez de depender do conhecimento geral da Gemini.
+    const selectedRefs = await prisma.reference.findMany({
+      where: { tccId, selected: true },
+      orderBy: [{ citationCount: 'desc' }, { createdAt: 'desc' }],
+    });
+    const referencesBlock = selectedRefs.length > 0 ? `\n${buildReferencesContext(selectedRefs)}\n` : '';
+
     // Conversation context (varies by plan)
     let conversationContext = ''
     if (plan === 'PRO') {
@@ -100,7 +110,7 @@ export async function runTccWorkflow(userId: string, tccId: string, message: str
     const geminiConfig = getGeminiConfigForPlan(plan);
 
     // 5. Executar Geração
-    let generationPrompt = `${agentSystemPrompt}${tccMetadataBlock}${conversationContext}\n\nREQUISITO DO USUÁRIO: ${message}`
+    let generationPrompt = `${agentSystemPrompt}${tccMetadataBlock}${referencesBlock}${conversationContext}\n\nREQUISITO DO USUÁRIO: ${message}`
     
     // Plan-specific quality guardrails
     const planQualityDirective = plan === 'VIP'
