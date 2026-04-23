@@ -15,6 +15,7 @@ Este changelog complementa o `git log` — aqui cada entrada explica **por que**
 
 | Data | Categoria | Título | Commit |
 |---|---|---|---|
+| 2026-04-23 | fix | [Corrige fluxo de login/cadastro (email+senha visível, Google lado a lado)](2026-04-23-0215-fix-fluxo-login-cadastro.md) | `5344453` |
 | 2026-04-23 | feat | [Drawer de Referências no workspace (seleção + favoritos)](2026-04-23-0130-drawer-referencias-workspace.md) | `5e81b13` |
 | 2026-04-23 | feat | [Filtro de idiomas na busca de referências (default pt + en)](2026-04-23-0050-filtro-idiomas-busca-referencias.md) | `2488cc2` |
 | 2026-04-23 | fix | [Troca Semantic Scholar por OpenAlex](2026-04-23-0010-troca-semantic-scholar-por-openalex.md) | `34bc020` |
