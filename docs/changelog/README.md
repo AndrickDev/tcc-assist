@@ -15,6 +15,7 @@ Este changelog complementa o `git log` — aqui cada entrada explica **por que**
 
 | Data | Categoria | Título | Commit |
 |---|---|---|---|
+| 2026-04-23 | feat | [IA usa as referências selecionadas ao gerar texto](2026-04-23-0410-ia-usa-referencias-selecionadas.md) | `fa83149` |
 | 2026-04-23 | feat | [Lixeira para apagar mensagens do histórico do chat](2026-04-23-0330-lixeira-mensagens-chat.md) | `9b11e16` |
 | 2026-04-23 | fix | [Corrige fluxo de login/cadastro (email+senha visível, Google lado a lado)](2026-04-23-0215-fix-fluxo-login-cadastro.md) | `5344453` |
 | 2026-04-23 | feat | [Drawer de Referências no workspace (seleção + favoritos)](2026-04-23-0130-drawer-referencias-workspace.md) | `5e81b13` |
