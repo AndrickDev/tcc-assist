@@ -116,6 +116,9 @@ export type SearchOptions = {
   query: string
   limit?: number
   yearFrom?: number
+  // Idiomas aceitos no formato ISO 639-1 (pt, en, es...). Default: pt + en.
+  // Alunos brasileiros de TCC raramente citam espanhol, então o default exclui.
+  languages?: string[]
 }
 
 export async function searchPapers(opts: SearchOptions): Promise<ScholarPaper[]> {
@@ -123,6 +126,7 @@ export async function searchPapers(opts: SearchOptions): Promise<ScholarPaper[]>
   if (!query) return []
 
   const perPage = Math.min(Math.max(opts.limit ?? 20, 1), 50)
+  const languages = opts.languages && opts.languages.length > 0 ? opts.languages : ["pt", "en"]
 
   const params = new URLSearchParams({
     search: query,
@@ -130,7 +134,12 @@ export async function searchPapers(opts: SearchOptions): Promise<ScholarPaper[]>
     select: SELECT,
     mailto: POLITE_POOL_MAILTO,
   })
-  if (opts.yearFrom) params.set("filter", `from_publication_date:${opts.yearFrom}-01-01`)
+
+  // OpenAlex combina filtros via vírgula; dentro de um filtro o pipe é OR.
+  // Ex: language:pt|en,from_publication_date:2015-01-01
+  const filters: string[] = [`language:${languages.join("|")}`]
+  if (opts.yearFrom) filters.push(`from_publication_date:${opts.yearFrom}-01-01`)
+  params.set("filter", filters.join(","))
 
   const res = await fetch(`${BASE_URL}?${params.toString()}`, {
     headers: { "User-Agent": `Teseo/1.0 (+${POLITE_POOL_MAILTO})` },
