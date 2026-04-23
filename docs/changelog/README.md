@@ -15,6 +15,7 @@ Este changelog complementa o `git log` — aqui cada entrada explica **por que**
 
 | Data | Categoria | Título | Commit |
 |---|---|---|---|
+| 2026-04-23 | fix | [Fix de plano (ícone correto + atualização automática na sessão)](2026-04-23-0520-fix-plano-icone-refresh.md) | `8bdb890` |
 | 2026-04-23 | ui | [Remove itens inativos do dashboard (sidebar e busca)](2026-04-23-0440-limpa-itens-inativos-dashboard.md) | `90fead5` |
 | 2026-04-23 | feat | [IA usa as referências selecionadas ao gerar texto](2026-04-23-0410-ia-usa-referencias-selecionadas.md) | `fa83149` |
 | 2026-04-23 | feat | [Lixeira para apagar mensagens do histórico do chat](2026-04-23-0330-lixeira-mensagens-chat.md) | `9b11e16` |
