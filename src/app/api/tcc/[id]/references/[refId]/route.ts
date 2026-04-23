@@ -16,8 +16,10 @@ async function authorize(tccId: string) {
 }
 
 // PATCH /api/tcc/[id]/references/[refId]
-// Body: { selected: boolean }
-// Marca ou desmarca uma referência como "selecionada" para uso na geração.
+// Body: { selected?: boolean; favorited?: boolean }
+// Atualiza o estado da referência. Pelo menos um dos dois campos deve vir.
+// "selected": vai ser usada pela IA ao gerar texto.
+// "favorited": marcada pra comparar/lembrar, não necessariamente usada.
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; refId: string }> }
@@ -26,28 +28,41 @@ export async function PATCH(
   const guard = await authorize(id)
   if (guard.error) return guard.error
 
-  let body: { selected?: boolean }
+  let body: { selected?: boolean; favorited?: boolean }
   try {
     body = await req.json()
   } catch {
     return NextResponse.json({ error: "Body inválido." }, { status: 400 })
   }
 
-  if (typeof body.selected !== "boolean") {
-    return NextResponse.json({ error: "Campo 'selected' obrigatório (boolean)." }, { status: 400 })
+  const hasSelected = typeof body.selected === "boolean"
+  const hasFavorited = typeof body.favorited === "boolean"
+  if (!hasSelected && !hasFavorited) {
+    return NextResponse.json(
+      { error: "Informe 'selected' e/ou 'favorited' (boolean)." },
+      { status: 400 }
+    )
   }
 
   const existing = await prisma.reference.findFirst({ where: { id: refId, tccId: id } })
   if (!existing) return NextResponse.json({ error: "Referência não encontrada." }, { status: 404 })
 
-  const updated = await prisma.reference.update({
-    where: { id: refId },
-    data: {
-      selected: body.selected,
-      selectedAt: body.selected ? new Date() : null,
-    },
-  })
+  const data: {
+    selected?: boolean
+    selectedAt?: Date | null
+    favorited?: boolean
+    favoritedAt?: Date | null
+  } = {}
+  if (hasSelected) {
+    data.selected = body.selected!
+    data.selectedAt = body.selected ? new Date() : null
+  }
+  if (hasFavorited) {
+    data.favorited = body.favorited!
+    data.favoritedAt = body.favorited ? new Date() : null
+  }
 
+  const updated = await prisma.reference.update({ where: { id: refId }, data })
   return NextResponse.json({ reference: updated })
 }
 

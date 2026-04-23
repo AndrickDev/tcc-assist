@@ -21,7 +21,7 @@ export async function GET(
 
   const references = await prisma.reference.findMany({
     where: { tccId: id },
-    orderBy: [{ selected: "desc" }, { createdAt: "desc" }],
+    orderBy: [{ selected: "desc" }, { favorited: "desc" }, { createdAt: "desc" }],
   })
 
   return NextResponse.json({ references })

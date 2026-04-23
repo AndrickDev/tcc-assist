@@ -93,6 +93,8 @@ model Reference {
   citationCount Int?
   selected      Boolean   @default(false)
   selectedAt    DateTime?
+  favorited     Boolean   @default(false)
+  favoritedAt   DateTime?
   searchQuery   String?
   createdAt     DateTime  @default(now())
   tcc           Tcc       @relation(fields: [tccId], references: [id], onDelete: Cascade)

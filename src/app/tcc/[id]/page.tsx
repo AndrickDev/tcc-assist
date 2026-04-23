@@ -6,8 +6,9 @@ import {
   ArrowLeft, FileText, X,
   Loader2, AlertCircle, ArrowRight, Paperclip, Sparkles,
   CheckCircle2, Clock, Crown, Download, RefreshCw, BrainCircuit, Plus, Trash2, Save, RotateCcw,
-  Check, XCircle, BarChart2, ChevronLeft, PanelRightClose
+  Check, XCircle, BarChart2, ChevronLeft, PanelRightClose, BookOpen
 } from "lucide-react"
+import { ReferencesDrawer } from "@/components/references/ReferencesDrawer"
 import { useSession } from "next-auth/react"
 import { useParams, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -419,6 +420,8 @@ export default function TccWorkspacePage() {
   const [limitOpen, setLimitOpen] = React.useState(false)
   const [exportOpen, setExportOpen] = React.useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false)
+  const [referencesOpen, setReferencesOpen] = React.useState(false)
+  const [selectedRefsCount, setSelectedRefsCount] = React.useState(0)
 
   const headings = React.useMemo(() => extractHeadings(tccContent), [tccContent])
 
@@ -777,6 +780,17 @@ export default function TccWorkspacePage() {
                 </button>
               </div>
             )}
+            <button
+              onClick={() => setReferencesOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-[var(--brand-muted)]/70 hover:text-[var(--brand-text)] border border-[var(--brand-border)] hover:bg-[var(--brand-hover)] rounded-lg transition-all"
+              title="Referências bibliográficas"
+            >
+              <BookOpen size={12} />
+              <span>Referências</span>
+              {selectedRefsCount > 0 && (
+                <span className="tabular-nums text-[var(--brand-accent)]">{selectedRefsCount}</span>
+              )}
+            </button>
             <div className="bg-transparent border-none">
               <AiActionToolbar
                 userPlan={userPlan} content={tccContent}
@@ -1044,6 +1058,13 @@ export default function TccWorkspacePage() {
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} onPricing={() => { router.push("/pricing"); setUpgradeOpen(false) }} currentPlan={userPlan} />
       <LimitModal open={limitOpen} onClose={() => setLimitOpen(false)} onUpgrade={() => { setLimitOpen(false); setUpgradeOpen(true) }} dailyLimit={dailyLimit} planName={userPlan === "FREE" ? "gratuito" : userPlan} />
       <ExportModal open={exportOpen} onClose={() => setExportOpen(false)} onUpgrade={() => { setExportOpen(false); setUpgradeOpen(true) }} onExport={() => { handleWatermarkedExport(); setExportOpen(false) }} />
+      <ReferencesDrawer
+        tccId={String(id)}
+        tccTitle={tccMeta?.title ?? ""}
+        open={referencesOpen}
+        onClose={() => setReferencesOpen(false)}
+        onSelectedCountChange={setSelectedRefsCount}
+      />
       <DevPlanSwitcher />
     </div>
   )
