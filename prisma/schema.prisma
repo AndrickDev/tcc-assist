@@ -74,7 +74,31 @@ model Tcc {
   content     String?
   attachments Attachment[]
   messages    Message[]
+  references  Reference[]
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Reference {
+  id            String    @id @default(cuid())
+  tccId         String
+  externalId    String
+  source        String    @default("semantic-scholar")
+  title         String
+  authors       String
+  year          Int?
+  abstract      String?
+  venue         String?
+  url           String?
+  doi           String?
+  citationCount Int?
+  selected      Boolean   @default(false)
+  selectedAt    DateTime?
+  searchQuery   String?
+  createdAt     DateTime  @default(now())
+  tcc           Tcc       @relation(fields: [tccId], references: [id], onDelete: Cascade)
+
+  @@unique([tccId, externalId])
+  @@index([tccId, selected])
 }
 
 model Message {
