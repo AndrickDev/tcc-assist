@@ -119,6 +119,29 @@ export default function RegisterPage() {
               {isLoading ? "Criando conta..." : "Criar conta"} <ArrowRight size={18} />
             </button>
           </form>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/10"></div>
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-[#0F0F0E] px-2 text-white/50">ou cadastre-se com</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+            className="w-full py-3 bg-white text-black font-semibold rounded-xl flex items-center justify-center gap-3 hover:bg-white/90 transition-colors"
+          >
+            <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
+              <path d="M12.0003 4.75C13.7703 4.75 15.3553 5.36002 16.6053 6.54998L20.0303 3.125C17.9502 1.19 15.2353 0 12.0003 0C7.31028 0 3.25527 2.69 1.25024 6.64998L5.32026 9.79998C6.27525 6.74998 9.17528 4.75 12.0003 4.75Z" fill="#EA4335" />
+              <path d="M23.49 12.275C23.49 11.49 23.415 10.73 23.3 10H12V14.51H18.47C18.18 15.99 17.34 17.25 16.08 18.1L20.18 21.29C22.575 19.09 24.0303 15.86 24.0303 12.275H23.49Z" fill="#4285F4" />
+              <path d="M5.31976 14.1999C5.07976 13.4499 4.93976 12.6499 4.93976 11.8499C4.93976 11.0499 5.07976 10.2499 5.31976 9.49994L1.24976 6.34998C0.454756 7.94998 0 9.84994 0 11.8499C0 13.8499 0.454756 15.7499 1.24976 17.3499L5.31976 14.1999Z" fill="#FBBC05" />
+              <path d="M12.0004 24C15.2404 24 17.9654 22.925 19.9554 21.095L15.9354 17.965C14.8654 18.685 13.5654 19.12 12.0054 19.12C9.08041 19.12 6.13042 17.02 5.23042 13.91L1.1604 17.06C3.1604 21.12 7.26041 24 12.0004 24Z" fill="#34A853" />
+            </svg>
+            Google
+          </button>
         </div>
 
         <div className="text-center mt-6 text-sm text-white/60">
