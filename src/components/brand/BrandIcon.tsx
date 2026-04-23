@@ -1,5 +1,3 @@
-"use client"
-
 import { cn } from "@/lib/utils"
 
 export interface BrandIconProps {
@@ -17,7 +15,7 @@ export function BrandIcon({
     <div
       className={cn(
         "relative flex items-center justify-center transition-all duration-700 ease-in-out",
-        isGenerating ? "scale-[1.15]" : "scale-100",
+        isGenerating ? "scale-[1.10]" : "scale-100",
         className
       )}
       style={{ width: size, height: size }}
@@ -26,20 +24,21 @@ export function BrandIcon({
         viewBox="0 0 100 100"
         fill="none"
         stroke="currentColor"
-        strokeWidth="10"
+        strokeWidth="6"
         strokeLinecap="round"
         strokeLinejoin="round"
         className={cn(
-          "w-full h-full text-[var(--brand-accent)] transition-all duration-1000",
-          isGenerating && "animate-pulse"
+          "w-full h-full text-[var(--brand-accent)] transition-all duration-1000 z-10",
+          isGenerating && "opacity-80 scale-95"
         )}
       >
-        {/* Símbolo do Infinito (Laço Contínuo) minimalista */}
-        <path d="M 25 50 C 25 15, 50 15, 50 50 C 50 85, 75 85, 75 50 C 75 15, 50 15, 50 50 C 50 85, 25 85, 25 50 Z" />
+        {/* Labirinto Quadrado Clássico Perfeito em uma linha só */}
+        <path d="M 15 15 H 85 V 85 H 15 V 35 H 65 V 65 H 35 V 50 H 50" />
       </svg>
-      {/* Círculo central iluminado quando está gerando */}
+      
+      {/* Luz no centro que acende quando o sistema gera a solução para sair do labirinto */}
       {isGenerating && (
-        <div className="absolute w-[20%] h-[20%] bg-[var(--brand-accent)] rounded-full blur-sm opacity-60 animate-ping" />
+        <div className="absolute w-[15%] h-[15%] bg-[var(--brand-accent)] rounded-sm blur-sm opacity-80 animate-ping z-20" />
       )}
     </div>
   )

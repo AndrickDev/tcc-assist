@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teseo — Relatório Executivo do Produto · Abril 2026</title>
+  <style>
+    :root {
+      --brand:        #C07142;
+      --brand-light:  #E8C4A0;
+      --brand-dark:   #7A4420;
+      --bg:           #FAFAF8;
+      --surface:      #FFFFFF;
+      --surface-alt:  #F5F3EF;
+      --text:         #1A1714;
+      --text-muted:   #6B6560;
+      --border:       #E2DDD8;
+      --green:        #2E7D52;
+      --green-bg:     #EBF5EE;
+      --yellow:       #7A6010;
+      --yellow-bg:    #FDF8E1;
+      --red:          #9B2C2C;
+      --red-bg:       #FEF2F2;
+      --blue:         #1E4D8C;
+      --blue-bg:      #EFF4FB;
+      --gray:         #4A4440;
+      --gray-bg:      #F0EEEC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    /* ── Layout ── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+    section { padding: 56px 0; }
+    section + section { border-top: 1px solid var(--border); }
+    h1 { font-size: 2.4rem; font-weight: 800; line-height: 1.2; }
+    h2 { font-size: 1.6rem; font-weight: 700; margin-bottom: 24px; }
+    h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; }
+    p  { color: var(--text-muted); margin-bottom: 14px; }
+    ul { padding-left: 20px; color: var(--text-muted); }
+    ul li { margin-bottom: 6px; }
+    a  { color: var(--brand); text-decoration: none; }
+    /* ── Cover ── */
+    .cover {
+      background: #FFFFFF;
+      border-bottom: 2px solid var(--border);
+      color: var(--text);
+      padding: 72px 0 64px;
+    }
+    .cover h1 { color: var(--text); margin-bottom: 16px; }
+    .cover .sub { font-size: 1.15rem; color: var(--text-muted); max-width: 620px; }
+    .cover .meta { display: flex; gap: 32px; margin-top: 36px; flex-wrap: wrap; }
+    .cover .meta span { font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
+    .cover .meta strong { display: block; font-size: 1.05rem; color: var(--text); margin-top: 2px; }
+    /* ── TOC ── */
+    .toc { background: var(--surface-alt); border-radius: 12px; padding: 28px 32px; margin-bottom: 0; }
+    .toc ol { padding-left: 18px; }
+    .toc li { margin-bottom: 8px; }
+    .toc a { color: var(--brand-dark); font-weight: 500; }
+    /* ── Pill badge ── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .05em; padding: 3px 10px; border-radius: 999px;
+    }
+    .badge-done   { background: var(--green-bg);  color: var(--green); }
+    .badge-warn   { background: var(--yellow-bg); color: var(--yellow); }
+    .badge-error  { background: var(--red-bg);    color: var(--red); }
+    .badge-info   { background: var(--blue-bg);   color: var(--blue); }
+    .badge-mock   { background: var(--gray-bg);   color: var(--gray); }
+    /* ── Status cards ── */
+    .card-grid { display: grid; gap: 16px; }
+    .card-grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .card-grid-3 { grid-template-columns: repeat(3, 1fr); }
+    @media(max-width:700px) { .card-grid-2, .card-grid-3 { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 22px;
+    }
+    .card-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-bottom: 6px; }
+    .card-title { font-size: 1.05rem; font-weight: 600; margin-bottom: 10px; color: var(--text); }
+    .card-body  { font-size: 0.88rem; color: var(--text-muted); }
+    .card-icon  { font-size: 1.8rem; margin-bottom: 10px; display: block; }
+    /* ── Feature status table ── */
+    .status-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    .status-table th {
+      background: var(--surface-alt);
+      text-align: left; padding: 10px 14px;
+      font-size: 0.75rem; text-transform: uppercase; letter-spacing: .06em;
+      color: var(--text-muted); border-bottom: 1px solid var(--border);
+    }
+    .status-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .status-table tr:last-child td { border-bottom: none; }
+    .status-table tr:hover td { background: var(--surface-alt); }
+    /* ── Roadmap ── */
+    .roadmap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    @media(max-width:700px) { .roadmap { grid-template-columns: 1fr; } }
+    .roadmap-col { border-radius: 12px; padding: 24px; }
+    .roadmap-col.short { background: #FEF6EE; border: 1px solid #F5C9A0; }
+    .roadmap-col.medium { background: #EFF4FB; border: 1px solid #BFD4F0; }
+    .roadmap-col.long  { background: #EBF5EE; border: 1px solid #A8D5B8; }
+    .roadmap-col h3 { margin-bottom: 16px; }
+    .roadmap-col.short h3  { color: #7A4420; }
+    .roadmap-col.medium h3 { color: var(--blue); }
+    .roadmap-col.long h3   { color: var(--green); }
+    .roadmap-col ul { list-style: none; padding: 0; }
+    .roadmap-col ul li { padding: 7px 0; border-bottom: 1px dashed rgba(0,0,0,.08); font-size: 0.88rem; color: var(--text); }
+    .roadmap-col ul li:last-child { border-bottom: none; }
+    .roadmap-col ul li::before { content: '→ '; font-weight: 700; opacity: .5; }
+    /* ── Arch comparison ── */
+    .arch-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .arch-table th {
+      padding: 10px 12px; font-size: 0.73rem; text-transform: uppercase;
+      letter-spacing: .05em; color: var(--text-muted); background: var(--surface-alt);
+      border-bottom: 1px solid var(--border); text-align: left;
+    }
+    .arch-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .arch-table .rec { background: #FEF6EE; font-weight: 500; }
+    .arch-table .good  { color: var(--green); font-weight: 600; }
+    .arch-table .ok    { color: #7A6010; }
+    .arch-table .poor  { color: var(--red); }
+    /* ── Risk card ── */
+    .risk-list { display: flex; flex-direction: column; gap: 12px; }
+    .risk-item { display: flex; gap: 14px; align-items: flex-start; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+    .risk-item .risk-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+    .risk-item.high   .risk-dot { background: #E53E3E; }
+    .risk-item.medium .risk-dot { background: #DD6B20; }
+    .risk-item.low    .risk-dot { background: #38A169; }
+    .risk-title { font-weight: 600; margin-bottom: 3px; font-size: 0.92rem; }
+    .risk-body  { font-size: 0.84rem; color: var(--text-muted); }
+    /* ── Partner section ── */
+    .partner-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    @media(max-width:600px) { .partner-grid { grid-template-columns: 1fr; } }
+    .partner-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px;
+    }
+    .partner-card h3 { font-size: 0.95rem; margin-bottom: 8px; }
+    .partner-card ul { font-size: 0.84rem; }
+    /* ── KPI bar ── */
+    .kpi-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 32px; }
+    .kpi {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 16px 20px; flex: 1; min-width: 160px;
+    }
+    .kpi .kpi-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); }
+    .kpi .kpi-value { font-size: 1.8rem; font-weight: 800; color: var(--brand); line-height: 1.2; margin-top: 4px; }
+    .kpi .kpi-sub   { font-size: 0.78rem; color: var(--text-muted); margin-top: 3px; }
+    /* ── Stack pills ── */
+    .stack-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .stack-pill {
+      background: var(--surface-alt); border: 1px solid var(--border); border-radius: 6px;
+      padding: 5px 12px; font-size: 0.8rem; font-weight: 500; color: var(--text);
+    }
+    /* ── Section label ── */
+    .section-label {
+      display: inline-block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .1em; color: var(--brand); background: #FEF6EE; border-radius: 4px;
+      padding: 3px 10px; margin-bottom: 16px;
+    }
+    /* ── Footer ── */
+    .page-footer {
+      background: var(--text); color: #aaa; text-align: center; padding: 32px;
+      font-size: 0.82rem;
+    }
+    .page-footer strong { color: white; }
+    /* ── Callout ── */
+    .callout {
+      border-left: 4px solid var(--brand); background: #FEF6EE; border-radius: 0 8px 8px 0;
+      padding: 14px 18px; margin: 20px 0; font-size: 0.9rem; color: var(--text);
+    }
+    .callout strong { color: var(--brand-dark); }
+    /* ── print ── */
+    @media print {
+      .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .roadmap-col, .arch-table .rec { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ───────────────────────── COVER ───────────────────────── -->
+<div class="cover">
+  <div class="container">
+    <p style="font-size:0.8rem;color:var(--brand);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;font-weight:700;">Relatório Executivo do Produto</p>
+    <h1>Teseo</h1>
+    <p class="sub">Plataforma de IA para escrita acadêmica no mercado brasileiro — TCCs, monografias, dissertações e teses.</p>
+    <div class="meta">
+      <span>Data <strong>Abril 2026</strong></span>
+      <span>Versão <strong>Beta Controlado</strong></span>
+      <span>Stack <strong>Next.js 15 · Gemini · Prisma</strong></span>
+      <span>Prontidão <strong>7 / 10</strong></span>
+    </div>
+  </div>
+</div>
+
+<!-- ───────────────────────── TOC ───────────────────────── -->
+<section id="toc">
+  <div class="container">
+    <div class="toc">
+      <h3 style="margin-bottom:16px;color:var(--text);">Sumário</h3>
+      <ol>
+        <li><a href="#overview">Visão geral do produto</a></li>
+        <li><a href="#status">O que está pronto e o que falta</a></li>
+        <li><a href="#stack">Stack técnica atual</a></li>
+        <li><a href="#risks">Riscos e limitações</a></li>
+        <li><a href="#arch">Comparação de arquiteturas</a></li>
+        <li><a href="#market">Oportunidades para o mercado brasileiro</a></li>
+        <li><a href="#roadmap">Roadmap</a></li>
+        <li><a href="#partners">Como os sócios podem contribuir</a></li>
+        <li><a href="#workflow">Fluxo de trabalho sugerido (Trello/Notion)</a></li>
+        <li><a href="#priorities">Prioridades das próximas 2 semanas</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── OVERVIEW ───────────────────────── -->
+<section id="overview">
+  <div class="container">
+    <div class="section-label">01 — Visão Geral</div>
+    <h2>O que é o Teseo</h2>
+
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-label">Páginas de código</div>
+        <div class="kpi-value">76</div>
+        <div class="kpi-sub">arquivos TypeScript/TSX</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Rotas de API</div>
+        <div class="kpi-value">18</div>
+        <div class="kpi-sub">endpoints implementados</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Planos ativos</div>
+        <div class="kpi-value">3</div>
+        <div class="kpi-sub">FREE · PRO · VIP</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Eventos de analytics</div>
+        <div class="kpi-value">17</div>
+        <div class="kpi-sub">funil completo mapeado</div>
+      </div>
+    </div>
+
+    <div class="card-grid card-grid-3">
+      <div class="card">
+        <span class="card-icon">🎯</span>
+        <div class="card-label">Problema que resolve</div>
+        <div class="card-title">Escrita acadêmica sem orientação</div>
+        <div class="card-body">Estudantes brasileiros não têm acesso a um assistente que entenda normas ABNT, gêneros acadêmicos e a estrutura específica de um TCC.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">👤</span>
+        <div class="card-label">Público-alvo</div>
+        <div class="card-title">Estudantes de graduação e pós</div>
+        <div class="card-body">Foco em quem está escrevendo TCC, monografia, dissertação ou tese no Brasil — em qualquer área de conhecimento.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">💡</span>
+        <div class="card-label">Proposta de valor</div>
+        <div class="card-title">IA que entende o contexto acadêmico</div>
+        <div class="card-body">Não é um assistente genérico. O Teseo conhece o tipo de trabalho, o curso, a norma e o objetivo da pesquisa para gerar conteúdo contextualizado.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── STATUS ───────────────────────── -->
+<section id="status">
+  <div class="container">
+    <div class="section-label">02 — Auditoria de Funcionalidades</div>
+    <h2>O que está pronto e o que falta</h2>
+
+    <table class="status-table">
+      <thead>
+        <tr>
+          <th>Funcionalidade</th>
+          <th>Status</th>
+          <th>Observação</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- DONE -->
+        <tr>
+          <td>Autenticação (email/senha + Google OAuth)</td>
+          <td><span class="badge badge-done">✓ Pronto</span></td>
+          <td>NextAuth v5 + Prisma adapter</td>
+        </tr>
+        <tr>
+          <td>Dashboard — listagem e criação de TCCs</td>
+          <td><span class="badge badge-done">✓ Pronto</span></td>
+          <td>Empty state, grid de cards, greeting</td>
+        </tr>
+        <tr>
+          <td>Modal de criação — 5 passos com dados do TCC</td>
+          <td><span class="badge badge-done">✓ Pronto</span></td>
+          <td>Curso, instituição, norma, tipo de trabalho</td>
+        </tr>
+        <tr>
+          <td>Editor rich text (Tiptap) com autosave</td>
+          <td><span class="badge badge-done">✓ Pronto</span></td>
+          <td>Debounce 2s, indicador de estado</td>
+        </tr>
+        <tr>
+          <td>Chat com IA — geração de capítulos (Gemini)</td>
+          <td><span class="badge badge-done">✓ Pronto</span></td>
+          <td>Agentes: Bibliotecário, Arquiteto, Redator</td>
+        </tr>
+        <tr>
+          <td>Ações de IA inline (revisar, ABNT, citações, próximo passo)</td>
+          <td><span class="badge badge-done">✓ Pronto</span></td>
+          <td>Guardrails de prompt implementados</td>
+        </tr>
+        <tr>
+          <td>Sistema de planos FREE/PRO/VIP com limites</td>
+          <td><span class="badge badge-done">✓ Pronto</span></td>
+          <td>Centralizado em plan.ts, aplicado na UI e na API</td>
+        </tr>
+        <tr>
+          <td>Integração Stripe (pagamento único por TCC)</td>
+          <td><span class="badge badge-done">✓ Pronto</span></td>
+          <td>Webhook configurado, atualiza plano no DB</td>
+        </tr>
+        <tr>
+          <td>Upload de arquivos (PDF/DOC) com limites por plano</td>
+          <td><span class="badge badge-done">✓ Pronto</span></td>
+          <td>Vercel Blob, até 20 MB por arquivo</td>
+        </tr>
+        <tr>
+          <td>Upload de imagens no editor</td>
+          <td><span class="badge badge-done">✓ Pronto</span></td>
+          <td>Até 10 imagens por TCC, 5 MB cada</td>
+        </tr>
+        <tr>
+          <td>Exportação PDF (com marca d'água no FREE)</td>
+          <td><span class="badge badge-done">✓ Pronto</span></td>
+          <td>html2canvas + jsPDF</td>
+        </tr>
+        <tr>
+          <td>Modo de revisão comparativa (original vs. sugestão)</td>
+          <td><span class="badge badge-done">✓ Pronto</span></td>
+          <td>Layout 3 colunas, aceitar/rejeitar</td>
+        </tr>
+        <tr>
+          <td>Painel admin (listagem de usuários, troca de plano)</td>
+          <td><span class="badge badge-done">✓ Pronto</span></td>
+          <td>Básico, suficiente para o beta</td>
+        </tr>
+        <tr>
+          <td>Analytics com 17 eventos tipados</td>
+          <td><span class="badge badge-done">✓ Pronto</span></td>
+          <td>Eventos disparados, falta provider externo</td>
+        </tr>
+        <tr>
+          <td>Landing page (hero, preços, FAQ, footer)</td>
+          <td><span class="badge badge-done">✓ Pronto</span></td>
+          <td>Totalmente implementada</td>
+        </tr>
+        <!-- PARTIAL -->
+        <tr>
+          <td>Analytics — envio para provider real</td>
+          <td><span class="badge badge-warn">~ Parcial</span></td>
+          <td>Só console.info por ora. Falta PostHog/Mixpanel.</td>
+        </tr>
+        <tr>
+          <td>Configurações do usuário</td>
+          <td><span class="badge badge-warn">~ Parcial</span></td>
+          <td>Só edição de nome. Falta senha, foto, preferências.</td>
+        </tr>
+        <tr>
+          <td>Proteção de rotas da API (autorização por userId)</td>
+          <td><span class="badge badge-warn">~ Parcial</span></td>
+          <td><strong>Bug B6 — alta prioridade</strong>. Verificar todas as rotas /api/tcc/[id]/*</td>
+        </tr>
+        <tr>
+          <td>Limite diário de mensagens</td>
+          <td><span class="badge badge-warn">~ Parcial</span></td>
+          <td><strong>Bug B5</strong> — armazenado em localStorage, fácil de burlar</td>
+        </tr>
+        <tr>
+          <td>Conformidade LGPD</td>
+          <td><span class="badge badge-warn">~ Parcial</span></td>
+          <td>Sem página de política, sem endpoint de exclusão de dados</td>
+        </tr>
+        <!-- MOCKED -->
+        <tr>
+          <td>Índice de plágio / similaridade</td>
+          <td><span class="badge badge-mock">~ Simulado</span></td>
+          <td>Valor fixo/estimado. Sem integração real. Precisa disclaimer.</td>
+        </tr>
+        <tr>
+          <td>Autoria humana (%)</td>
+          <td><span class="badge badge-mock">~ Simulado</span></td>
+          <td>Valor calculado localmente, não validado</td>
+        </tr>
+        <!-- NOT STARTED -->
+        <tr>
+          <td>Serviço de e-mail (verificação, senha, notificações)</td>
+          <td><span class="badge badge-error">✗ Não iniciado</span></td>
+          <td>Nenhum provider (SendGrid, Resend) integrado</td>
+        </tr>
+        <tr>
+          <td>Recuperação de senha</td>
+          <td><span class="badge badge-error">✗ Não iniciado</span></td>
+          <td>Fluxo não implementado</td>
+        </tr>
+        <tr>
+          <td>Rate limiting nas APIs de IA e chat</td>
+          <td><span class="badge badge-error">✗ Não iniciado</span></td>
+          <td>Risco de abuso antes de escalar</td>
+        </tr>
+        <tr>
+          <td>Política de privacidade / Termos de uso</td>
+          <td><span class="badge badge-error">✗ Não iniciado</span></td>
+          <td>Obrigatório pela LGPD para operar no Brasil</td>
+        </tr>
+        <tr>
+          <td>Histórico de versões do documento</td>
+          <td><span class="badge badge-error">✗ Não iniciado</span></td>
+          <td>Feature planejada, não implementada</td>
+        </tr>
+        <tr>
+          <td>Painel do orientador</td>
+          <td><span class="badge badge-error">✗ Não iniciado</span></td>
+          <td>Oportunidade alta para o mercado BR</td>
+        </tr>
+        <tr>
+          <td>Testes automatizados</td>
+          <td><span class="badge badge-error">✗ Não iniciado</span></td>
+          <td>Nenhum arquivo de teste encontrado</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ───────────────────────── STACK ───────────────────────── -->
+<section id="stack">
+  <div class="container">
+    <div class="section-label">03 — Stack Técnica</div>
+    <h2>Arquitetura atual</h2>
+
+    <div class="card-grid card-grid-2" style="margin-bottom:28px;">
+      <div class="card">
+        <div class="card-label">Frontend</div>
+        <div class="card-title">Next.js 15 + React 19</div>
+        <div class="stack-row" style="margin-top:10px;">
+          <span class="stack-pill">Next.js 15.5</span>
+          <span class="stack-pill">React 19</span>
+          <span class="stack-pill">TypeScript</span>
+          <span class="stack-pill">Tailwind CSS</span>
+          <span class="stack-pill">Tiptap</span>
+          <span class="stack-pill">Framer Motion</span>
+          <span class="stack-pill">Lucide Icons</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label">Backend (embutido no Next.js)</div>
+        <div class="card-title">API Routes — 18 endpoints REST</div>
+        <div class="stack-row" style="margin-top:10px;">
+          <span class="stack-pill">Prisma ORM</span>
+          <span class="stack-pill">PostgreSQL</span>
+          <span class="stack-pill">NextAuth v5</span>
+          <span class="stack-pill">bcryptjs</span>
+          <span class="stack-pill">Stripe</span>
+          <span class="stack-pill">Vercel Blob</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label">Inteligência Artificial</div>
+        <div class="card-title">Google Gemini Flash</div>
+        <div class="stack-row" style="margin-top:10px;">
+          <span class="stack-pill">gemini-flash-latest</span>
+          <span class="stack-pill">3 agentes especializados</span>
+          <span class="stack-pill">Guardrails de prompt</span>
+          <span class="stack-pill">Contexto por plano</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label">Infraestrutura</div>
+        <div class="card-title">Vercel + Prisma Cloud</div>
+        <div class="stack-row" style="margin-top:10px;">
+          <span class="stack-pill">Vercel (deploy)</span>
+          <span class="stack-pill">Vercel Blob (storage)</span>
+          <span class="stack-pill">Prisma.io (DB)</span>
+          <span class="stack-pill">Google OAuth</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Nota importante:</strong> O produto não tem backend separado. Todo o processamento de IA, autenticação, banco de dados e pagamento roda via <em>API Routes</em> do Next.js. Isso é funcional para o beta, mas tem limitações para escalar pipelines de IA mais complexos.
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── RISKS ───────────────────────── -->
+<section id="risks">
+  <div class="container">
+    <div class="section-label">04 — Riscos e Limitações</div>
+    <h2>O que pode travar o crescimento</h2>
+
+    <div class="risk-list">
+      <div class="risk-item high">
+        <div class="risk-dot"></div>
+        <div>
+          <div class="risk-title">🔴 B6 — Autorização incompleta nas rotas da API</div>
+          <div class="risk-body">Rotas como <code>/api/tcc/[id]/messages</code> podem não verificar se o TCC pertence ao usuário autenticado. Um usuário mal-intencionado poderia acessar dados de outro. <strong>Prioridade máxima antes de abrir o cadastro público.</strong></div>
+        </div>
+      </div>
+      <div class="risk-item high">
+        <div class="risk-dot"></div>
+        <div>
+          <div class="risk-title">🔴 Nenhuma política de privacidade ou termos de uso</div>
+          <div class="risk-body">A LGPD (Lei 13.709/2018) exige, no mínimo, política de privacidade publicada, base legal para tratamento de dados e mecanismo de exclusão. Operar sem isso é ilegal no Brasil.</div>
+        </div>
+      </div>
+      <div class="risk-item medium">
+        <div class="risk-dot"></div>
+        <div>
+          <div class="risk-title">🟠 Sem rate limiting nas APIs de IA</div>
+          <div class="risk-body">Qualquer usuário (ou script) pode chamar <code>/api/chat</code> e <code>/api/gerar-tcc</code> sem limitação no servidor. Custo de API pode explodir com poucos usuários abusivos.</div>
+        </div>
+      </div>
+      <div class="risk-item medium">
+        <div class="risk-dot"></div>
+        <div>
+          <div class="risk-title">🟠 B5 — Limite diário em localStorage</div>
+          <div class="risk-body">O contador de mensagens diárias é gravado no navegador. Qualquer usuário técnico pode burlar abrindo o DevTools e limpando o localStorage. Mover para o banco de dados antes de escalar.</div>
+        </div>
+      </div>
+      <div class="risk-item medium">
+        <div class="risk-dot"></div>
+        <div>
+          <div class="risk-title">🟠 Índice de plágio exibido sem ser real</div>
+          <div class="risk-body">O painel exibe um "% de similaridade" que é calculado localmente sem nenhuma verificação real. Se um estudante ou professor confiar nesse número, isso é um risco de credibilidade e possivelmente de responsabilidade legal.</div>
+        </div>
+      </div>
+      <div class="risk-item medium">
+        <div class="risk-dot"></div>
+        <div>
+          <div class="risk-title">🟠 Nenhum serviço de e-mail integrado</div>
+          <div class="risk-body">Sem verificação de e-mail, qualquer pessoa pode criar conta com um e-mail inválido. Sem recuperação de senha, usuários que perdem o acesso ficam bloqueados. Bloqueia retenção de usuários.</div>
+        </div>
+      </div>
+      <div class="risk-item low">
+        <div class="risk-dot"></div>
+        <div>
+          <div class="risk-title">🟢 Next.js apenas — gargalo para IA avançada</div>
+          <div class="risk-body">API Routes do Next.js rodam em serverless functions com timeout de ~10s (Vercel). Pipelines de RAG, geração longa e embeddings precisam de tempo de execução maior. Aceitável agora, problema em breve.</div>
+        </div>
+      </div>
+      <div class="risk-item low">
+        <div class="risk-dot"></div>
+        <div>
+          <div class="risk-title">🟢 Zero testes automatizados</div>
+          <div class="risk-body">Não há nenhum arquivo de teste no repositório. Mudanças de código podem quebrar funcionalidades sem que o time perceba antes dos usuários.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── ARCH ───────────────────────── -->
+<section id="arch">
+  <div class="container">
+    <div class="section-label">05 — Comparação de Arquiteturas</div>
+    <h2>Next.js puro vs. com backend separado</h2>
+
+    <p>Com o crescimento do produto e adição de funcionalidades como RAG, embeddings e processamento assíncrono, a escolha arquitetural se torna crítica. Avaliamos quatro opções.</p>
+
+    <div style="overflow-x:auto;">
+    <table class="arch-table">
+      <thead>
+        <tr>
+          <th>Critério</th>
+          <th>Next.js puro<br/><small>(hoje)</small></th>
+          <th class="rec">Next.js + FastAPI<br/><small>⭐ Recomendado</small></th>
+          <th>Next.js + Django</th>
+          <th>Next.js + Flask</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Simplicidade inicial</strong></td>
+          <td class="good">Alta</td>
+          <td class="rec ok">Média</td>
+          <td class="poor">Baixa</td>
+          <td class="ok">Média</td>
+        </tr>
+        <tr>
+          <td><strong>IA / RAG / Embeddings</strong></td>
+          <td class="poor">Limitado</td>
+          <td class="rec good">Excelente</td>
+          <td class="ok">Bom</td>
+          <td class="ok">Bom</td>
+        </tr>
+        <tr>
+          <td><strong>Async e filas de jobs</strong></td>
+          <td class="poor">Não nativo</td>
+          <td class="rec good">asyncio + Celery</td>
+          <td class="good">Celery maduro</td>
+          <td class="ok">Celery, mas manual</td>
+        </tr>
+        <tr>
+          <td><strong>Ecossistema de IA Python</strong></td>
+          <td class="poor">Não aplicável</td>
+          <td class="rec good">LangChain, LlamaIndex, HuggingFace</td>
+          <td class="good">Mesmo ecosistema</td>
+          <td class="good">Mesmo ecosistema</td>
+        </tr>
+        <tr>
+          <td><strong>Manutenibilidade</strong></td>
+          <td class="ok">Alta (1 repo)</td>
+          <td class="rec ok">Média (2 repos)</td>
+          <td class="ok">Média (2 repos)</td>
+          <td class="poor">Baixa (menos estrutura)</td>
+        </tr>
+        <tr>
+          <td><strong>Tempo de resposta da API</strong></td>
+          <td class="ok">~10s (serverless)</td>
+          <td class="rec good">Ilimitado (processo persistente)</td>
+          <td class="good">Ilimitado</td>
+          <td class="good">Ilimitado</td>
+        </tr>
+        <tr>
+          <td><strong>Autenticação</strong></td>
+          <td class="good">NextAuth integrado</td>
+          <td class="rec ok">JWT compartilhado</td>
+          <td class="ok">Django Auth ou JWT</td>
+          <td class="poor">Manual</td>
+        </tr>
+        <tr>
+          <td><strong>Velocidade de entrega</strong></td>
+          <td class="good">Alta</td>
+          <td class="rec ok">Média</td>
+          <td class="poor">Baixa (muita configuração)</td>
+          <td class="ok">Média</td>
+        </tr>
+        <tr>
+          <td><strong>Custo de infra</strong></td>
+          <td class="good">Baixo (Vercel)</td>
+          <td class="rec ok">Médio (+ servidor Python)</td>
+          <td class="ok">Médio</td>
+          <td class="ok">Médio</td>
+        </tr>
+        <tr>
+          <td><strong>Fit para este produto</strong></td>
+          <td class="ok">Bom agora</td>
+          <td class="rec good">Ótimo para 6m+</td>
+          <td class="ok">Bom, mas pesado</td>
+          <td class="ok">Bom, mas frágil</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="callout" style="margin-top:28px;">
+      <strong>Recomendação:</strong> Manter Next.js puro até o fim do beta e primeiros pagantes. A partir do momento em que RAG com PDFs, geração de capítulos longos ou processamento assíncrono forem necessários, migrar para <strong>Next.js + FastAPI</strong>. O FastAPI tem tipagem nativa, documentação automática (Swagger), asyncio nativo e integra perfeitamente com LangChain, LlamaIndex e toda a stack Python de IA.
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── MARKET ───────────────────────── -->
+<section id="market">
+  <div class="container">
+    <div class="section-label">06 — Mercado Brasileiro</div>
+    <h2>Oportunidades específicas para o Brasil</h2>
+
+    <div class="card-grid card-grid-2">
+      <div class="card">
+        <div class="card-label">Conformidade acadêmica</div>
+        <div class="card-title">Verificação ABNT automática</div>
+        <div class="card-body">Checagem real de formatação (margens, fonte, espaçamento, citações ABNT NBR 6023) ao exportar. Diferencial competitivo forte frente a ferramentas genéricas como ChatGPT.</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Estrutura por tipo de trabalho</div>
+        <div class="card-title">Templates por gênero acadêmico</div>
+        <div class="card-body">Estruturas específicas para TCC, monografia, artigo científico, relatório de estágio, dissertação e tese — cada um com suas seções obrigatórias.</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Orientação e parceria</div>
+        <div class="card-title">Painel do orientador</div>
+        <div class="card-body">Permitir que o professor orientador acesse o trabalho, faça comentários e acompanhe o progresso. Abre uma linha de receita B2B (instituições, coordenações).</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Referências acadêmicas</div>
+        <div class="card-title">Ingestão de PDFs e RAG</div>
+        <div class="card-body">Permitir que o estudante suba artigos e livros. A IA cita diretamente esses documentos. Reduz alucinação e aumenta confiança no produto. <em>(não confirmado — requer FastAPI)</em></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Originalidade e integridade</div>
+        <div class="card-title">Integração com verificadores</div>
+        <div class="card-body">Integração com Turnitin, Copyleaks ou Compilatio — serviços usados pelas universidades brasileiras. Substituiria o índice simulado atual. <em>(não confirmado)</em></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Cursos e normas</div>
+        <div class="card-title">Fluxos por área do conhecimento</div>
+        <div class="card-body">Direito pede estrutura diferente de Engenharia ou Psicologia. Prompts e templates específicos por área são um diferencial relevante para conversão.</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Exportação acadêmica</div>
+        <div class="card-title">Word e LaTeX com formatação ABNT</div>
+        <div class="card-body">Exportar para .docx com estilos ABNT aplicados automaticamente seria um diferencial forte. Hoje só PDF via html2canvas (qualidade limitada).</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Proteção de dados</div>
+        <div class="card-title">Conformidade com LGPD</div>
+        <div class="card-body">Política de privacidade publicada, consentimento explícito, direito de exclusão e exportação dos dados pessoais. <strong>Obrigatório por lei para operar no Brasil.</strong></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── ROADMAP ───────────────────────── -->
+<section id="roadmap">
+  <div class="container">
+    <div class="section-label">07 — Roadmap</div>
+    <h2>O que construir e quando</h2>
+
+    <div class="roadmap">
+      <div class="roadmap-col short">
+        <h3>Curto prazo<br/><small style="font-weight:400;font-size:0.8rem;">Próximas 4 semanas</small></h3>
+        <ul>
+          <li>Corrigir B6 — verificar userId em todas as rotas</li>
+          <li>Remover ou desativar índice de plágio simulado</li>
+          <li>Publicar política de privacidade e termos de uso</li>
+          <li>Conectar analytics a PostHog ou Mixpanel</li>
+          <li>Implementar rate limiting nas APIs de IA</li>
+          <li>Integrar serviço de e-mail (Resend/SendGrid)</li>
+          <li>Fluxo de recuperação de senha</li>
+          <li>Mover limite diário do localStorage para o banco</li>
+        </ul>
+      </div>
+      <div class="roadmap-col medium">
+        <h3>Médio prazo<br/><small style="font-weight:400;font-size:0.8rem;">1 a 3 meses</small></h3>
+        <ul>
+          <li>Histórico de versões do documento</li>
+          <li>Templates de estrutura por tipo de trabalho</li>
+          <li>Exportação Word (.docx) com estilos ABNT</li>
+          <li>Separar backend em FastAPI (piloto de IA)</li>
+          <li>RAG básico com PDFs enviados pelo usuário</li>
+          <li>Painel do orientador (MVP)</li>
+          <li>Verificação ABNT automática na exportação</li>
+          <li>Testes automatizados (mínimo: fluxo crítico)</li>
+        </ul>
+      </div>
+      <div class="roadmap-col long">
+        <h3>Longo prazo<br/><small style="font-weight:400;font-size:0.8rem;">3 a 12 meses</small></h3>
+        <ul>
+          <li>RAG avançado com banco vetorial</li>
+          <li>Integração com verificador de originalidade real</li>
+          <li>Plano institucional (B2B — universidades)</li>
+          <li>Detecção de lacunas de citação</li>
+          <li>Colaboração em tempo real (co-autoria)</li>
+          <li>Timeline de evolução do TCC</li>
+          <li>App mobile (React Native / PWA)</li>
+          <li>API pública para integrações de terceiros</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="margin-top:32px;">
+      <h3 style="margin-bottom:16px;font-size:1rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;">Visão por maturidade do produto</h3>
+      <div class="card-grid card-grid-3">
+        <div class="card">
+          <div class="card-label">MVP real</div>
+          <div class="card-title">Estado atual + segurança + LGPD</div>
+          <div class="card-body">O core loop já existe. O MVP real é corrigir os riscos que impedem o cadastro público: B6, rate limiting e política de privacidade.</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Versão vendável</div>
+          <div class="card-title">E-mail + Word + ABNT + orientador</div>
+          <div class="card-body">Com e-mail funcional, exportação Word de qualidade e painel do orientador, o produto tem proposta de valor clara para pagar e recomendar.</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Versão defensável</div>
+          <div class="card-title">RAG + verificador real + B2B</div>
+          <div class="card-body">RAG com PDFs do usuário e verificação de originalidade real criam barreiras competitivas que ferramentas genéricas não conseguem replicar facilmente.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── PARTNERS ───────────────────────── -->
+<section id="partners">
+  <div class="container">
+    <div class="section-label">08 — Contribuição dos Sócios</div>
+    <h2>Como contribuir sem programar</h2>
+
+    <div class="partner-grid">
+      <div class="partner-card">
+        <h3>Pesquisa com usuários</h3>
+        <ul>
+          <li>Recrutamento de 5 a 10 estudantes em fase de TCC</li>
+          <li>Entrevistas semi-estruturadas (30 min)</li>
+          <li>Registro de dores, expectativas e linguagem usada</li>
+          <li>Documentar no Notion: insights por perfil de aluno</li>
+        </ul>
+      </div>
+      <div class="partner-card">
+        <h3>Benchmark de concorrentes</h3>
+        <ul>
+          <li>Mapear ferramentas similares no Brasil e no exterior</li>
+          <li>Testar funcionalidades e registrar diferenciais</li>
+          <li>Comparar preços, planos e proposta de valor</li>
+          <li>Identificar o que o Teseo faz que nenhum outro faz</li>
+        </ul>
+      </div>
+      <div class="partner-card">
+        <h3>QA — Testes de produto</h3>
+        <ul>
+          <li>Testar todos os fluxos com um estudante real como guia</li>
+          <li>Registrar bugs, confusões e pontos de abandono</li>
+          <li>Validar fluxo de pagamento (modo teste)</li>
+          <li>Documentar problemas em Trello com print + descrição</li>
+        </ul>
+      </div>
+      <div class="partner-card">
+        <h3>Conformidade e documentos legais</h3>
+        <ul>
+          <li>Rascunho da política de privacidade (LGPD)</li>
+          <li>Rascunho dos termos de uso</li>
+          <li>Consulta com advogado especializado (recomendado)</li>
+          <li>Definição de base legal para tratamento dos dados</li>
+        </ul>
+      </div>
+      <div class="partner-card">
+        <h3>Relacionamento acadêmico</h3>
+        <ul>
+          <li>Contato com professores orientadores para feedback</li>
+          <li>Parceria com coordenações de curso para piloto</li>
+          <li>Identificar influenciadores em comunidades de estudantes</li>
+          <li>Proposta de parceria com bibliotecas universitárias</li>
+        </ul>
+      </div>
+      <div class="partner-card">
+        <h3>Conteúdo e comunicação</h3>
+        <ul>
+          <li>Revisão e melhoria dos textos da landing page</li>
+          <li>Criação de conteúdo para redes sociais (TikTok, Instagram)</li>
+          <li>FAQ expandido com dúvidas reais de estudantes</li>
+          <li>Guias de como usar o Teseo para cada tipo de trabalho</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── WORKFLOW ───────────────────────── -->
+<section id="workflow">
+  <div class="container">
+    <div class="section-label">09 — Organização do Time</div>
+    <h2>Fluxo de trabalho sugerido (Trello + Notion)</h2>
+
+    <div class="card-grid card-grid-2">
+      <div class="card">
+        <div class="card-label">Trello — Execução diária</div>
+        <div class="card-title">Quadro "Teseo Dev"</div>
+        <div class="card-body">
+          <strong>Colunas sugeridas:</strong>
+          <ul style="margin-top:10px;">
+            <li><strong>🔴 Bloqueios</strong> — problemas urgentes que travam o time</li>
+            <li><strong>📋 Backlog</strong> — tudo o que pode ser feito</li>
+            <li><strong>🎯 Sprint atual</strong> — o que está sendo feito agora (máx. 5 cards)</li>
+            <li><strong>🔄 Em revisão</strong> — pronto para testar ou revisar</li>
+            <li><strong>✅ Concluído</strong> — feito na semana</li>
+          </ul>
+          <p style="margin-top:12px;font-size:0.82rem;">Cada card deve ter: responsável, etiqueta (dev/design/legal/pesquisa) e checklist.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label">Notion — Documentação e contexto</div>
+        <div class="card-title">Wiki do produto</div>
+        <div class="card-body">
+          <strong>Páginas sugeridas:</strong>
+          <ul style="margin-top:10px;">
+            <li><strong>Status do produto</strong> — espelho deste relatório</li>
+            <li><strong>Roadmap visual</strong> — timeline com datas estimadas</li>
+            <li><strong>Pesquisa de usuários</strong> — entrevistas e insights</li>
+            <li><strong>Benchmarks</strong> — concorrentes e diferenciais</li>
+            <li><strong>Decisões técnicas</strong> — o que foi decidido e por quê</li>
+            <li><strong>Bugs conhecidos</strong> — com severidade e responsável</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:24px;">
+      <strong>Ritual semanal sugerido:</strong> Reunião de 30 minutos toda segunda-feira. Agenda: (1) o que foi feito na semana anterior, (2) o que está travado, (3) o que entra no sprint desta semana. Registrar decisões no Notion. Mover cards no Trello ao longo da semana.
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── PRIORITIES ───────────────────────── -->
+<section id="priorities">
+  <div class="container">
+    <div class="section-label">10 — Próximos Passos</div>
+    <h2>Prioridades das próximas 2 semanas</h2>
+
+    <table class="status-table">
+      <thead>
+        <tr><th>#</th><th>Tarefa</th><th>Tipo</th><th>Por quê agora</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>1</strong></td>
+          <td>Corrigir Bug B6 — verificar userId em todas as rotas da API</td>
+          <td><span class="badge badge-error">Segurança</span></td>
+          <td>Risco de exposição de dados de outros usuários</td>
+        </tr>
+        <tr>
+          <td><strong>2</strong></td>
+          <td>Publicar política de privacidade e termos de uso</td>
+          <td><span class="badge badge-error">Legal/LGPD</span></td>
+          <td>Obrigatório por lei para operar no Brasil</td>
+        </tr>
+        <tr>
+          <td><strong>3</strong></td>
+          <td>Remover ou desativar o índice de plágio simulado</td>
+          <td><span class="badge badge-warn">Credibilidade</span></td>
+          <td>Dado falso pode gerar desconfiança ou responsabilidade</td>
+        </tr>
+        <tr>
+          <td><strong>4</strong></td>
+          <td>Implementar rate limiting nas rotas de IA (ex: Upstash Redis)</td>
+          <td><span class="badge badge-warn">Segurança/Custo</span></td>
+          <td>Protege contra abuso e custo descontrolado de API</td>
+        </tr>
+        <tr>
+          <td><strong>5</strong></td>
+          <td>Integrar serviço de e-mail (ex: Resend) + recuperação de senha</td>
+          <td><span class="badge badge-warn">UX/Retenção</span></td>
+          <td>Usuários sem recuperação de senha abandonam o produto</td>
+        </tr>
+        <tr>
+          <td><strong>6</strong></td>
+          <td>Conectar analytics a PostHog (account gratuito disponível)</td>
+          <td><span class="badge badge-info">Dados</span></td>
+          <td>Sem dados reais, não há como tomar decisões de produto</td>
+        </tr>
+        <tr>
+          <td><strong>7</strong></td>
+          <td>Recrutar 5 beta testers para o primeiro ciclo de feedback</td>
+          <td><span class="badge badge-done">Validação</span></td>
+          <td>O produto está pronto para ser testado com usuários reais</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ───────────────────────── FOOTER ───────────────────────── -->
+<div class="page-footer">
+  <strong>Teseo</strong> — Relatório Executivo do Produto · Abril 2026<br/>
+  Gerado via auditoria do repositório <code>tcc-assist-main</code> · Branch <code>main</code> · Uso interno — não compartilhar externamente
+</div>
+
+</body>
+</html>

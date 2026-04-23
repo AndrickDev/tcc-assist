@@ -170,15 +170,15 @@ export async function searchPapers(opts: SearchOptions): Promise<ScholarPaper[]>
   const languages = opts.languages && opts.languages.length > 0 ? opts.languages : ["pt", "en"]
 
   const params = new URLSearchParams({
-    search: query,
     "per-page": String(perPage),
     select: SELECT,
     mailto: POLITE_POOL_MAILTO,
   })
 
   // OpenAlex combina filtros via vírgula; dentro de um filtro o pipe é OR.
-  // Ex: language:pt|en,from_publication_date:2015-01-01
-  const filters: string[] = [`language:${languages.join("|")}`]
+  // Usamos title_and_abstract.search para evitar que palavras comuns (ex: sistema) 
+  // deem match no texto completo de artigos irrelevantes.
+  const filters: string[] = [`title_and_abstract.search:${query}`, `language:${languages.join("|")}`]
   if (opts.yearFrom) filters.push(`from_publication_date:${opts.yearFrom}-01-01`)
   params.set("filter", filters.join(","))
 

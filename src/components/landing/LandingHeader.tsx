@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { useSession } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react"
 import { BrandLogo } from "@/components/brand/BrandLogo"
 
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
@@ -52,6 +52,15 @@ export function LandingHeader() {
           >
             {primaryLabel}
           </Link>
+
+          {session && (
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="ml-2 px-4 py-2.5 rounded-full border border-[var(--brand-accent)]/80 bg-transparent text-[var(--brand-accent)] text-sm font-semibold hover:bg-[var(--brand-accent)]/10 transition-colors"
+            >
+              Sair
+            </button>
+          )}
         </div>
       </div>
     </header>

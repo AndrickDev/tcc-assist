@@ -43,29 +43,44 @@ export async function POST(
   // Estratégia: tenta a query original e, se vier pouco, re-tenta com palavras-chave.
   let papers: Awaited<ReturnType<typeof searchPapers>> = []
   let effectiveQuery = query
-  const attempts: Array<{ query: string; count: number }> = []
-  try {
-    papers = await searchPapers({
-      query,
-      limit: body.limit ?? 20,
-      yearFrom: body.yearFrom,
-    })
-    attempts.push({ query, count: papers.length })
+  const attempts: Array<{ query: string; count: number; langs?: string[] }> = []
 
-    if (papers.length < 3) {
-      const keywords = extractKeywords(query)
-      if (keywords && keywords !== query) {
-        const fallback = await searchPapers({
-          query: keywords,
-          limit: body.limit ?? 20,
-          yearFrom: body.yearFrom,
-        })
-        attempts.push({ query: keywords, count: fallback.length })
-        if (fallback.length > papers.length) {
-          papers = fallback
-          effectiveQuery = keywords
-        }
+  // Backoff progressivo: OpenAlex usa lógica AND entre palavras do search, então
+  // um título longo com termos específicos (pets, tutores, reencontro) retorna 0.
+  // Estratégia: começa com a query mais rica e reduz até ter ≥ 3 resultados.
+  const tryQueries: Array<{ q: string; langs?: string[] }> = [
+    { q: query }, // original com pt+en
+    { q: extractKeywords(query, 8) }, // 8 keywords em pt+en
+    { q: extractKeywords(query, 5) }, // 5 keywords em pt+en
+    { q: extractKeywords(query, 3) }, // 3 keywords em pt+en
+    { q: extractKeywords(query, 2) }, // 2 keywords em pt+en (fallback forte)
+    { q: extractKeywords(query, 1) }, // 1 keyword (último recurso)
+    { q: extractKeywords(query, 3), langs: ["pt", "en", "es"] }, // 3 keywords amplia idiomas
+  ]
+  // Remove duplicatas e queries vazias
+  const seen = new Set<string>()
+  const uniqueQueries = tryQueries.filter((t) => {
+    const key = `${t.q}|${(t.langs ?? ["pt", "en"]).join(",")}`
+    if (!t.q || t.q.length < 3 || seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+
+  try {
+    for (const attempt of uniqueQueries) {
+      const result = await searchPapers({
+        query: attempt.q,
+        limit: body.limit ?? 20,
+        yearFrom: body.yearFrom,
+        languages: attempt.langs,
+      })
+      attempts.push({ query: attempt.q, count: result.length, langs: attempt.langs })
+      if (result.length > papers.length) {
+        papers = result
+        effectiveQuery = attempt.q
       }
+      // Condição de parada: já temos resultados suficientes, não precisa descer mais.
+      if (papers.length >= 10) break
     }
     console.log("[references/search] tcc=%s attempts=%j final=%d", id, attempts, papers.length)
   } catch (err) {

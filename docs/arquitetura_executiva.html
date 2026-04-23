@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teseo — Arquitetura Futura · Documento Executivo · Abril 2026</title>
+  <style>
+    :root {
+      --brand:        #C07142;
+      --brand-light:  #E8C4A0;
+      --brand-dark:   #7A4420;
+      --bg:           #FAFAF8;
+      --surface:      #FFFFFF;
+      --surface-alt:  #F5F3EF;
+      --text:         #1A1714;
+      --text-muted:   #6B6560;
+      --border:       #E2DDD8;
+      --green:        #2E7D52;
+      --green-bg:     #EBF5EE;
+      --yellow:       #7A6010;
+      --yellow-bg:    #FDF8E1;
+      --red:          #9B2C2C;
+      --red-bg:       #FEF2F2;
+      --blue:         #1E4D8C;
+      --blue-bg:      #EFF4FB;
+      --purple:       #6B3D8A;
+      --purple-bg:    #F4ECF7;
+      --gray:         #4A4440;
+      --gray-bg:      #F0EEEC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+    section { padding: 56px 0; }
+    section + section { border-top: 1px solid var(--border); }
+    h1 { font-size: 2.4rem; font-weight: 800; line-height: 1.2; }
+    h2 { font-size: 1.6rem; font-weight: 700; margin-bottom: 24px; }
+    h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; }
+    p  { color: var(--text-muted); margin-bottom: 14px; }
+    ul { padding-left: 20px; color: var(--text-muted); }
+    ul li { margin-bottom: 6px; }
+    a  { color: var(--brand); text-decoration: none; }
+    code { font-family: 'Consolas', 'Monaco', monospace; background: var(--surface-alt); padding: 1px 5px; border-radius: 3px; font-size: 0.85em; color: var(--brand-dark); }
+
+    /* ── Cover ── */
+    .cover {
+      background: #FFFFFF;
+      border-bottom: 2px solid var(--border);
+      color: var(--text);
+      padding: 72px 0 64px;
+    }
+    .cover h1 { color: var(--text); margin-bottom: 16px; }
+    .cover .sub { font-size: 1.15rem; color: var(--text-muted); max-width: 680px; }
+    .cover .meta { display: flex; gap: 32px; margin-top: 36px; flex-wrap: wrap; }
+    .cover .meta span { font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
+    .cover .meta strong { display: block; font-size: 1.05rem; color: var(--text); margin-top: 2px; }
+
+    /* ── TOC ── */
+    .toc { background: var(--surface-alt); border-radius: 12px; padding: 28px 32px; }
+    .toc ol { padding-left: 18px; }
+    .toc li { margin-bottom: 8px; }
+    .toc a { color: var(--brand-dark); font-weight: 500; }
+
+    /* ── Pill badge ── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .05em; padding: 3px 10px; border-radius: 999px;
+    }
+    .badge-done   { background: var(--green-bg);  color: var(--green); }
+    .badge-warn   { background: var(--yellow-bg); color: var(--yellow); }
+    .badge-error  { background: var(--red-bg);    color: var(--red); }
+    .badge-info   { background: var(--blue-bg);   color: var(--blue); }
+    .badge-mock   { background: var(--gray-bg);   color: var(--gray); }
+    .badge-new    { background: var(--purple-bg); color: var(--purple); }
+
+    /* ── Cards ── */
+    .card-grid { display: grid; gap: 16px; }
+    .card-grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .card-grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .card-grid-4 { grid-template-columns: repeat(4, 1fr); }
+    @media(max-width:900px) { .card-grid-3, .card-grid-4 { grid-template-columns: repeat(2,1fr); } }
+    @media(max-width:600px) { .card-grid-2, .card-grid-3, .card-grid-4 { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 22px;
+    }
+    .card-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-bottom: 6px; }
+    .card-title { font-size: 1.05rem; font-weight: 600; margin-bottom: 10px; color: var(--text); }
+    .card-body  { font-size: 0.88rem; color: var(--text-muted); }
+    .card-icon  { font-size: 1.8rem; margin-bottom: 10px; display: block; }
+
+    /* ── Status table ── */
+    .status-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    .status-table th {
+      background: var(--surface-alt); text-align: left; padding: 10px 14px;
+      font-size: 0.75rem; text-transform: uppercase; letter-spacing: .06em;
+      color: var(--text-muted); border-bottom: 1px solid var(--border);
+    }
+    .status-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .status-table tr:last-child td { border-bottom: none; }
+    .status-table tr:hover td { background: var(--surface-alt); }
+
+    /* ── Architecture diagram ── */
+    .arch-diagram {
+      background: #1A1714;
+      color: #E2DDD8;
+      padding: 24px 28px;
+      border-radius: 12px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      overflow-x: auto;
+      white-space: pre;
+      margin: 20px 0;
+    }
+    .arch-diagram .layer-next { color: #79b8ff; }
+    .arch-diagram .layer-api  { color: #ffab70; }
+    .arch-diagram .layer-job  { color: #b392f0; }
+    .arch-diagram .layer-db   { color: #85e89d; }
+    .arch-diagram .layer-aux  { color: #f0e68c; }
+
+    /* ── Module grid ── */
+    .module-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+      margin: 20px 0;
+    }
+    @media(max-width:700px) { .module-grid { grid-template-columns: 1fr; } }
+    .module-card {
+      background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--brand);
+      padding: 14px 16px; border-radius: 8px;
+    }
+    .module-card .mod-name { font-family: 'Consolas', 'Monaco', monospace; font-weight: 700; color: var(--brand-dark); font-size: 0.9rem; margin-bottom: 4px; }
+    .module-card .mod-desc { font-size: 0.84rem; color: var(--text-muted); }
+
+    /* ── Flow steps ── */
+    .flow-list { counter-reset: flow; padding-left: 0; list-style: none; }
+    .flow-list li {
+      counter-increment: flow;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 14px 16px 14px 56px; margin-bottom: 10px;
+      position: relative; font-size: 0.9rem;
+    }
+    .flow-list li::before {
+      content: counter(flow);
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      width: 30px; height: 30px; line-height: 30px; text-align: center;
+      background: var(--brand); color: white; border-radius: 50%;
+      font-weight: 700; font-size: 0.85rem;
+    }
+
+    /* ── Roadmap (5 phases) ── */
+    .roadmap5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+    @media(max-width:1000px) { .roadmap5 { grid-template-columns: repeat(2,1fr); } }
+    @media(max-width:600px) { .roadmap5 { grid-template-columns: 1fr; } }
+    .phase-col { border-radius: 12px; padding: 18px; }
+    .phase-col h3 { font-size: 0.95rem; margin-bottom: 4px; }
+    .phase-col .phase-time { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 12px; display: block; }
+    .phase-col ul { list-style: none; padding: 0; }
+    .phase-col ul li { font-size: 0.8rem; padding: 5px 0; border-bottom: 1px dashed rgba(0,0,0,.08); color: var(--text); }
+    .phase-col ul li:last-child { border-bottom: none; }
+    .phase-col ul li::before { content: '· '; opacity: .5; font-weight: 700; }
+    .phase-0 { background: #FEF2F2; border: 1px solid #FBC0C0; }
+    .phase-0 h3 { color: var(--red); }
+    .phase-1 { background: #FEF6EE; border: 1px solid #F5C9A0; }
+    .phase-1 h3 { color: var(--brand-dark); }
+    .phase-2 { background: #EFF4FB; border: 1px solid #BFD4F0; }
+    .phase-2 h3 { color: var(--blue); }
+    .phase-3 { background: #F4ECF7; border: 1px solid #D9C2E5; }
+    .phase-3 h3 { color: var(--purple); }
+    .phase-4 { background: #EBF5EE; border: 1px solid #A8D5B8; }
+    .phase-4 h3 { color: var(--green); }
+
+    /* ── Dev tracks ── */
+    .dev-tracks { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media(max-width:800px) { .dev-tracks { grid-template-columns: 1fr; } }
+    .dev-col {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 20px;
+    }
+    .dev-col.dev-a { border-top: 4px solid var(--brand); }
+    .dev-col.dev-b { border-top: 4px solid var(--blue); }
+    .dev-col h3 { font-size: 1.05rem; margin-bottom: 4px; }
+    .dev-col .dev-domain { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 14px; display: block; font-style: italic; }
+    .sprint-list { display: flex; flex-direction: column; gap: 6px; }
+    .sprint-item { display: flex; gap: 12px; font-size: 0.83rem; padding: 6px 0; border-bottom: 1px dashed var(--border); }
+    .sprint-item:last-child { border-bottom: none; }
+    .sprint-num { font-weight: 700; color: var(--text-muted); flex-shrink: 0; min-width: 36px; font-size: 0.75rem; padding-top: 2px; }
+    .sprint-text { color: var(--text); }
+
+    /* ── Risk list ── */
+    .risk-list { display: flex; flex-direction: column; gap: 10px; }
+    .risk-item { display: flex; gap: 14px; align-items: flex-start; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+    .risk-item .risk-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+    .risk-item.high   .risk-dot { background: #E53E3E; }
+    .risk-item.medium .risk-dot { background: #DD6B20; }
+    .risk-item.low    .risk-dot { background: #38A169; }
+    .risk-title { font-weight: 600; margin-bottom: 3px; font-size: 0.9rem; }
+    .risk-body  { font-size: 0.83rem; color: var(--text-muted); }
+
+    /* ── KPI ── */
+    .kpi-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 32px; }
+    .kpi {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 16px 20px; flex: 1; min-width: 160px;
+    }
+    .kpi .kpi-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); }
+    .kpi .kpi-value { font-size: 1.6rem; font-weight: 800; color: var(--brand); line-height: 1.2; margin-top: 4px; }
+    .kpi .kpi-sub   { font-size: 0.78rem; color: var(--text-muted); margin-top: 3px; }
+
+    /* ── Section label ── */
+    .section-label {
+      display: inline-block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .1em; color: var(--brand); background: #FEF6EE; border-radius: 4px;
+      padding: 3px 10px; margin-bottom: 16px;
+    }
+
+    /* ── Callout ── */
+    .callout {
+      border-left: 4px solid var(--brand); background: #FEF6EE; border-radius: 0 8px 8px 0;
+      padding: 14px 18px; margin: 20px 0; font-size: 0.9rem; color: var(--text);
+    }
+    .callout strong { color: var(--brand-dark); }
+    .callout-blue {
+      border-left-color: var(--blue); background: var(--blue-bg);
+    }
+    .callout-blue strong { color: var(--blue); }
+
+    /* ── Footer ── */
+    .page-footer {
+      background: var(--text); color: #aaa; text-align: center; padding: 32px;
+      font-size: 0.82rem;
+    }
+    .page-footer strong { color: white; }
+
+    /* ── Print ── */
+    @media print {
+      .arch-diagram, .phase-col, .dev-col, .risk-item, .module-card, .kpi, .card, .callout {
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ───────────────────────── COVER ───────────────────────── -->
+<div class="cover">
+  <div class="container">
+    <p style="font-size:0.8rem;color:var(--brand);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;font-weight:700;">Documento Executivo de Arquitetura</p>
+    <h1>Teseo — Arquitetura Futura</h1>
+    <p class="sub">Backend FastAPI, RAG com pgvector, ABNT determinístico e originalidade in-house. Plano para 2 devs plenos executarem em paralelo, sem dívida técnica.</p>
+    <div class="meta">
+      <span>Data <strong>Abril 2026</strong></span>
+      <span>Versão <strong>1.0</strong></span>
+      <span>Equipe <strong>2 devs backend (plenos)</strong></span>
+      <span>Horizonte <strong>6 meses até versão defensável</strong></span>
+    </div>
+  </div>
+</div>
+
+<!-- ───────────────────────── TOC ───────────────────────── -->
+<section id="toc">
+  <div class="container">
+    <div class="toc">
+      <h3 style="margin-bottom:16px;color:var(--text);">Sumário</h3>
+      <ol>
+        <li><a href="#exec">Resumo executivo</a></li>
+        <li><a href="#diagram">Visão geral da arquitetura</a></li>
+        <li><a href="#status">Estado atual — o que existe e o que falta</a></li>
+        <li><a href="#modules">Módulos do FastAPI</a></li>
+        <li><a href="#memory">Memória e contexto persistente</a></li>
+        <li><a href="#abnt">Pipeline ABNT</a></li>
+        <li><a href="#originality">Pipeline de originalidade</a></li>
+        <li><a href="#roadmap">Roadmap em 5 fases</a></li>
+        <li><a href="#devs">Divisão para 2 devs</a></li>
+        <li><a href="#risks">Riscos e dívida técnica</a></li>
+        <li><a href="#next">Próximos passos das próximas 2 semanas</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── EXECUTIVE SUMMARY ───────────────────────── -->
+<section id="exec">
+  <div class="container">
+    <div class="section-label">01 — Resumo Executivo</div>
+    <h2>O essencial em uma página</h2>
+
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-label">Problemas críticos</div>
+        <div class="kpi-value">3</div>
+        <div class="kpi-sub">contexto, RAG, ABNT/plágio</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Tabelas novas</div>
+        <div class="kpi-value">9</div>
+        <div class="kpi-sub">no Postgres existente</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Módulos FastAPI</div>
+        <div class="kpi-value">10</div>
+        <div class="kpi-sub">domínios bem separados</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Fases do roadmap</div>
+        <div class="kpi-value">5</div>
+        <div class="kpi-sub">Fase 0 a Fase 4</div>
+      </div>
+    </div>
+
+    <div class="card-grid card-grid-3">
+      <div class="card">
+        <span class="card-icon">⚠️</span>
+        <div class="card-label">Problema #1</div>
+        <div class="card-title">Sem contexto persistente</div>
+        <div class="card-body">A IA só vê as últimas 3 a 8 mensagens. Não há memória de projeto, decisões do usuário ou observações do orientador. Cada conversa nova esquece tudo.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">⚠️</span>
+        <div class="card-label">Problema #2</div>
+        <div class="card-title">PDFs ignorados no chat</div>
+        <div class="card-body">Anexos são gravados mas o chat principal nem lê. Sem chunking, sem embeddings, sem RAG. O Gemini responde sem o conhecimento que o aluno enviou.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">⚠️</span>
+        <div class="card-label">Problema #3</div>
+        <div class="card-title">ABNT e plágio são fake</div>
+        <div class="card-body">A "ação ABNT" só pede ao Gemini para "ajustar coisas que pareçam ABNT". O índice de plágio é hardcoded em <code>4.2%</code>. Risco de credibilidade.</div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:24px;">
+      <strong>Solução:</strong> manter o Next.js como front + auth + Stripe + CRUDs simples. Criar um <strong>backend FastAPI</strong> dedicado ao cérebro do produto: memória persistente, RAG com pgvector, ABNT determinístico, originalidade in-house e jobs assíncronos. Migração incremental, sem big bang. Frontend continua funcional o tempo todo.
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── DIAGRAM ───────────────────────── -->
+<section id="diagram">
+  <div class="container">
+    <div class="section-label">02 — Visão Geral</div>
+    <h2>Como a arquitetura se encaixa</h2>
+
+    <div class="arch-diagram"><span class="layer-next">┌────────────────────────────────────────────────────────────┐
+│  Next.js 15 (Vercel) — Frontend + Auth + Pagamento + CRUDs │
+│  ───────────────────────────────────────────────────────── │
+│  ✓ Páginas (landing, dashboard, workspace, pricing)        │
+│  ✓ NextAuth v5 — emite JWT compartilhado                   │
+│  ✓ Stripe (checkout + webhook)                             │
+│  ✓ CRUDs simples de TCC (criar, listar, deletar)           │
+│  ✓ Upload inicial → proxy para FastAPI                     │
+└──────────────────────────┬─────────────────────────────────┘
+                           │ JWT (HS256, segredo compartilhado)
+                           ▼</span>
+<span class="layer-api">┌────────────────────────────────────────────────────────────┐
+│  FastAPI (Railway/Render) — Cérebro do Produto             │
+│  ───────────────────────────────────────────────────────── │
+│  • core/        config, db, JWT, deps                      │
+│  • projects/    memória persistente, decisões              │
+│  • documents/   ingestão de PDFs, chunking                 │
+│  • embeddings/  geração de vetores (Gemini text-embed-004) │
+│  • rag/         busca semântica, citation grounding        │
+│  • agents/      orientador, redator, revisor               │
+│  • abnt/        validador determinístico + DOCX exporter   │
+│  • originality/ similaridade in-house + hook API paga      │
+│  • versions/    snapshots de capítulos, diffs              │
+│  • jobs/        endpoints que enfileiram para Celery       │
+└──────┬─────────────────────────────────────────────────────┘
+       │</span>
+<span class="layer-job">       ▼
+┌────────────────────────────────────────────────────────────┐
+│  Celery Workers                                            │
+│  • Geração longa (>15s)   • Ingestão e embedding de PDFs   │
+│  • Exportação DOCX/PDF    • Verificação de originalidade   │
+└──────┬─────────────────────────────────────────────────────┘
+       │</span>
+<span class="layer-db">       ▼
+┌────────────────────────────────────────────────────────────┐
+│  PostgreSQL (Prisma.io / Neon / Supabase) — Verdade Única  │
+│  Existentes: User · Tcc · Message · Attachment             │
+│  Novas: ProjectMemory · TccVersion · ChapterDraft          │
+│         DocumentChunk · Citation · OriginalityReport       │
+│         AgentObservation · AbntCheck · JobRun              │
+└────────────────────────────────────────────────────────────┘</span>
+
+<span class="layer-aux">┌──────────────────┐         ┌──────────────────────┐
+│  Redis (Upstash) │         │  Vercel Blob         │
+│  • Celery broker │         │  • PDFs originais    │
+│  • Rate limit    │         │  • DOCX exportados   │
+│  • Cache RAG     │         │  • Imagens do editor │
+└──────────────────┘         └──────────────────────┘</span></div>
+
+    <div class="callout callout-blue">
+      <strong>Princípio guia:</strong> Next.js continua sendo a "casca" (UX + identidade + dinheiro). FastAPI é o "cérebro" (IA, contexto, conhecimento, formatação). A separação só acontece onde existe ganho concreto. CRUDs simples ficam onde já estão.
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── STATUS ───────────────────────── -->
+<section id="status">
+  <div class="container">
+    <div class="section-label">03 — Estado Atual</div>
+    <h2>O que existe e o que falta hoje</h2>
+
+    <table class="status-table">
+      <thead>
+        <tr><th>Área</th><th>Estado</th><th>Confirmado em</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Auth (NextAuth v5 + Google OAuth)</td><td><span class="badge badge-done">✓ Pronto</span></td><td><code>src/lib/auth.ts</code></td></tr>
+        <tr><td>Sistema de planos FREE/PRO/VIP</td><td><span class="badge badge-done">✓ Pronto</span></td><td><code>src/lib/plan.ts</code></td></tr>
+        <tr><td>Editor Tiptap + autosave</td><td><span class="badge badge-done">✓ Pronto</span></td><td><code>src/app/tcc/[id]/page.tsx</code></td></tr>
+        <tr><td>Chat com Gemini</td><td><span class="badge badge-done">✓ Pronto</span></td><td><code>src/lib/agents/aiox-integration.ts</code></td></tr>
+        <tr><td>Stripe (pagamento único)</td><td><span class="badge badge-done">✓ Pronto</span></td><td><code>src/lib/stripe.ts</code></td></tr>
+        <tr><td>Upload de PDFs (Vercel Blob)</td><td><span class="badge badge-done">✓ Pronto</span></td><td><code>src/app/api/tcc/[id]/attachments/</code></td></tr>
+        <tr><td>Limite diário de mensagens</td><td><span class="badge badge-warn">~ Parcial</span></td><td>só em <code>runTccWorkflow:15-31</code></td></tr>
+        <tr><td>Autorização nas rotas <code>/api/tcc/[id]/*</code></td><td><span class="badge badge-warn">~ B6 — risco alto</span></td><td>não checa <code>userId</code> em todas</td></tr>
+        <tr><td>Memória / contexto persistente</td><td><span class="badge badge-error">✗ Inexistente</span></td><td>só últimas 3-8 msgs concatenadas</td></tr>
+        <tr><td>RAG / embeddings / pgvector</td><td><span class="badge badge-error">✗ Inexistente</span></td><td>nenhum import vetorial</td></tr>
+        <tr><td>Uso real de PDFs no chat principal</td><td><span class="badge badge-error">✗ Inexistente</span></td><td>só em <code>/api/gerar-tcc</code>, ignorado em <code>/api/chat</code></td></tr>
+        <tr><td>Validação ABNT determinística</td><td><span class="badge badge-error">✗ Inexistente</span></td><td>só prompt para o Gemini</td></tr>
+        <tr><td>Originalidade real</td><td><span class="badge badge-mock">~ Mock fixo 4.2%</span></td><td><code>stats/route.ts:51</code></td></tr>
+        <tr><td>Versionamento de conteúdo</td><td><span class="badge badge-error">✗ Inexistente</span></td><td><code>Tcc.content</code> é overwrite</td></tr>
+        <tr><td>Filas / workers assíncronos</td><td><span class="badge badge-error">✗ Inexistente</span></td><td>tudo síncrono no HTTP</td></tr>
+        <tr><td>LGPD / política de privacidade</td><td><span class="badge badge-error">✗ Inexistente</span></td><td>bloqueante para abrir cadastro</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ───────────────────────── MODULES ───────────────────────── -->
+<section id="modules">
+  <div class="container">
+    <div class="section-label">04 — Módulos FastAPI</div>
+    <h2>10 domínios, responsabilidades claras</h2>
+
+    <div class="module-grid">
+      <div class="module-card">
+        <div class="mod-name">core/</div>
+        <div class="mod-desc">Config (Pydantic Settings), DB async (SQLAlchemy 2.0), JWT validation com segredo compartilhado, dependencies, middlewares.</div>
+      </div>
+      <div class="module-card">
+        <div class="mod-name">projects/</div>
+        <div class="mod-desc">Memória persistente: research question, metodologia, decisões, observações do orientador, status por capítulo, referências selecionadas.</div>
+      </div>
+      <div class="module-card">
+        <div class="mod-name">documents/</div>
+        <div class="mod-desc">Upload e ingestão de PDFs. Job Celery faz extração via <code>unstructured</code>, chunking semântico (300-500 tokens, overlap 50).</div>
+      </div>
+      <div class="module-card">
+        <div class="mod-name">embeddings/</div>
+        <div class="mod-desc">Geração de vetores via <code>text-embedding-004</code> (Gemini, 768 dim, gratuito). Cache por hash em Redis.</div>
+      </div>
+      <div class="module-card">
+        <div class="mod-name">rag/</div>
+        <div class="mod-desc">Busca semântica com pgvector. Endpoints <code>/rag/search</code> e <code>/rag/ground</code> (citation grounding). Filtra por <code>tcc_id</code>.</div>
+      </div>
+      <div class="module-card">
+        <div class="mod-name">agents/</div>
+        <div class="mod-desc">Orientador (analisa estado, gera observações), Redator (RAG-augmented), Revisor (coesão, gramática). Cada um com prompt e contexto próprios.</div>
+      </div>
+      <div class="module-card">
+        <div class="mod-name">abnt/</div>
+        <div class="mod-desc">Validador determinístico (margens, fonte, citações inline, NBR 6023) + Exporter DOCX com <code>python-docx</code>.</div>
+      </div>
+      <div class="module-card">
+        <div class="mod-name">originality/</div>
+        <div class="mod-desc">Pipeline híbrido. In-house: similaridade vs. capítulos próprios + PDFs do projeto. Hook drop-in para Copyleaks/Turnitin no futuro.</div>
+      </div>
+      <div class="module-card">
+        <div class="mod-name">versions/</div>
+        <div class="mod-desc">Snapshots de capítulos, listagem, restore. Diff visual entre versões com <code>diff_match_patch</code>.</div>
+      </div>
+      <div class="module-card">
+        <div class="mod-name">jobs/</div>
+        <div class="mod-desc">Endpoints que enfileiram tasks Celery. Modelo <code>JobRun</code> para o front consultar status via polling, sem WebSocket.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── MEMORY ───────────────────────── -->
+<section id="memory">
+  <div class="container">
+    <div class="section-label">05 — Memória e Contexto</div>
+    <h2>Como o "Orientador" funciona — a peça-chave</h2>
+
+    <p>A cada chamada de IA (chat ou ação), o backend monta o contexto nesta ordem fixa. <strong>Esta é a diferença entre "um ChatGPT genérico" e "um orientador que conhece seu TCC".</strong></p>
+
+    <ol class="flow-list">
+      <li><strong>Identidade do projeto</strong> — título, área, instituição, norma, objetivo, metodologia. Sempre presente.</li>
+      <li><strong>Memória estruturada</strong> — decisões do usuário (ex: "excluímos o cap. 6"), observações do orientador IA (ex: "Cap. 3 sem citação primária"), status atual de cada capítulo.</li>
+      <li><strong>Capítulo em foco</strong> — conteúdo completo do capítulo que o usuário está editando agora.</li>
+      <li><strong>RAG</strong> — top-5 chunks dos PDFs de referência mais relevantes para a pergunta do usuário.</li>
+      <li><strong>Histórico compactado</strong> — resumo automático das mensagens com mais de 7 dias + últimas 5 mensagens cruas.</li>
+      <li><strong>Pergunta do usuário</strong> — o pedido em si.</li>
+    </ol>
+
+    <div class="callout">
+      <strong>Compactação automática:</strong> mensagens antigas são resumidas em background por job Celery (<code>summarize_old_messages</code>) e o resumo é gravado em <code>Message.summary</code>. Isso evita estourar limite de tokens sem perder contexto histórico.
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── ABNT ───────────────────────── -->
+<section id="abnt">
+  <div class="container">
+    <div class="section-label">06 — ABNT</div>
+    <h2>Pipeline determinístico, não mais "achismo do Gemini"</h2>
+
+    <table class="status-table">
+      <thead>
+        <tr><th>Aspecto ABNT</th><th>Como é verificado</th><th>Auto-fix?</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Margens (3-2-3-2cm)</td><td>Aplicado no DOCX export</td><td><span class="badge badge-done">✓ Sim</span></td></tr>
+        <tr><td>Fonte Times New Roman 12pt</td><td>Aplicado no DOCX export</td><td><span class="badge badge-done">✓ Sim</span></td></tr>
+        <tr><td>Espaçamento 1,5</td><td>Aplicado no DOCX export</td><td><span class="badge badge-done">✓ Sim</span></td></tr>
+        <tr><td>Citação direta longa recuada 4cm</td><td>Detecta <code>&lt;blockquote&gt;</code> ou parágrafo &gt;40 palavras</td><td><span class="badge badge-done">✓ Sim</span></td></tr>
+        <tr><td>Citação inline <code>(AUTOR, ANO)</code></td><td>Regex valida; sinaliza inválidas no editor</td><td><span class="badge badge-warn">~ Sugerido</span></td></tr>
+        <tr><td>Referência bibliográfica NBR 6023</td><td>Parser por tipo (livro, artigo, web)</td><td><span class="badge badge-warn">~ Sugerido</span></td></tr>
+        <tr><td>Sumário automático</td><td>Gera TOC field a partir dos H1/H2</td><td><span class="badge badge-done">✓ Sim</span></td></tr>
+        <tr><td>Numeração de páginas</td><td>Footer com <code>&lt;page&gt;</code> field</td><td><span class="badge badge-done">✓ Sim</span></td></tr>
+        <tr><td>Capa, folha de rosto, ficha catalográfica</td><td>Gerado a partir dos campos do TCC (título, autor, instituição)</td><td><span class="badge badge-done">✓ Sim</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout" style="margin-top:24px;">
+      <strong>Na UI:</strong> a ação ABNT no editor passa a ter <strong>dois botões</strong> — "Validar" (chama validador determinístico, mostra problemas em destaque no editor) e "Exportar DOCX" (chama exporter, gera arquivo já formatado).
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── ORIGINALITY ───────────────────────── -->
+<section id="originality">
+  <div class="container">
+    <div class="section-label">07 — Originalidade</div>
+    <h2>Pipeline híbrido in-house + hook para API paga</h2>
+
+    <ol class="flow-list">
+      <li>Usuário escreve um parágrafo no editor.</li>
+      <li>Ao salvar (ou sob demanda), backend roda <code>OriginalityChecker.check(text)</code>.</li>
+      <li>Pipeline interno: chunking sliding-window 100 tokens → embedding → busca de similaridade no pgvector contra (a) capítulos anteriores do próprio TCC, (b) PDFs de referência do usuário, (c) corpus opcional de frases acadêmicas comuns.</li>
+      <li>Trechos com similaridade &gt; 0.85 são marcados como "alto risco" e gravados em <code>OriginalityReport</code>.</li>
+      <li>UI destaca trechos em amarelo/vermelho com tooltip "X% similar a [fonte]".</li>
+      <li>Botão "sugerir paráfrase" chama IA para reescrever <strong>mantendo a citação</strong>.</li>
+    </ol>
+
+    <div class="card-grid card-grid-2" style="margin-top:24px;">
+      <div class="card" style="border-left: 4px solid var(--green);">
+        <div class="card-label">Camada in-house — MVP</div>
+        <div class="card-title">Custo zero, qualidade boa para o projeto</div>
+        <div class="card-body">Detecta repetição interna e cópia direta de PDFs enviados. Suficiente para o aluno trabalhar com ética. Funciona offline, sem dependência externa.</div>
+      </div>
+      <div class="card" style="border-left: 4px solid var(--purple);">
+        <div class="card-label">Hook para API paga — futuro</div>
+        <div class="card-title">Plano VIP com Copyleaks/Turnitin</div>
+        <div class="card-body">Interface <code>OriginalityProvider</code> permite trocar o backend sem mudar o resto do código. Plano VIP futuro pode chamar API paga; PRO continua in-house.</div>
+      </div>
+    </div>
+
+    <div class="callout callout-blue" style="margin-top:24px;">
+      <strong>Limites éticos explícitos:</strong> nunca remover citação para "esconder" similaridade. Sempre sugerir paráfrase + manter fonte. Disclaimer claro no produto: "esta verificação não substitui Turnitin/Copyleaks".
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── ROADMAP ───────────────────────── -->
+<section id="roadmap">
+  <div class="container">
+    <div class="section-label">08 — Roadmap</div>
+    <h2>Cinco fases, do bloqueio à versão defensável</h2>
+
+    <div class="roadmap5">
+      <div class="phase-col phase-0">
+        <h3>Fase 0</h3>
+        <span class="phase-time">Imediato · 2-3 sem</span>
+        <ul>
+          <li>Corrigir Bug B6 (autorização)</li>
+          <li>Política de privacidade + termos</li>
+          <li>Rate limiting Upstash Redis</li>
+          <li>Recuperação de senha (Resend)</li>
+          <li>Remover índice plágio mockado</li>
+          <li>PostHog conectado</li>
+        </ul>
+      </div>
+      <div class="phase-col phase-1">
+        <h3>Fase 1</h3>
+        <span class="phase-time">4-6 semanas</span>
+        <ul>
+          <li>Repo FastAPI + Docker</li>
+          <li>JWT bridge com NextAuth</li>
+          <li>Migrar /api/chat e ai-action</li>
+          <li>Schemas: ProjectMemory, TccVersion</li>
+          <li>Versionamento básico</li>
+          <li>Celery + Upstash</li>
+        </ul>
+      </div>
+      <div class="phase-col phase-2">
+        <h3>Fase 2</h3>
+        <span class="phase-time">6-8 semanas</span>
+        <ul>
+          <li>pgvector habilitado</li>
+          <li>Schema DocumentChunk</li>
+          <li>Pipeline de ingestão de PDFs</li>
+          <li>Endpoint /rag/search</li>
+          <li>Redator com RAG</li>
+          <li>API de memória estruturada</li>
+        </ul>
+      </div>
+      <div class="phase-col phase-3">
+        <h3>Fase 3</h3>
+        <span class="phase-time">6-8 semanas</span>
+        <ul>
+          <li>Validador ABNT determinístico</li>
+          <li>Exporter DOCX com estilos ABNT</li>
+          <li>Pipeline de originalidade</li>
+          <li>UI de trechos suspeitos</li>
+          <li>Botão sugerir paráfrase</li>
+          <li>Sumarização automática</li>
+        </ul>
+      </div>
+      <div class="phase-col phase-4">
+        <h3>Fase 4</h3>
+        <span class="phase-time">12-24 semanas</span>
+        <ul>
+          <li>Agente Orientador completo</li>
+          <li>Comparação de artigos</li>
+          <li>Hook Copyleaks (VIP)</li>
+          <li>Painel B2B do orientador</li>
+          <li>Diff visual de versões</li>
+          <li>App mobile / PWA</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card-grid card-grid-3" style="margin-top:32px;">
+      <div class="card">
+        <div class="card-label">Por maturidade</div>
+        <div class="card-title">MVP real</div>
+        <div class="card-body"><strong>= Fase 0</strong>. Corrige bloqueios de produção: segurança, LGPD, rate limit. O produto fica pronto para abrir cadastro público com segurança.</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Por maturidade</div>
+        <div class="card-title">Versão vendável</div>
+        <div class="card-body"><strong>= Fase 0 + 1 + 2</strong>. RAG funcional, contexto persistente, capítulos versionados. Proposta de valor clara para pagar.</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Por maturidade</div>
+        <div class="card-title">Versão defensável</div>
+        <div class="card-body"><strong>+ Fase 3</strong>. ABNT real e originalidade in-house criam barreira competitiva que ChatGPT genérico não replica.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── DEVS ───────────────────────── -->
+<section id="devs">
+  <div class="container">
+    <div class="section-label">09 — Equipe</div>
+    <h2>Divisão para 2 devs plenos por domínio</h2>
+
+    <div class="dev-tracks">
+      <div class="dev-col dev-a">
+        <h3>👤 Dev A — Plataforma e Persistência</h3>
+        <span class="dev-domain">Infraestrutura FastAPI · auth cross-service · modelos · jobs · ABNT determinístico</span>
+        <div class="sprint-list">
+          <div class="sprint-item"><div class="sprint-num">S1</div><div class="sprint-text">Repo FastAPI + Docker Compose; conexão Postgres; CI básico</div></div>
+          <div class="sprint-item"><div class="sprint-num">S2</div><div class="sprint-text">JWT bridge com NextAuth (shared secret); endpoints <code>/health</code>, <code>/me</code></div></div>
+          <div class="sprint-item"><div class="sprint-num">S3</div><div class="sprint-text">Migrações Alembic: ProjectMemory, TccVersion, JobRun; Celery + Upstash Redis</div></div>
+          <div class="sprint-item"><div class="sprint-num">S4</div><div class="sprint-text">API de memória (CRUD decisões, observações, status); rate limiting Redis</div></div>
+          <div class="sprint-item"><div class="sprint-num">S5</div><div class="sprint-text">Versionamento de capítulos (snapshot, listagem, restore)</div></div>
+          <div class="sprint-item"><div class="sprint-num">S6</div><div class="sprint-text">Validador ABNT determinístico (margens, fonte, citações inline)</div></div>
+          <div class="sprint-item"><div class="sprint-num">S7</div><div class="sprint-text">Exporter DOCX com python-docx + estilos ABNT (capa, folha de rosto, sumário)</div></div>
+          <div class="sprint-item"><div class="sprint-num">S8</div><div class="sprint-text">Validador de referências NBR 6023; testes; documentação OpenAPI</div></div>
+        </div>
+      </div>
+      <div class="dev-col dev-b">
+        <h3>👤 Dev B — IA, RAG e Originalidade</h3>
+        <span class="dev-domain">Migração de IA · retrieval · agentes · pipeline de originalidade</span>
+        <div class="sprint-list">
+          <div class="sprint-item"><div class="sprint-num">S1</div><div class="sprint-text">Migrar <code>/api/chat</code> para FastAPI; abstração AIProvider (Gemini + GPT)</div></div>
+          <div class="sprint-item"><div class="sprint-num">S2</div><div class="sprint-text">Migrar <code>/api/ai-action</code> e <code>/api/gerar-tcc</code>; integração com memória do Dev A</div></div>
+          <div class="sprint-item"><div class="sprint-num">S3</div><div class="sprint-text">pgvector setup; schema DocumentChunk; pipeline chunking (unstructured + tiktoken)</div></div>
+          <div class="sprint-item"><div class="sprint-num">S4</div><div class="sprint-text">Job Celery <code>ingest_pdf</code>; geração de embeddings via Gemini text-embedding-004</div></div>
+          <div class="sprint-item"><div class="sprint-num">S5</div><div class="sprint-text">Endpoint <code>/rag/search</code>; integração no agente Redator (RAG + grounding)</div></div>
+          <div class="sprint-item"><div class="sprint-num">S6</div><div class="sprint-text">Sumarização automática de mensagens antigas (Celery); compactação de contexto</div></div>
+          <div class="sprint-item"><div class="sprint-num">S7</div><div class="sprint-text">Pipeline de originalidade in-house; relatório OriginalityReport</div></div>
+          <div class="sprint-item"><div class="sprint-num">S8</div><div class="sprint-text">Agente Orientador (gera observações estruturadas); UI de paráfrase</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:24px;">
+      <strong>Dependências críticas:</strong> Dev A entrega JWT bridge (S2) ANTES do Dev B começar S1. Dev A entrega schema DocumentChunk com pgvector ANTES da S3 do Dev B. Início escalonado em 1 semana. Sincronização semanal: revisão de contratos OpenAPI, mock servers para destravar front em paralelo.
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── RISKS ───────────────────────── -->
+<section id="risks">
+  <div class="container">
+    <div class="section-label">10 — Riscos</div>
+    <h2>Onde a dívida técnica pode nascer</h2>
+
+    <div class="risk-list">
+      <div class="risk-item high">
+        <div class="risk-dot"></div>
+        <div>
+          <div class="risk-title">🔴 Dois ORMs (Prisma + SQLAlchemy) com fontes de verdade conflitantes</div>
+          <div class="risk-body">Mitigação: <strong>Prisma continua dono do schema</strong>. SQLAlchemy lê via reflection; Alembic só gerencia tabelas exclusivas do FastAPI. Decisão a travar antes da Sprint 3.</div>
+        </div>
+      </div>
+      <div class="risk-item high">
+        <div class="risk-dot"></div>
+        <div>
+          <div class="risk-title">🔴 Compartilhamento de segredo JWT entre serviços</div>
+          <div class="risk-body">Mitigação: testes de contrato que validam tokens em ambos os lados desde a Sprint 1. Rotação de segredo documentada.</div>
+        </div>
+      </div>
+      <div class="risk-item medium">
+        <div class="risk-dot"></div>
+        <div>
+          <div class="risk-title">🟠 Custo de embeddings se base de PDFs explodir</div>
+          <div class="risk-body">Mitigação: cache por hash de conteúdo, deduplicação, coluna <code>embedding_model_version</code> para reembedding controlado.</div>
+        </div>
+      </div>
+      <div class="risk-item medium">
+        <div class="risk-dot"></div>
+        <div>
+          <div class="risk-title">🟠 Memória do projeto crescer sem limite</div>
+          <div class="risk-body">Mitigação: limite de 50 decisões/observações; rotação automática (mais antigas viram resumo). Política definida antes da Sprint 4 do Dev A.</div>
+        </div>
+      </div>
+      <div class="risk-item medium">
+        <div class="risk-dot"></div>
+        <div>
+          <div class="risk-title">🟠 Duplicação de lógica de plano (limits) em Next + FastAPI</div>
+          <div class="risk-body">Mitigação: centralizar em endpoint <code>/me/plan</code> que ambos consultam. Tabela <code>plan_config</code> como fonte única.</div>
+        </div>
+      </div>
+      <div class="risk-item low">
+        <div class="risk-dot"></div>
+        <div>
+          <div class="risk-title">🟢 Manter <code>/api/chat</code> legado no Next "por compatibilidade"</div>
+          <div class="risk-body">Mitigação: deprecar com prazo claro (1 release); remover do código depois. Sem rota legada por mais de 2 sprints.</div>
+        </div>
+      </div>
+      <div class="risk-item low">
+        <div class="risk-dot"></div>
+        <div>
+          <div class="risk-title">🟢 Celery sem dead-letter queue</div>
+          <div class="risk-body">Mitigação: configurar DLQ desde o início; alertas Sentry para falhas. Critério de aceitação da Sprint 3 do Dev A.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── NEXT 2 WEEKS ───────────────────────── -->
+<section id="next">
+  <div class="container">
+    <div class="section-label">11 — Próximos Passos</div>
+    <h2>O que fazer nas próximas 2 semanas</h2>
+
+    <table class="status-table">
+      <thead>
+        <tr><th>#</th><th>Tarefa</th><th>Responsável</th><th>Tipo</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>1</strong></td><td>Validar este documento com os 2 candidatos a dev backend</td><td>Sócios</td><td><span class="badge badge-info">Alinhamento</span></td></tr>
+        <tr><td><strong>2</strong></td><td>Decidir hosting do FastAPI: Railway (recomendado) vs Render vs Fly.io</td><td>Sócios + Dev A</td><td><span class="badge badge-info">Decisão</span></td></tr>
+        <tr><td><strong>3</strong></td><td>Comprar domínio <code>api.teseo.app</code> (subdomínio dedicado)</td><td>Sócios</td><td><span class="badge badge-info">Operacional</span></td></tr>
+        <tr><td><strong>4</strong></td><td>Iniciar Fase 0 no código atual (B6, LGPD, rate limit)</td><td>Dev atual</td><td><span class="badge badge-error">Bloqueio</span></td></tr>
+        <tr><td><strong>5</strong></td><td>Setup conta Upstash Redis (gratuita até 10k req/dia)</td><td>Dev A</td><td><span class="badge badge-warn">Infra</span></td></tr>
+        <tr><td><strong>6</strong></td><td>Setup conta Resend para email transacional</td><td>Dev atual</td><td><span class="badge badge-warn">Infra</span></td></tr>
+        <tr><td><strong>7</strong></td><td>Decidir quem é dono do schema (Prisma recomendado)</td><td>Devs A + B</td><td><span class="badge badge-info">Decisão</span></td></tr>
+        <tr><td><strong>8</strong></td><td>Recrutar 5 beta testers para validar core loop antes da Fase 1</td><td>Sócios</td><td><span class="badge badge-done">Validação</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout" style="margin-top:24px;">
+      <strong>Critério de "pronto para começar a Fase 1":</strong> Fase 0 concluída + dois devs contratados + hosting do FastAPI escolhido + decisões críticas (dono do schema, segredo JWT) registradas no Notion.
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── FOOTER ───────────────────────── -->
+<div class="page-footer">
+  <strong>Teseo</strong> — Documento Executivo de Arquitetura · Abril 2026<br/>
+  Decisões confirmadas: pgvector · plágio híbrido · 2 devs plenos · Uso interno
+</div>
+
+</body>
+</html>
