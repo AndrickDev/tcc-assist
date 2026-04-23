@@ -15,4 +15,5 @@ Este changelog complementa o `git log` — aqui cada entrada explica **por que**
 
 | Data | Categoria | Título | Commit |
 |---|---|---|---|
+| 2026-04-22 | feat | [Backend de busca acadêmica via Semantic Scholar](2026-04-22-1910-backend-referencias-semantic-scholar.md) | `b42057a` |
 | 2026-04-22 | feat | [Redirecionar usuário logado da landing para o dashboard](2026-04-22-1830-redirect-logged-user-dashboard.md) | `1ed6f2a` |
