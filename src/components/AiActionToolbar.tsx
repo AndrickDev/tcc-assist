@@ -10,9 +10,12 @@ interface AiActionToolbarProps {
   onUpgrade: () => void
   context?: string
   tccId: string
+  // Slot opcional renderizado logo após o label "Ações" e antes dos botões,
+  // para agrupar ações contextuais (ex: botão Referências) no mesmo bloco visual.
+  leadingSlot?: React.ReactNode
 }
 
-export function AiActionToolbar({ userPlan, content, onApplyAction, onUpgrade, context, tccId }: AiActionToolbarProps) {
+export function AiActionToolbar({ userPlan, content, onApplyAction, onUpgrade, context, tccId, leadingSlot }: AiActionToolbarProps) {
   const [loadingAction, setLoadingAction] = React.useState<string | null>(null)
   const [nextStep, setNextStep] = React.useState<string | null>(null)
   const [actionError, setActionError] = React.useState<string | null>(null)
@@ -83,6 +86,8 @@ export function AiActionToolbar({ userPlan, content, onApplyAction, onUpgrade, c
           <Sparkles size={13} />
           Ações
         </div>
+
+        {leadingSlot}
 
         {/* Revisão Crítica — PRO + VIP */}
         <div className="relative group">

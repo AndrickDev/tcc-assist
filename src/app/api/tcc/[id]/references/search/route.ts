@@ -43,12 +43,14 @@ export async function POST(
   // Estratégia: tenta a query original e, se vier pouco, re-tenta com palavras-chave.
   let papers: Awaited<ReturnType<typeof searchPapers>> = []
   let effectiveQuery = query
+  const attempts: Array<{ query: string; count: number }> = []
   try {
     papers = await searchPapers({
       query,
       limit: body.limit ?? 20,
       yearFrom: body.yearFrom,
     })
+    attempts.push({ query, count: papers.length })
 
     if (papers.length < 3) {
       const keywords = extractKeywords(query)
@@ -58,12 +60,14 @@ export async function POST(
           limit: body.limit ?? 20,
           yearFrom: body.yearFrom,
         })
+        attempts.push({ query: keywords, count: fallback.length })
         if (fallback.length > papers.length) {
           papers = fallback
           effectiveQuery = keywords
         }
       }
     }
+    console.log("[references/search] tcc=%s attempts=%j final=%d", id, attempts, papers.length)
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
     console.error("[references/search] provider error:", message)
@@ -74,6 +78,21 @@ export async function POST(
       },
       { status: 502 }
     )
+  }
+
+  // Se ambas as tentativas deram zero, devolve um erro amigável com contexto de debug.
+  if (papers.length === 0) {
+    return NextResponse.json({
+      query,
+      effectiveQuery,
+      found: 0,
+      attempts,
+      references: await prisma.reference.findMany({
+        where: { tccId: id },
+        orderBy: [{ selected: "desc" }, { createdAt: "desc" }],
+      }),
+      info: "Nenhum artigo retornado pelo OpenAlex com essas palavras-chave. Tente simplificar o título do TCC.",
+    })
   }
 
   // Persiste em batch. Upsert por (tccId, externalId) para não duplicar se já existir.

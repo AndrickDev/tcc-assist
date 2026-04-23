@@ -98,8 +98,13 @@ export function ReferencesDrawer({ tccId, tccTitle, open, onClose, onSelectedCou
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? "Falha na busca."); return }
       setRefs(data.references ?? [])
-    } catch {
-      setError("Erro ao conectar com o servidor.")
+      // Se o backend devolveu um aviso (ex: 0 resultados mesmo após retry), mostra.
+      if (typeof data.info === "string" && data.info) {
+        setError(data.info)
+      }
+    } catch (err) {
+      console.error("[ReferencesDrawer] search failed:", err)
+      setError("Erro ao conectar com o servidor. Veja o console (F12) para detalhes.")
     } finally { setSearching(false) }
   }
 

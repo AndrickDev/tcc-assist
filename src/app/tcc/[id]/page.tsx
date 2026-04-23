@@ -776,26 +776,29 @@ export default function TccWorkspacePage() {
                 </div>
               </div>
             </div>
-            {/* Ações contextuais encostadas no título (esquerda) */}
-            <div className="flex items-center gap-2 ml-3 pl-3 border-l border-[var(--brand-border)]">
-              <button
-                onClick={() => setReferencesOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-[var(--brand-muted)]/70 hover:text-[var(--brand-text)] border border-[var(--brand-border)] hover:bg-[var(--brand-hover)] rounded-lg transition-all"
-                title="Referências bibliográficas"
-              >
-                <BookOpen size={12} />
-                <span>Referências</span>
-                {selectedRefsCount > 0 && (
-                  <span className="tabular-nums text-[var(--brand-accent)]">{selectedRefsCount}</span>
-                )}
-              </button>
-              <div className="bg-transparent border-none">
-                <AiActionToolbar
-                  userPlan={userPlan} content={tccContent}
-                  onApplyAction={handleApplyAiAction} onUpgrade={() => setUpgradeOpen(true)}
-                  tccId={String(id)} context={tccMeta ? Object.values(tccMeta).join(' ') : ""}
-                />
-              </div>
+            {/* Ações contextuais encostadas no título (esquerda).
+                Ordem no header: [Ações] [Referências] [Revisão Crítica] [Norma ABNT] [Citações] [Próx. Passo]
+                O botão Referências entra via slot "leadingSlot" do AiActionToolbar, imediatamente
+                após o label "Ações" e antes dos botões de IA. */}
+            <div className="ml-3 pl-3 border-l border-[var(--brand-border)]">
+              <AiActionToolbar
+                userPlan={userPlan} content={tccContent}
+                onApplyAction={handleApplyAiAction} onUpgrade={() => setUpgradeOpen(true)}
+                tccId={String(id)} context={tccMeta ? Object.values(tccMeta).join(' ') : ""}
+                leadingSlot={
+                  <button
+                    onClick={() => setReferencesOpen(true)}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] hover:bg-[var(--brand-hover)] text-[11px] font-bold text-[var(--brand-text)]/70 hover:text-[var(--brand-text)] whitespace-nowrap shrink-0 transition-all"
+                    title="Referências bibliográficas"
+                  >
+                    <BookOpen size={13} className="text-[var(--brand-muted)]" />
+                    <span>Referências</span>
+                    {selectedRefsCount > 0 && (
+                      <span className="tabular-nums text-[var(--brand-accent)]">{selectedRefsCount}</span>
+                    )}
+                  </button>
+                }
+              />
             </div>
           </div>
           <div className="flex items-center gap-3">
