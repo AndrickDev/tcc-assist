@@ -28,11 +28,6 @@ _(nada por ora)_
 
 ## ⏭️ Próximos (ordem de prioridade)
 
-### BL-002 — Escrever ADR-0003: Gemini API ao invés de LLM local
-- **Origem:** AGENTS.md §4.
-- **Tamanho:** XS
-- **Critério de pronto:** `docs/adr/0003-gemini-not-local.md` com tabela comparativa de custo (GPU vs API) e gatilhos pra reavaliar (>10k usuários pagantes ou fine-tune específico).
-
 ### BL-003 — Escrever ADR-0004: Stripe subscription
 - **Origem:** AGENTS.md §4 + B5.
 - **Tamanho:** XS
@@ -167,7 +162,7 @@ _(nada por ora)_
 ## 🗑️ Descartados (não fazer)
 
 ### BL-X01 — LLM local rodando geração de TCC
-- **Decisão:** descartado em ADR-0003 (a escrever, BL-002). Reavaliar se passar de 10k usuários pagantes OU se houver requisito específico de privacidade.
+- **Decisão:** descartado em ADR-0003. Reavaliar se passar de 10k usuários pagantes OU se houver requisito específico de privacidade.
 
 ### BL-X02 — Migrar pra vector DB dedicado (Pinecone/Qdrant/Weaviate)
 - **Decisão:** descartado em ADR-0002. pgvector cobre até alguns milhões de chunks. Reavaliar quando bater nesse limite.
@@ -183,3 +178,8 @@ _(nada por ora)_
 - **Origem:** AGENTS.md §4 referencia ADR-0002 mas não existia.
 - **Tamanho:** XS
 - **Concluído em:** `docs/adr/0002-pgvector.md`.
+
+### BL-002 — Escrever ADR-0003: Gemini API ao invés de LLM local
+- **Origem:** AGENTS.md §4.
+- **Tamanho:** XS
+- **Concluído em:** `docs/adr/0003-gemini-not-local.md`.
