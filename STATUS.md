@@ -1,5 +1,35 @@
 # Teseo — Status do Projeto
-> Atualizado em: 2026-03-22 · Branch: `main` · Commit: `902146f`
+> Atualizado em: 2026-04-28 · Branch: `main`
+
+---
+
+## 📍 Fase atual — Migração arquitetural (IA → FastAPI + RAG)
+
+O produto entrou em fase de reescrita da camada de IA. UI/auth/Stripe permanecem em Next.js;
+toda lógica de IA (chat, geração, ações, RAG) migra para um serviço FastAPI dedicado.
+Decisão fixada em [ADR-0001](./docs/adr/0001-fastapi-rag-split.md).
+
+**Princípios desta fase:**
+- Cut-over endpoint a endpoint, com feature flag `USE_FASTAPI_AI` no Next.
+- Nada novo entra no Next em `src/lib/agents/` ou `src/lib/gemini.ts` — esses arquivos vão sumir.
+- Toda nova feature de IA é desenhada primeiro como contrato HTTP (rota FastAPI).
+- Quota e rate limit migram para Redis no FastAPI (encerra B3 e B4).
+
+### Roadmap macro
+
+| Fase | Escopo | Estado |
+|---|---|---|
+| 0 | Documentação base (AGENTS.md, ADR-0001, BACKLOG.md, STATUS.md) | ✅ feito |
+| 1 | Bootstrap repositório `tcc-assist-ai` (FastAPI + CI + healthcheck) | ⏳ próximo |
+| 2 | Quota server-side em Redis + endpoint `/v1/quota/consume` | 🔲 |
+| 3 | Cut-over `/api/chat` → `POST /v1/chat` (paridade) | 🔲 |
+| 4 | Pipeline RAG: ingestão (PDFs + OpenAlex) + pgvector | 🔲 |
+| 5 | Cut-over `/api/gerar-tcc` → `POST /v1/generate` (com retrieval) | 🔲 |
+| 6 | Cut-over `/api/tcc/[id]/ai-action` → `POST /v1/actions/{action}` | 🔲 |
+| 7 | Stripe `subscription` + idempotência do webhook | 🔲 |
+| 8 | Observabilidade (langfuse/phoenix) + métricas de qualidade do RAG | 🔲 |
+
+Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md §7`.
 
 ---
 
