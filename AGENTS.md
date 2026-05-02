@@ -224,11 +224,10 @@ Para regras Python específicas (mypy strict, structlog, pydantic v2 frozen), co
 
 ## 10. Decisões pendentes
 
-- [ ] BL-006 — Provedor Redis (Upstash vs Vercel KV).
-- [ ] BL-007 — Host FastAPI (Fly.io vs Render vs Railway).
-- [ ] BL-008 — Gerar client TS a partir do OpenAPI do FastAPI (sim/não).
+Sem decisões abertas no momento. Decisões fechadas estão em `docs/adr/000X-*.md`
+(arquiteturais) e `docs/BACKLOG.md` em "Concluídos" (operacionais).
 
-Se a tarefa depender de uma dessas, **pare e pergunta**.
+Quando uma nova decisão pendente surgir, registrá-la aqui ate que seja resolvida.
 
 ---
 
@@ -237,6 +236,7 @@ Se a tarefa depender de uma dessas, **pare e pergunta**.
 | Quando precisa de... | Lê |
 |---|---|
 | Decisão arquitetural | `docs/adr/000X-*.md` |
+| Decisão operacional (provedor, host, ferramenta) | `docs/BACKLOG.md` em "Concluídos" |
 | Backlog de tarefas | `docs/BACKLOG.md` |
 | Status / fase atual | `STATUS.md` |
 | Modelo de dados produto | `apps/web/prisma/schema.prisma` |

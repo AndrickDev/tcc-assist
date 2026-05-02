@@ -28,21 +28,6 @@ _(nada por ora)_
 
 ## ⏭️ Próximos (ordem de prioridade)
 
-### BL-006 — Decidir provedor Redis (Upstash vs Vercel KV)
-- **Origem:** AGENTS.md §9.
-- **Tamanho:** XS
-- **Critério de pronto:** decisão registrada em ADR-0005 (BL-004) e env vars no `.env.example`.
-
-### BL-007 — Decidir host FastAPI (Fly.io vs Render vs Railway)
-- **Origem:** AGENTS.md §9.
-- **Tamanho:** XS
-- **Critério de pronto:** decisão registrada em ADR-0001 §"Notas de implementação" + `docs/runbooks/fastapi-deploy.md` com comandos.
-
-### BL-008 — Decidir geração de client TS via OpenAPI do FastAPI
-- **Origem:** AGENTS.md §9.
-- **Tamanho:** XS
-- **Critério de pronto:** decisão (sim/não) registrada num ADR ou em `docs/architecture/api-contract.md`.
-
 ### BL-009 — Bootstrap do repositório FastAPI
 - **Origem:** ADR-0001 §"Notas de implementação".
 - **Tamanho:** M
@@ -56,6 +41,11 @@ _(nada por ora)_
 ---
 
 ## 📅 Depois (não esquecer, mas não prioritário)
+
+### BL-008 — Gerar client TS a partir do OpenAPI do FastAPI
+- **Origem:** AGENTS.md §10.
+- **Tamanho:** S
+- **Adiado:** com 4-5 endpoints, manutencao manual de tipos no Next e simples. Reavaliar quando: o FastAPI tiver 15+ rotas OU manter tipos manuais virar gargalo (medido em tempo perdido / bugs de contrato).
 
 ### BL-101 — Refatorar `src/app/tcc/[id]/page.tsx` (1144 linhas → hooks)
 - **Origem:** revisão arquitetural 2026-04-28.
@@ -188,3 +178,13 @@ _(nada por ora)_
 - **Origem:** AGENTS.md §4.
 - **Tamanho:** XS
 - **Concluído em:** `docs/adr/0006-internal-jwt.md`.
+
+### BL-006 — Decidir provedor Redis (Upstash vs Vercel KV)
+- **Origem:** AGENTS.md §10.
+- **Tamanho:** XS
+- **Concluido em:** este commit. Decisao: Upstash. Motivos: free tier 10k req/dia, desacoplado da Vercel, REST + TCP, latencia BR aceitavel.
+
+### BL-007 — Decidir host FastAPI (Fly.io vs Render vs Railway)
+- **Origem:** AGENTS.md §10.
+- **Tamanho:** XS
+- **Concluido em:** este commit. Decisao: Fly.io. Motivos: VM sempre quente (mantem bge-m3 em memoria), regiao GRU, deploy from Dockerfile, US$5/mes cobre VM 256MB inicial.
