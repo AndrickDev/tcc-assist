@@ -28,11 +28,6 @@ _(nada por ora)_
 
 ## ⏭️ Próximos (ordem de prioridade)
 
-### BL-004 — Escrever ADR-0005: Quota e rate limit em Redis
-- **Origem:** AGENTS.md §4 + B3 + B4.
-- **Tamanho:** XS
-- **Critério de pronto:** `docs/adr/0005-redis-quota.md` definindo provedor (Upstash vs Vercel KV — decidir), chaves (`quota:{userId}:{YYYY-MM-DD}`), TTL, contrato `consume(userId, scope, weight)`.
-
 ### BL-005 — Escrever ADR-0006: JWT interno Next ↔ FastAPI
 - **Origem:** AGENTS.md §4.
 - **Tamanho:** XS
@@ -188,3 +183,8 @@ _(nada por ora)_
 - **Origem:** AGENTS.md §4 + B5.
 - **Tamanho:** XS
 - **Concluído em:** `docs/adr/0004-stripe-subscription.md`.
+
+### BL-004 — Escrever ADR-0005: Quota e rate limit em Redis
+- **Origem:** AGENTS.md §4 + B3 + B4.
+- **Tamanho:** XS
+- **Concluído em:** `docs/adr/0005-redis-quota.md`.

@@ -70,7 +70,7 @@ Raiz **não** tem `package.json` nem `pyproject.toml`. Não use `npm` nem `uv` d
 - **ADR-0002** — Vector store é `pgvector` no Postgres existente.
 - **ADR-0003** — LLM gerador é Gemini Flash via API. Local só p/ embeddings (`bge-m3`).
 - **ADR-0004** — Stripe migra pra `mode:'subscription'`.
-- **ADR-0005** (BL-004 pendente) — Quota e rate limit em Redis.
+- **ADR-0005** — Quota e rate limit em Redis.
 - **ADR-0006** (BL-005 pendente) — Comunicação Next ↔ FastAPI por JWT interno.
 - **ADR-0007** — Monorepo com runtime split.
 
@@ -177,8 +177,8 @@ docs/
 |---|---|---|
 | B1 | CORS `*` + `Allow-Credentials: true` | `apps/web/next.config.ts:9-21` |
 | B2 | `GOOGLE_API_KEY` exposto em `env: {}` | `apps/web/next.config.ts:6-8` |
-| B3 | Limite diário em `localStorage` (bypass) | `apps/web/src/app/tcc/[id]/page.tsx:68` |
-| B4 | `/api/chat`, `/api/gerar-tcc`, `/api/tcc/[id]/ai-action` sem rate limit | `apps/web/src/app/api/*` |
+| B3 | Limite diário em `localStorage` (bypass) (endereçado por ADR-0005; remover após cut-over) | `apps/web/src/app/tcc/[id]/page.tsx:68` |
+| B4 | `/api/chat`, `/api/gerar-tcc`, `/api/tcc/[id]/ai-action` sem rate limit (endereçado por ADR-0005; remover após cut-over) | `apps/web/src/app/api/*` |
 | B5 | Webhook Stripe sem idempotência (endereçado por ADR-0004; remover após cut-over) | `apps/web/src/app/api/stripe/webhook/route.ts` |
 | B6 | `stats/route.ts` calcula progresso/plágio com regex em texto livre (fake) | `apps/web/src/app/api/tcc/[id]/stats/route.ts` |
 | B7 | Type errors: `EventName` faltando, `messageId` em `never` | `apps/web/src/app/tcc/[id]/page.tsx:552,559,759,763,765` |
