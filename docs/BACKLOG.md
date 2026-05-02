@@ -28,11 +28,6 @@ _(nada por ora)_
 
 ## ⏭️ Próximos (ordem de prioridade)
 
-### BL-003 — Escrever ADR-0004: Stripe subscription
-- **Origem:** AGENTS.md §4 + B5.
-- **Tamanho:** XS
-- **Critério de pronto:** `docs/adr/0004-stripe-subscription.md` definindo: produtos/preços recorrentes, eventos a tratar (`customer.subscription.{updated,deleted,created}`, `invoice.paid`, `invoice.payment_failed`), tabela `processed_stripe_events` para idempotência.
-
 ### BL-004 — Escrever ADR-0005: Quota e rate limit em Redis
 - **Origem:** AGENTS.md §4 + B3 + B4.
 - **Tamanho:** XS
@@ -168,7 +163,7 @@ _(nada por ora)_
 - **Decisão:** descartado em ADR-0002. pgvector cobre até alguns milhões de chunks. Reavaliar quando bater nesse limite.
 
 ### BL-X03 — Manter Stripe `mode: 'payment'` com extensão manual de plano
-- **Decisão:** descartado em ADR-0004 (a escrever, BL-003). Toda mudança de monetização daqui pra frente assume subscription.
+- **Decisão:** descartado em ADR-0004. Toda mudança de monetização daqui pra frente assume subscription.
 
 ---
 
@@ -188,3 +183,8 @@ _(nada por ora)_
 - **Origem:** ADR-0007.
 - **Tamanho:** M
 - **Concluído em:** este commit. ADR-0007 formaliza a decisao.
+
+### BL-003 — Escrever ADR-0004: Stripe subscription
+- **Origem:** AGENTS.md §4 + B5.
+- **Tamanho:** XS
+- **Concluído em:** `docs/adr/0004-stripe-subscription.md`.
