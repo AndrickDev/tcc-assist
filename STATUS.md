@@ -20,7 +20,8 @@ Decisão fixada em [ADR-0001](./docs/adr/0001-fastapi-rag-split.md).
 | Fase | Escopo | Estado |
 |---|---|---|
 | 0 | Documentação base (AGENTS.md, ADR-0001, BACKLOG.md, STATUS.md) | ✅ feito |
-| 1 | Bootstrap repositório `tcc-assist-ai` (FastAPI + CI + healthcheck) | ⏳ próximo |
+| 0.5 | Migração para monorepo (apps/web + services/ai) — ADR-0007 | concluído |
+| 1 | Bootstrap repositório `tcc-assist-ai` (FastAPI + CI + healthcheck) | concluído |
 | 2 | Quota server-side em Redis + endpoint `/v1/quota/consume` | 🔲 |
 | 3 | Cut-over `/api/chat` → `POST /v1/chat` (paridade) | 🔲 |
 | 4 | Pipeline RAG: ingestão (PDFs + OpenAlex) + pgvector | 🔲 |

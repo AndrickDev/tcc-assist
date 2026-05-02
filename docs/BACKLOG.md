@@ -183,3 +183,8 @@ _(nada por ora)_
 - **Origem:** AGENTS.md §4.
 - **Tamanho:** XS
 - **Concluído em:** `docs/adr/0003-gemini-not-local.md`.
+
+### BL-011 — Migrar para monorepo (apps/web + services/ai)
+- **Origem:** ADR-0007.
+- **Tamanho:** M
+- **Concluído em:** este commit. ADR-0007 formaliza a decisao.
