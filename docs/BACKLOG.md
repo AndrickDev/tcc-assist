@@ -28,11 +28,6 @@ _(nada por ora)_
 
 ## ⏭️ Próximos (ordem de prioridade)
 
-### BL-005 — Escrever ADR-0006: JWT interno Next ↔ FastAPI
-- **Origem:** AGENTS.md §4.
-- **Tamanho:** XS
-- **Critério de pronto:** `docs/adr/0006-internal-jwt.md` definindo: claims, expiração (60s), rotação de chave, comportamento se serviço receber JWT com `iss` errado.
-
 ### BL-006 — Decidir provedor Redis (Upstash vs Vercel KV)
 - **Origem:** AGENTS.md §9.
 - **Tamanho:** XS
@@ -188,3 +183,8 @@ _(nada por ora)_
 - **Origem:** AGENTS.md §4 + B3 + B4.
 - **Tamanho:** XS
 - **Concluído em:** `docs/adr/0005-redis-quota.md`.
+
+### BL-005 — Escrever ADR-0006: JWT interno Next ↔ FastAPI
+- **Origem:** AGENTS.md §4.
+- **Tamanho:** XS
+- **Concluído em:** `docs/adr/0006-internal-jwt.md`.

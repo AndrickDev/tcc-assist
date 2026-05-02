@@ -71,7 +71,7 @@ Raiz **não** tem `package.json` nem `pyproject.toml`. Não use `npm` nem `uv` d
 - **ADR-0003** — LLM gerador é Gemini Flash via API. Local só p/ embeddings (`bge-m3`).
 - **ADR-0004** — Stripe migra pra `mode:'subscription'`.
 - **ADR-0005** — Quota e rate limit em Redis.
-- **ADR-0006** (BL-005 pendente) — Comunicação Next ↔ FastAPI por JWT interno.
+- **ADR-0006** — Comunicação Next ↔ FastAPI por JWT interno.
 - **ADR-0007** — Monorepo com runtime split.
 
 Se um ADR ainda não tem arquivo em `docs/adr/`, **crie antes de codar** a tarefa relacionada.
