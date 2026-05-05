@@ -57,6 +57,8 @@ async def _reset_schema(pool: asyncpg.Pool) -> None:
             title text NOT NULL,
             authors text NOT NULL,
             year integer,
+            abstract text,
+            venue text,
             "citationCount" integer,
             selected boolean NOT NULL DEFAULT false,
             "createdAt" timestamptz NOT NULL
@@ -93,10 +95,10 @@ async def _seed(pool: asyncpg.Pool) -> None:
     await pool.executemany(
         """
         INSERT INTO "Reference" (
-            id, "tccId", "externalId", source, title, authors, year,
+            id, "tccId", "externalId", source, title, authors, year, abstract, venue,
             "citationCount", selected, "createdAt"
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         """,
         [
             (
@@ -107,6 +109,8 @@ async def _seed(pool: asyncpg.Pool) -> None:
                 "Ref baixa",
                 "Ana",
                 2024,
+                "Resumo baixo",
+                "Revista A",
                 5,
                 True,
                 base,
@@ -119,6 +123,8 @@ async def _seed(pool: asyncpg.Pool) -> None:
                 "Ref alta",
                 "Bia",
                 2023,
+                "Resumo alto",
+                "Revista B",
                 20,
                 True,
                 base + timedelta(minutes=1),
@@ -131,6 +137,8 @@ async def _seed(pool: asyncpg.Pool) -> None:
                 "Ref nao selecionada",
                 "Caio",
                 2022,
+                "Resumo nao selecionado",
+                "Revista C",
                 100,
                 False,
                 base + timedelta(minutes=2),
@@ -142,6 +150,8 @@ async def _seed(pool: asyncpg.Pool) -> None:
                 "semantic-scholar",
                 "Ref sem citacao",
                 "Dora",
+                None,
+                None,
                 None,
                 None,
                 True,

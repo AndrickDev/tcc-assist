@@ -33,5 +33,7 @@ class ReferenceRow(BaseModel):
     authors: str
     year: int | None
     source: str
+    abstract: str | None
+    venue: str | None
     citation_count: int | None
     created_at: datetime

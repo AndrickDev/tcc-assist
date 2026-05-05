@@ -75,6 +75,7 @@ async def consume(
         latency_ms=latency_ms,
     )
     return ConsumeResult(
+        used=used,
         allowed=allowed,
         remaining=remaining,
         reset_at=reset_at,
