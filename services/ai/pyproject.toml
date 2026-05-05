@@ -5,6 +5,7 @@ description = "FastAPI AI/RAG service for Teseo / TCC-Assist."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "asyncpg>=0.29",
     "fastapi>=0.115.0",
     "pydantic>=2.9.0",
     "pyjwt>=2.9",
@@ -34,6 +35,10 @@ select = ["E", "F", "I", "B", "UP", "SIM"]
 python_version = "3.11"
 strict = true
 packages = ["app", "tests"]
+
+[[tool.mypy.overrides]]
+module = ["asyncpg"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
