@@ -29,6 +29,7 @@ Se algum ADR ainda não tem arquivo escrito, **pare e peça**.
 
 - Python 3.11+ (pinado em `.python-version`).
 - FastAPI + Pydantic v2 + Uvicorn.
+- `httpx` para clientes HTTP async.
 - `uv` para dependency management e execução.
 - `structlog` para logging.
 - Postgres (lê do produto, schema RAG via Alembic — futuro).
