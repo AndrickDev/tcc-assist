@@ -179,6 +179,11 @@ _(nada por ora)_
 - **Tamanho:** XS
 - **Concluído em:** `docs/adr/0006-internal-jwt.md`.
 
+### BL-005-impl — Implementar JWT interno Next ↔ FastAPI e BFF de quota
+- **Origem:** ADR-0005 + ADR-0006.
+- **Tamanho:** M
+- **Concluído em:** commits `406147b`, `ddeb423` e este commit. Inclui verifier FastAPI, `GET /v1/quota/me`, signer Next e BFF `GET /api/quota/me`.
+
 ### BL-006 — Decidir provedor Redis (Upstash vs Vercel KV)
 - **Origem:** AGENTS.md §10.
 - **Tamanho:** XS

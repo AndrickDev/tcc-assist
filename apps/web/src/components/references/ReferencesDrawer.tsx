@@ -204,7 +204,7 @@ export function ReferencesDrawer({ tccId, tccTitle, open, onClose, onSelectedCou
                   </button>
                 </div>
                 <p className="text-[10px] text-[var(--brand-muted)]/60 leading-snug px-1">
-                  Se a busca falhar, tente usar apenas os 2 ou 3 termos mais importantes (ex: "Domain-Driven Design").
+                  Se a busca falhar, tente usar apenas os 2 ou 3 termos mais importantes (ex: &quot;Domain-Driven Design&quot;).
                 </p>
               </div>
 
