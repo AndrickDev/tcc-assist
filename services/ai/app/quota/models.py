@@ -10,6 +10,7 @@ PlanName = Literal["FREE", "PRO", "VIP"]
 class ConsumeResult(BaseModel):
     model_config = ConfigDict(frozen=True)
 
+    used: int
     allowed: bool
     remaining: int
     reset_at: datetime
@@ -23,4 +24,3 @@ class QuotaState(BaseModel):
     limit: int
     remaining: int
     reset_at: datetime
-

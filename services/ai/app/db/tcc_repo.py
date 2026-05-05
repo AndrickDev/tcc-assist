@@ -57,6 +57,8 @@ async def list_selected_references(
             authors,
             year,
             source,
+            abstract,
+            venue,
             "citationCount" AS citation_count,
             "createdAt" AS created_at
         FROM "Reference"

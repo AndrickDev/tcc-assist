@@ -42,6 +42,8 @@ async def test_list_selected_references_ordena_por_citacao_e_data(
     assert [reference.id for reference in references] == ["ref-2", "ref-1", "ref-4"]
     assert references[0].citation_count == 20
     assert references[0].authors == "Bia"
+    assert references[0].abstract == "Resumo alto"
+    assert references[0].venue == "Revista B"
 
 
 async def test_list_recent_messages_vazio_retorna_lista_vazia(

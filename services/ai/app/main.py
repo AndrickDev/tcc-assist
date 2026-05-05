@@ -5,11 +5,14 @@ from typing import cast
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
+from app.api.chat import router as chat_router
 from app.api.health import router as health_router
 from app.api.quota import router as quota_router
 from app.auth.exceptions import InvalidToken, MissingToken
 from app.db.pool import close_pool
 from app.observability.logging import configure_logging
+from app.orchestrator.exceptions import QuotaExceeded, TccNotFoundOrForbidden
+from app.providers.exceptions import GeminiBadResponse, GeminiUnavailable
 from app.quota.exceptions import QuotaBackendUnavailable, QuotaInvalidPlan
 from app.quota.redis_client import close_redis
 
@@ -41,6 +44,30 @@ async def quota_invalid_plan_handler(_request: Request, _exc: Exception) -> JSON
     return JSONResponse(status_code=422, content={"error": "invalid_plan"})
 
 
+async def tcc_not_found_handler(_request: Request, _exc: Exception) -> JSONResponse:
+    return JSONResponse(status_code=404, content={"error": "tcc_not_found"})
+
+
+async def quota_exceeded_handler(_request: Request, exc: Exception) -> JSONResponse:
+    quota_exceeded = cast(QuotaExceeded, exc)
+    return JSONResponse(
+        status_code=429,
+        content={
+            "error": "quota_exceeded",
+            "remaining": quota_exceeded.remaining,
+            "reset_at": quota_exceeded.reset_at.isoformat().replace("+00:00", "Z"),
+        },
+    )
+
+
+async def gemini_unavailable_handler(_request: Request, _exc: Exception) -> JSONResponse:
+    return JSONResponse(status_code=503, content={"error": "ai_provider_unavailable"})
+
+
+async def gemini_bad_response_handler(_request: Request, _exc: Exception) -> JSONResponse:
+    return JSONResponse(status_code=502, content={"error": "ai_provider_bad_response"})
+
+
 def create_app() -> FastAPI:
     app = FastAPI(
         title="TCC-Assist AI",
@@ -53,8 +80,13 @@ def create_app() -> FastAPI:
     app.add_exception_handler(InvalidToken, invalid_token_handler)
     app.add_exception_handler(QuotaBackendUnavailable, quota_backend_unavailable_handler)
     app.add_exception_handler(QuotaInvalidPlan, quota_invalid_plan_handler)
+    app.add_exception_handler(TccNotFoundOrForbidden, tcc_not_found_handler)
+    app.add_exception_handler(QuotaExceeded, quota_exceeded_handler)
+    app.add_exception_handler(GeminiUnavailable, gemini_unavailable_handler)
+    app.add_exception_handler(GeminiBadResponse, gemini_bad_response_handler)
     app.include_router(health_router, prefix="/v1")
     app.include_router(quota_router, prefix="/v1")
+    app.include_router(chat_router, prefix="/v1")
     return app
 
 
