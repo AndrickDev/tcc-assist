@@ -22,7 +22,7 @@ Decisão fixada em [ADR-0001](./docs/adr/0001-fastapi-rag-split.md).
 | 0 | Documentação base (AGENTS.md, ADR-0001, BACKLOG.md, STATUS.md) | ✅ feito |
 | 0.5 | Migração para monorepo (apps/web + services/ai) — ADR-0007 | concluído |
 | 1 | Bootstrap repositório `tcc-assist-ai` (FastAPI + CI + healthcheck) | concluído |
-| 2 | Quota server-side em Redis + endpoint `/v1/quota/consume` | 🔲 |
+| 2 | Quota server-side em Redis + endpoint `/v1/quota/me` + BFF Next | concluído |
 | 3 | Cut-over `/api/chat` → `POST /v1/chat` (paridade) | 🔲 |
 | 4 | Pipeline RAG: ingestão (PDFs + OpenAlex) + pgvector | 🔲 |
 | 5 | Cut-over `/api/gerar-tcc` → `POST /v1/generate` (com retrieval) | 🔲 |
@@ -96,6 +96,11 @@ Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md
 - Dev plan switcher para testes locais
 - Stripe checkout + webhook estruturados
 - Admin panel para gerenciar planos de usuários
+
+### Migração FastAPI — fase 2
+- JWT interno HS256 Next ↔ FastAPI implementado conforme ADR-0006
+- Quota Redis no FastAPI com endpoint protegido `GET /v1/quota/me`
+- BFF Next `GET /api/quota/me` assina JWT interno e normaliza resposta para a UI
 
 ---
 

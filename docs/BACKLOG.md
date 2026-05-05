@@ -28,36 +28,6 @@ _(nada por ora)_
 
 ## ⏭️ Próximos (ordem de prioridade)
 
-### BL-003 — Escrever ADR-0004: Stripe subscription
-- **Origem:** AGENTS.md §4 + B5.
-- **Tamanho:** XS
-- **Critério de pronto:** `docs/adr/0004-stripe-subscription.md` definindo: produtos/preços recorrentes, eventos a tratar (`customer.subscription.{updated,deleted,created}`, `invoice.paid`, `invoice.payment_failed`), tabela `processed_stripe_events` para idempotência.
-
-### BL-004 — Escrever ADR-0005: Quota e rate limit em Redis
-- **Origem:** AGENTS.md §4 + B3 + B4.
-- **Tamanho:** XS
-- **Critério de pronto:** `docs/adr/0005-redis-quota.md` definindo provedor (Upstash vs Vercel KV — decidir), chaves (`quota:{userId}:{YYYY-MM-DD}`), TTL, contrato `consume(userId, scope, weight)`.
-
-### BL-005 — Escrever ADR-0006: JWT interno Next ↔ FastAPI
-- **Origem:** AGENTS.md §4.
-- **Tamanho:** XS
-- **Critério de pronto:** `docs/adr/0006-internal-jwt.md` definindo: claims, expiração (60s), rotação de chave, comportamento se serviço receber JWT com `iss` errado.
-
-### BL-006 — Decidir provedor Redis (Upstash vs Vercel KV)
-- **Origem:** AGENTS.md §9.
-- **Tamanho:** XS
-- **Critério de pronto:** decisão registrada em ADR-0005 (BL-004) e env vars no `.env.example`.
-
-### BL-007 — Decidir host FastAPI (Fly.io vs Render vs Railway)
-- **Origem:** AGENTS.md §9.
-- **Tamanho:** XS
-- **Critério de pronto:** decisão registrada em ADR-0001 §"Notas de implementação" + `docs/runbooks/fastapi-deploy.md` com comandos.
-
-### BL-008 — Decidir geração de client TS via OpenAPI do FastAPI
-- **Origem:** AGENTS.md §9.
-- **Tamanho:** XS
-- **Critério de pronto:** decisão (sim/não) registrada num ADR ou em `docs/architecture/api-contract.md`.
-
 ### BL-009 — Bootstrap do repositório FastAPI
 - **Origem:** ADR-0001 §"Notas de implementação".
 - **Tamanho:** M
@@ -71,6 +41,11 @@ _(nada por ora)_
 ---
 
 ## 📅 Depois (não esquecer, mas não prioritário)
+
+### BL-008 — Gerar client TS a partir do OpenAPI do FastAPI
+- **Origem:** AGENTS.md §10.
+- **Tamanho:** S
+- **Adiado:** com 4-5 endpoints, manutencao manual de tipos no Next e simples. Reavaliar quando: o FastAPI tiver 15+ rotas OU manter tipos manuais virar gargalo (medido em tempo perdido / bugs de contrato).
 
 ### BL-101 — Refatorar `src/app/tcc/[id]/page.tsx` (1144 linhas → hooks)
 - **Origem:** revisão arquitetural 2026-04-28.
@@ -168,7 +143,7 @@ _(nada por ora)_
 - **Decisão:** descartado em ADR-0002. pgvector cobre até alguns milhões de chunks. Reavaliar quando bater nesse limite.
 
 ### BL-X03 — Manter Stripe `mode: 'payment'` com extensão manual de plano
-- **Decisão:** descartado em ADR-0004 (a escrever, BL-003). Toda mudança de monetização daqui pra frente assume subscription.
+- **Decisão:** descartado em ADR-0004. Toda mudança de monetização daqui pra frente assume subscription.
 
 ---
 
@@ -188,3 +163,33 @@ _(nada por ora)_
 - **Origem:** ADR-0007.
 - **Tamanho:** M
 - **Concluído em:** este commit. ADR-0007 formaliza a decisao.
+
+### BL-003 — Escrever ADR-0004: Stripe subscription
+- **Origem:** AGENTS.md §4 + B5.
+- **Tamanho:** XS
+- **Concluído em:** `docs/adr/0004-stripe-subscription.md`.
+
+### BL-004 — Escrever ADR-0005: Quota e rate limit em Redis
+- **Origem:** AGENTS.md §4 + B3 + B4.
+- **Tamanho:** XS
+- **Concluído em:** `docs/adr/0005-redis-quota.md`.
+
+### BL-005 — Escrever ADR-0006: JWT interno Next ↔ FastAPI
+- **Origem:** AGENTS.md §4.
+- **Tamanho:** XS
+- **Concluído em:** `docs/adr/0006-internal-jwt.md`.
+
+### BL-005-impl — Implementar JWT interno Next ↔ FastAPI e BFF de quota
+- **Origem:** ADR-0005 + ADR-0006.
+- **Tamanho:** M
+- **Concluído em:** commits `406147b`, `ddeb423` e este commit. Inclui verifier FastAPI, `GET /v1/quota/me`, signer Next e BFF `GET /api/quota/me`.
+
+### BL-006 — Decidir provedor Redis (Upstash vs Vercel KV)
+- **Origem:** AGENTS.md §10.
+- **Tamanho:** XS
+- **Concluido em:** este commit. Decisao: Upstash. Motivos: free tier 10k req/dia, desacoplado da Vercel, REST + TCP, latencia BR aceitavel.
+
+### BL-007 — Decidir host FastAPI (Fly.io vs Render vs Railway)
+- **Origem:** AGENTS.md §10.
+- **Tamanho:** XS
+- **Concluido em:** este commit. Decisao: Fly.io. Motivos: VM sempre quente (mantem bge-m3 em memoria), regiao GRU, deploy from Dockerfile, US$5/mes cobre VM 256MB inicial.
