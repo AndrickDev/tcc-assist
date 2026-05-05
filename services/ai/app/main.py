@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from app.api.health import router as health_router
 from app.api.quota import router as quota_router
 from app.auth.exceptions import InvalidToken, MissingToken
+from app.db.pool import close_pool
 from app.observability.logging import configure_logging
 from app.quota.exceptions import QuotaBackendUnavailable, QuotaInvalidPlan
 from app.quota.redis_client import close_redis
@@ -16,6 +17,7 @@ from app.quota.redis_client import close_redis
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     yield
+    await close_pool()
     await close_redis()
 
 

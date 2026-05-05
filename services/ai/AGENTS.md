@@ -32,6 +32,7 @@ Se algum ADR ainda não tem arquivo escrito, **pare e peça**.
 - `httpx` para clientes HTTP async.
 - `uv` para dependency management e execução.
 - `structlog` para logging.
+- `asyncpg` para leitura read-only do Postgres do produto.
 - Postgres (lê do produto, schema RAG via Alembic — futuro).
 - Redis (quota e rate limit — futuro).
 - Gemini API (provider de geração — futuro).
@@ -49,6 +50,7 @@ app/
 ├── rag/                   ← chunker, retriever, reranker, ingestion
 ├── providers/             ← gemini, embeddings, openalex client
 ├── prompts/               ← templates versionados (Python, NÃO .md)
+├── db/                    ← pool asyncpg + repositórios read-only do schema Prisma
 ├── quota/                 ← Redis-backed quota e rate limit
 └── observability/         ← logging, tracing, metrics
     └── logging.py
