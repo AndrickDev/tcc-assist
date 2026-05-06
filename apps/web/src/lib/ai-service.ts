@@ -160,10 +160,15 @@ function isObject(payload: unknown): payload is Record<string, unknown> {
 
 export async function getQuotaState({ userId, plan }: GetQuotaStateInput): Promise<QuotaState> {
   const token = await signInternalJwt({ sub: userId, plan, scope: "quota" })
-  const response = await fetch(`${getAiServiceUrl()}/v1/quota/me`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  })
+  let response: Response
+  try {
+    response = await fetch(`${getAiServiceUrl()}/v1/quota/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    })
+  } catch {
+    throw new Error("quota_unavailable")
+  }
 
   if (response.status === 200) {
     const quota = parseQuotaMe(await response.json())
@@ -190,15 +195,20 @@ export async function getQuotaState({ userId, plan }: GetQuotaStateInput): Promi
 
 export async function runChat({ userId, plan, tccId, message }: RunChatInput): Promise<ChatResult> {
   const token = await signInternalJwt({ sub: userId, plan, scope: "chat", tccId })
-  const response = await fetch(`${getAiServiceUrl()}/v1/chat`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ tcc_id: tccId, message }),
-    cache: "no-store",
-  })
+  let response: Response
+  try {
+    response = await fetch(`${getAiServiceUrl()}/v1/chat`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ tcc_id: tccId, message }),
+      cache: "no-store",
+    })
+  } catch {
+    throw new Error("ai_provider_unavailable")
+  }
 
   const payload = await readUpstreamPayload(response)
   const payloadObject = isObject(payload) ? payload : null
