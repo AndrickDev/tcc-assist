@@ -1,5 +1,5 @@
 # Teseo — Status do Projeto
-> Atualizado em: 2026-04-28 · Branch: `main`
+> Atualizado em: 2026-05-06 · Branch: `feat/T-D-quota-ui`
 
 ---
 
@@ -101,6 +101,7 @@ Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md
 - JWT interno HS256 Next ↔ FastAPI implementado conforme ADR-0006
 - Quota Redis no FastAPI com endpoint protegido `GET /v1/quota/me`
 - BFF Next `GET /api/quota/me` assina JWT interno e normaliza resposta para a UI
+- Workspace lê quota diária via BFF `GET /api/quota/me`; gate em `localStorage` removido da UI
 
 ---
 
@@ -142,7 +143,7 @@ Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md
 | B2 | Exportação com popup bloqueado trava silenciosamente — já **corrigido** em 22/03 | `tcc/[id]/page.tsx` | ~~Alta~~ Resolvido |
 | B3 | `ONBOARDING_STEP` hints no linter para `Menu`, `Check`, `PanelRightOpen` importados mas não usados no workspace | `tcc/[id]/page.tsx` | Baixa (hint, não erro) |
 | B4 | Turnitin exibe valor estático (não é API real) — usuário pode interpretar como dado real | `TccSidebar.tsx` | Média — precisa disclaimer mais claro ou remoção para beta |
-| B5 | `getDailyCount` usa `localStorage` — se usuário trocar de navegador, o limite reseta | `tcc/[id]/page.tsx` | Média — mover contagem para banco |
+| B5 | `getDailyCount` usa `localStorage` — já **corrigido** em 06/05 via `/api/quota/me` | `tcc/[id]/page.tsx` | ~~Média~~ Resolvido |
 | B6 | Sem proteção de rota no workspace — usuário pode acessar `/tcc/[id]` de outro usuário se souber o ID | `api/tcc/[id]/route.ts` | Alta — verificar se `userId` é checado em todos os métodos |
 
 ### Melhorias (não é bug, mas agrega valor)
@@ -185,7 +186,7 @@ Tudo que está marcado como **concluído** acima está apto para beta. Resumindo
 | Progresso real do TCC | Estimativa atual serve para o beta |
 | Histórico de versões | Autosave cobre a necessidade imediata |
 | Modo escuro refinado | Beta provavelmente em modo claro |
-| B5 (localStorage limit) | Risco baixo com poucos usuários beta |
+| B5 (localStorage limit) | Resolvido via quota server-side em Redis + BFF `/api/quota/me` |
 
 ---
 
@@ -193,5 +194,5 @@ Tudo que está marcado como **concluído** acima está apto para beta. Resumindo
 
 1. **Bug B6 — Autorização no workspace**: confirmar que todas as rotas `/api/tcc/[id]/*` verificam que o TCC pertence ao usuário autenticado antes de expor dados ou aceitar mutações.
 2. **Turnitin (B4)**: o valor exibido é estimado. Adicionar disclaimer explícito ou remover o componente antes de escalar.
-3. **Limite diário em localStorage (B5)**: com muitos usuários, migrar para contagem server-side para evitar bypass fácil.
+3. **Rate limiting amplo**: estender quota/rate limit server-side para endpoints fora de `/api/chat` nas fases 5/6.
 4. **Rate limiting**: implementar antes de abrir cadastro público.

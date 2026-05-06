@@ -19,6 +19,7 @@ import { EditableRichText } from "@/components/EditableRichText"
 import { DevPlanSwitcher } from "@/components/DevPlanSwitcher"
 import { useUserPlan } from "@/hooks/useUserPlan"
 import { getDailyMessageLimit } from "@/lib/plan"
+import { useDailyQuota } from "@/lib/hooks/useDailyQuota"
 import { AiActionToolbar } from "@/components/AiActionToolbar"
 import { trackEvent } from "@/lib/analytics"
 import { Editor } from "@tiptap/react"
@@ -63,10 +64,6 @@ interface ReviewState {
   messageId: string
   suggestionHtml: string
   userPrompt?: string
-}
-
-function getDailyKey(userId: string, plan: string) {
-  return `teseo.daily.${userId}.${plan}.${new Date().toISOString().slice(0, 10)}`
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -394,6 +391,7 @@ export default function TccWorkspacePage() {
 
   const userPlan = useUserPlan()
   const dailyLimit = getDailyMessageLimit(userPlan)
+  const { refresh: refreshQuota, isExceeded } = useDailyQuota()
   const isVip = userPlan === "VIP"
 
   React.useEffect(() => {
@@ -474,16 +472,6 @@ export default function TccWorkspacePage() {
     win.focus()
     setTimeout(() => { win.print() }, 400)
   }, [tccContent, tccMeta])
-
-  const userId = (session?.user as { id?: string } | undefined)?.id ?? "anon"
-  const getDailyCount = React.useCallback(() => {
-    if (typeof window === "undefined") return 0
-    return parseInt(localStorage.getItem(getDailyKey(userId, userPlan)) || "0", 10)
-  }, [userId, userPlan])
-  const incrementDailyCount = React.useCallback(() => {
-    if (typeof window === "undefined") return
-    localStorage.setItem(getDailyKey(userId, userPlan), String(getDailyCount() + 1))
-  }, [userId, userPlan, getDailyCount])
 
   const safeJson = async (res: Response) => {
     if (!res.ok) return null
@@ -583,7 +571,7 @@ export default function TccWorkspacePage() {
   const handleSendPrompt = async (forcedPrompt?: string) => {
     const text = forcedPrompt || inputVal
     if (!text.trim() || isTyping) return
-    if (dailyLimit < Infinity && getDailyCount() >= dailyLimit) { setLimitOpen(true); return }
+    if (isExceeded) { setLimitOpen(true); return }
 
     const userMsg: ChatMessage = { id: Date.now().toString(), role: "user", content: text }
     setMessages(prev => [...prev, userMsg])
@@ -606,9 +594,9 @@ export default function TccWorkspacePage() {
         timestamp: data.timestamp, userPrompt: text,
       }
       setMessages(prev => [...prev, botMsg])
-      incrementDailyCount()
       fetchStats()
-      if (dailyLimit < Infinity && getDailyCount() >= dailyLimit) setLimitOpen(true)
+      const nextQuota = await refreshQuota()
+      if (nextQuota.loaded && nextQuota.limit !== -1 && nextQuota.remaining <= 0) setLimitOpen(true)
 
       // ── Auto-enter review mode for substantial bot responses ──
       if (data.content.length > 200) {
