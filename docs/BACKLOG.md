@@ -22,7 +22,11 @@ Status implícito por seção: itens em "Em andamento" estão sendo executados; 
 
 ## 🚧 Em andamento
 
-_(nada por ora)_
+### BL-010 — Cut-over `/api/chat` para `POST /v1/chat` no FastAPI
+- **Origem:** ADR-0001.
+- **Tamanho:** L
+- **Status:** código pronto e mergeado em main; smoke local aprovado em 2026-05-08. Falta ativar `USE_FASTAPI_AI=true` em produção e monitorar 1-3 dias antes de remover o legado.
+- **Próximos passos:** rollout, monitoramento (latência p50/p95, taxa de erro `/api/chat`, contagem Redis), depois T-E5 (cleanup de `aiox-integration.ts`, `gemini.ts`, `provider.ts`, `.codex/agents/*.md`, branch legado da rota e flag).
 
 ---
 
@@ -32,11 +36,6 @@ _(nada por ora)_
 - **Origem:** ADR-0001 §"Notas de implementação".
 - **Tamanho:** M
 - **Critério de pronto:** repo `tcc-assist-ai` com estrutura `app/{api,orchestrator,rag,providers,prompts,quota,observability}/`, Dockerfile, healthcheck `/v1/health`, CI rodando `ruff + mypy + pytest`.
-
-### BL-010 — Cut-over `/api/chat` para `POST /v1/chat` no FastAPI
-- **Origem:** ADR-0001.
-- **Tamanho:** L
-- **Critério de pronto:** feature flag `USE_FASTAPI_AI` no Next, paridade comportamental com `runTccWorkflow`, rollback rápido, métrica de latência p50/p95 antes vs depois.
 
 ---
 
