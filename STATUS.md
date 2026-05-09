@@ -1,5 +1,5 @@
 # Teseo — Status do Projeto
-> Atualizado em: 2026-05-06 · Branch: `feat/T-D-quota-ui`
+> Atualizado em: 2026-05-08 · Branch: `main`
 
 ---
 
@@ -23,7 +23,7 @@ Decisão fixada em [ADR-0001](./docs/adr/0001-fastapi-rag-split.md).
 | 0.5 | Migração para monorepo (apps/web + services/ai) — ADR-0007 | concluído |
 | 1 | Bootstrap repositório `tcc-assist-ai` (FastAPI + CI + healthcheck) | concluído |
 | 2 | Quota server-side em Redis + endpoint `/v1/quota/me` + BFF Next | concluído |
-| 3 | Cut-over `/api/chat` → `POST /v1/chat` (paridade) | 🔲 |
+| 3 | Cut-over `/api/chat` → `POST /v1/chat` (paridade) | código pronto, rollout pendente |
 | 4 | Pipeline RAG: ingestão (PDFs + OpenAlex) + pgvector | 🔲 |
 | 5 | Cut-over `/api/gerar-tcc` → `POST /v1/generate` (com retrieval) | 🔲 |
 | 6 | Cut-over `/api/tcc/[id]/ai-action` → `POST /v1/actions/{action}` | 🔲 |
@@ -102,6 +102,17 @@ Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md
 - Quota Redis no FastAPI com endpoint protegido `GET /v1/quota/me`
 - BFF Next `GET /api/quota/me` assina JWT interno e normaliza resposta para a UI
 - Workspace lê quota diária via BFF `GET /api/quota/me`; gate em `localStorage` removido da UI
+
+### Migração FastAPI — fase 3 (código pronto, rollout pendente)
+- Cliente Postgres async read-only no FastAPI (`app/db/`) — ADR-0001
+- Provider Gemini portado pra Python (`app/providers/gemini.py`) — ADR-0003
+- Templates de prompt versionados em código (`app/prompts/chat.py`)
+- Orchestrator `run_chat` + endpoint `POST /v1/chat` protegido por JWT scope=chat
+- Next BFF `/api/chat` bifurca por flag `USE_FASTAPI_AI`: ON chama FastAPI e salva bot message em Prisma; OFF mantém `runTccWorkflow` legado pra rollback
+- Mapeamento de erros 401/403/404/422/429/502/503 com mensagens pt-BR
+- `runChat`/`getQuotaState` no Next tratam falha de rede como `ai_provider_unavailable` / `quota_unavailable` (503)
+- UI defende contra resposta de erro do BFF sem quebrar (`page.tsx:589-606`)
+- Smoke local validado: 7 cenários passaram (FREE 3/3 → 4ª bloqueada antes de `/api/chat`, F5/Redis persiste, VIP ilimitado, FastAPI down → 503, Redis down → 503, flag off comportamento legado)
 
 ---
 
