@@ -1,0 +1,36 @@
+# Configuração Fly.io para o serviço FastAPI do Teseo.
+# Decisão de host: BL-007 (Fly.io). Região GRU (São Paulo) para latência BR.
+#
+# Antes de fazer deploy:
+#   1. Editar `app = "..."` para o nome único do app criado via `flyctl apps create <name>`.
+#   2. Setar secrets: `flyctl secrets set INTERNAL_JWT_SECRET=... GOOGLE_API_KEY=... REDIS_URL=... POSTGRES_URL=...`.
+#   3. `flyctl deploy --remote-only` (build no servidor).
+
+app = "PLACEHOLDER-AJUSTAR"
+primary_region = "gru"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8000"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+[[http_service.checks]]
+  interval = "30s"
+  timeout = "5s"
+  grace_period = "10s"
+  method = "GET"
+  path = "/v1/health"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512
