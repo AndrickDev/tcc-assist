@@ -587,6 +587,23 @@ export default function TccWorkspacePage() {
         body: JSON.stringify({ tccId: id, message: text }),
       })
       const data = await res.json()
+      if (!res.ok) {
+        if (res.status === 429) setLimitOpen(true)
+        setMessages(prev => [...prev, {
+          id: Date.now().toString() + "error",
+          role: "bot",
+          content: `Erro: ${typeof data?.error === "string" ? data.error : "não foi possível processar sua mensagem."}`,
+        }])
+        return
+      }
+      if (typeof data.content !== "string") {
+        setMessages(prev => [...prev, {
+          id: Date.now().toString() + "error",
+          role: "bot",
+          content: "Erro: a IA retornou uma resposta inválida. Tente novamente.",
+        }])
+        return
+      }
       const botMsg: ChatMessage = {
         id: data.id || (Date.now().toString() + "bot"),
         role: "bot", content: data.content,
