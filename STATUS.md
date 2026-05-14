@@ -44,6 +44,7 @@ Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md
 - Cards de sugestão com prévia, botão "Inserir" e "Descartar"
 - Regeneração de sugestão por card individual
 - Assistente lateral (painel direito) com abas Sugestões / Métricas
+- Onboarding de primeiro acesso no workspace vazio com prompts iniciais acionáveis
 - AiActionToolbar: revisar, formatar ABNT, melhorar citações, próximo passo
 - Ações bloqueadas por plano com UpgradeModal contextual
 - Limite diário de mensagens (FREE: 3, PRO: 50, VIP: ∞) com LimitModal
@@ -121,7 +122,6 @@ Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md
 ## 🔲 Falta fazer
 
 ### Alta prioridade (pré-beta ou primeiras semanas)
-- [ ] **Onboarding de primeiro acesso** — mensagem de boas-vindas no workspace quando não há mensagens ainda (o usuário abre o workspace mas não sabe como começar)
 - [ ] **Conectar analytics a um provider real** — PostHog ou Mixpanel; hoje só vai para `console.info` em produção
 - [ ] **Página de erro 404 e 500** — rotas desconhecidas exibem erro genérico do Next.js
 - [ ] **Recuperação de senha** — fluxo de "esqueci minha senha" não está implementado

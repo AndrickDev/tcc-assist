@@ -66,11 +66,6 @@ Status implícito por seção: itens em "Em andamento" estão sendo executados; 
 - **Tamanho:** S
 - **Critério de pronto:** `app/not-found.tsx` e `app/error.tsx` no padrão Teseo.
 
-### BL-105 — Onboarding de primeiro acesso no workspace
-- **Origem:** STATUS.md M1.
-- **Tamanho:** S
-- **Critério de pronto:** mensagem de boas-vindas quando não há mensagens, com 2–3 sugestões de prompt iniciais.
-
 ### BL-106 — Histórico de versões do documento
 - **Origem:** STATUS.md "Falta fazer média prioridade".
 - **Tamanho:** L
