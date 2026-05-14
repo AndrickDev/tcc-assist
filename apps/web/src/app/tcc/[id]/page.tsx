@@ -734,6 +734,26 @@ export default function TccWorkspacePage() {
     setTccContent(resultHtml)
   }
 
+  const emptyWorkspacePrompts = React.useMemo(() => {
+    const topic = tccMeta?.title?.trim()
+    const topicSuffix = topic ? ` sobre "${topic}"` : ""
+
+    return [
+      {
+        label: "Escrever introdução",
+        prompt: `Escreva uma primeira versão da introdução do meu TCC${topicSuffix}, com linguagem acadêmica e estrutura ABNT.`,
+      },
+      {
+        label: "Montar estrutura",
+        prompt: `Monte uma estrutura inicial de capítulos e seções para o meu TCC${topicSuffix}.`,
+      },
+      {
+        label: "Definir próximos passos",
+        prompt: `Analise o contexto do meu TCC${topicSuffix} e me diga quais são os próximos passos mais importantes para avançar hoje.`,
+      },
+    ]
+  }, [tccMeta?.title])
+
   if (loading) return (
     <div className="h-screen bg-[var(--brand-bg)] flex items-center justify-center">
       <Loader2 className="w-7 h-7 text-[var(--brand-muted)]/70 animate-spin" />
@@ -997,10 +1017,27 @@ export default function TccWorkspacePage() {
                   <>
                     <div className="flex-1 overflow-y-auto custom-scroll p-4 space-y-4 pb-[160px]">
                       {messages.length === 0 && (
-                        <div className="h-full flex flex-col items-center justify-center text-center opacity-60 px-5 space-y-3 pt-12">
-                          <div className="w-12 h-12 rounded-2xl bg-[var(--brand-accent)]/10 flex items-center justify-center border border-[var(--brand-accent)]/20 text-[var(--brand-accent)] mb-2"><Sparkles size={22} /></div>
-                          <h3 className="text-[var(--brand-text)] font-bold text-sm">IA do seu TCC</h3>
-                          <p className="text-[12px] text-[var(--brand-muted)]/70 leading-relaxed font-serif">Gere capítulos, peça revisões ou compare sugestões lado a lado com seu texto atual.</p>
+                        <div className="h-full flex flex-col items-center justify-center text-center px-5 pt-10">
+                          <div className="w-12 h-12 rounded-2xl bg-[var(--brand-accent)]/10 flex items-center justify-center border border-[var(--brand-accent)]/20 text-[var(--brand-accent)] mb-4">
+                            <Sparkles size={22} />
+                          </div>
+                          <h3 className="text-[var(--brand-text)] font-bold text-sm">Comece pelo primeiro pedido</h3>
+                          <p className="mt-2 text-[12px] text-[var(--brand-muted)]/70 leading-relaxed font-serif max-w-[320px]">
+                            Escolha um ponto de partida ou escreva sua própria solicitação abaixo.
+                          </p>
+                          <div className="mt-5 w-full max-w-[340px] space-y-2">
+                            {emptyWorkspacePrompts.map((item) => (
+                              <button
+                                key={item.label}
+                                type="button"
+                                onClick={() => handleSendPrompt(item.prompt)}
+                                disabled={isTyping}
+                                className="w-full px-3 py-2.5 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-bg)] text-left text-[12px] font-medium text-[var(--brand-text)]/80 hover:border-[var(--brand-accent)]/30 hover:bg-[var(--brand-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              >
+                                {item.label}
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       )}
                     <AnimatePresence>
