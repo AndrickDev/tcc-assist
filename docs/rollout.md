@@ -140,6 +140,9 @@ Subir em conta FREE até a 3ª mensagem; 4ª deve retornar 429 do FastAPI e UI d
 
 ## 6. Monitoramento (1–3 dias)
 
+Status em 2026-05-13: rollout ativado em produção com `USE_FASTAPI_AI=true`.
+Smoke pós-deploy aprovado: `/api/quota/me` 200, `/api/chat` 200 e conta FREE bloqueada via LimitModal após atingir a quota.
+
 | Métrica | Onde | Alerta |
 |---|---|---|
 | Latência p95 `/api/chat` | Vercel Analytics | > 30s |
@@ -187,6 +190,7 @@ Atualizar `STATUS.md` fase 3 → `concluído` e fechar BL-010 / Issue #14.
 ## Custos estimados (mensal)
 
 - Fly.io: ~US$5 (VM 1 cpu / 512 MB sempre quente em GRU).
+- Configuração atual usa `min_machines_running = 0` para reduzir custo enquanto o projeto valida demanda. Trade-off: primeiro request após ocioso pode ter cold start.
 - Upstash: free tier (até 10k req/dia). Migrar para `pay-as-you-go` quando ultrapassar.
 - Vercel: plano atual sem custo adicional.
 - Gemini API: uso já existente, sem mudança.
