@@ -1,5 +1,5 @@
 # Teseo — Status do Projeto
-> Atualizado em: 2026-05-08 · Branch: `main`
+> Atualizado em: 2026-05-13 · Branch: `main`
 
 ---
 
@@ -23,7 +23,7 @@ Decisão fixada em [ADR-0001](./docs/adr/0001-fastapi-rag-split.md).
 | 0.5 | Migração para monorepo (apps/web + services/ai) — ADR-0007 | concluído |
 | 1 | Bootstrap repositório `tcc-assist-ai` (FastAPI + CI + healthcheck) | concluído |
 | 2 | Quota server-side em Redis + endpoint `/v1/quota/me` + BFF Next | concluído |
-| 3 | Cut-over `/api/chat` → `POST /v1/chat` (paridade) | código pronto, rollout pendente |
+| 3 | Cut-over `/api/chat` → `POST /v1/chat` (paridade) | rollout em produção, monitoramento 1–3 dias |
 | 4 | Pipeline RAG: ingestão (PDFs + OpenAlex) + pgvector | 🔲 |
 | 5 | Cut-over `/api/gerar-tcc` → `POST /v1/generate` (com retrieval) | 🔲 |
 | 6 | Cut-over `/api/tcc/[id]/ai-action` → `POST /v1/actions/{action}` | 🔲 |
@@ -103,7 +103,7 @@ Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md
 - BFF Next `GET /api/quota/me` assina JWT interno e normaliza resposta para a UI
 - Workspace lê quota diária via BFF `GET /api/quota/me`; gate em `localStorage` removido da UI
 
-### Migração FastAPI — fase 3 (código pronto, rollout pendente)
+### Migração FastAPI — fase 3 (rollout em produção, monitoramento 1–3 dias)
 - Cliente Postgres async read-only no FastAPI (`app/db/`) — ADR-0001
 - Provider Gemini portado pra Python (`app/providers/gemini.py`) — ADR-0003
 - Templates de prompt versionados em código (`app/prompts/chat.py`)
@@ -113,6 +113,8 @@ Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md
 - `runChat`/`getQuotaState` no Next tratam falha de rede como `ai_provider_unavailable` / `quota_unavailable` (503)
 - UI defende contra resposta de erro do BFF sem quebrar (`page.tsx:589-606`)
 - Smoke local validado: 7 cenários passaram (FREE 3/3 → 4ª bloqueada antes de `/api/chat`, F5/Redis persiste, VIP ilimitado, FastAPI down → 503, Redis down → 503, flag off comportamento legado)
+- Rollout produção ativado em 2026-05-13: `USE_FASTAPI_AI=true` na Vercel, FastAPI no Fly.io (`teseo-ai`), Redis Upstash, Postgres Prisma remoto.
+- Smoke produção validado em 2026-05-13: `/api/quota/me` 200, `/api/chat` 200, FREE bloqueia envio após limite via LimitModal.
 
 ---
 

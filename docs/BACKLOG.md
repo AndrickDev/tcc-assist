@@ -25,8 +25,8 @@ Status implícito por seção: itens em "Em andamento" estão sendo executados; 
 ### BL-010 — Cut-over `/api/chat` para `POST /v1/chat` no FastAPI
 - **Origem:** ADR-0001.
 - **Tamanho:** L
-- **Status:** código pronto e mergeado em main; smoke local aprovado em 2026-05-08. Falta ativar `USE_FASTAPI_AI=true` em produção e monitorar 1-3 dias antes de remover o legado.
-- **Próximos passos:** rollout, monitoramento (latência p50/p95, taxa de erro `/api/chat`, contagem Redis), depois T-E5 (cleanup de `aiox-integration.ts`, `gemini.ts`, `provider.ts`, `.codex/agents/*.md`, branch legado da rota e flag).
+- **Status:** código pronto e mergeado em main; smoke local aprovado em 2026-05-08; `USE_FASTAPI_AI=true` ativado em produção em 2026-05-13; smoke produção aprovado (`/api/quota/me` 200, `/api/chat` 200, FREE bloqueia no LimitModal).
+- **Próximos passos:** monitorar 1-3 dias (latência p50/p95, taxa de erro `/api/chat`, contagem Redis), depois T-E5 (cleanup de `aiox-integration.ts`, `gemini.ts`, `provider.ts`, `.codex/agents/*.md`, branch legado da rota e flag).
 
 ---
 
