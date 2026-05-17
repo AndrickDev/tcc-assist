@@ -61,11 +61,6 @@ Status implícito por seção: itens em "Em andamento" estão sendo executados; 
 - **Tamanho:** M
 - **Critério de pronto:** rota `/forgot-password`, e-mail com token, troca de senha em página dedicada.
 
-### BL-104 — Páginas de erro 404 e 500 customizadas
-- **Origem:** STATUS.md "Falta fazer".
-- **Tamanho:** S
-- **Critério de pronto:** `app/not-found.tsx` e `app/error.tsx` no padrão Teseo.
-
 ### BL-106 — Histórico de versões do documento
 - **Origem:** STATUS.md "Falta fazer média prioridade".
 - **Tamanho:** L
