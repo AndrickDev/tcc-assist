@@ -14,10 +14,12 @@ export async function POST(
   const { id: tccId } = await params
   const userId = (session.user as { id?: string }).id
 
-  // Verify ownership
-  const tcc = await db.tcc.findUnique({ where: { id: tccId } })
-  if (!tcc || tcc.userId !== userId) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  const tcc = await db.tcc.findFirst({
+    where: { id: tccId, userId },
+    select: { id: true },
+  })
+  if (!tcc) {
+    return NextResponse.json({ error: "TCC não encontrado." }, { status: 404 })
   }
 
   // Count existing images for this TCC
