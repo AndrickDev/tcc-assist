@@ -3,6 +3,7 @@ import { Inter, Lora } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { SessionProvider } from "next-auth/react"
+import { PostHogProvider } from "@/components/posthog-provider"
 
 const inter = Inter({
   variable: "--font-inter",
@@ -30,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <SessionProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange storageKey="teseo-theme">
-            {children}
+            <PostHogProvider>{children}</PostHogProvider>
           </ThemeProvider>
         </SessionProvider>
       </body>
