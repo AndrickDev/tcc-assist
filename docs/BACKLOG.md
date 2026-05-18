@@ -106,11 +106,6 @@ Status implícito por seção: itens em "Em andamento" estão sendo executados; 
 - **Tamanho:** M
 - **Critério de pronto:** todas as superfícies revisadas em `data-theme="dark"`, contraste WCAG AA.
 
-### BL-115 — Conectar analytics a um provider real (PostHog ou Mixpanel)
-- **Origem:** STATUS.md "Falta fazer alta prioridade".
-- **Tamanho:** S
-- **Critério de pronto:** `src/lib/analytics.ts` envia eventos pro provider escolhido em produção; mantém `console.info` em dev.
-
 ### BL-116 — Internacionalização (i18n)
 - **Origem:** STATUS.md "Backlog baixa prioridade".
 - **Tamanho:** XL
