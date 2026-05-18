@@ -156,7 +156,7 @@ Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md
 | B3 | `ONBOARDING_STEP` hints no linter para `Menu`, `Check`, `PanelRightOpen` importados mas não usados no workspace | `tcc/[id]/page.tsx` | Baixa (hint, não erro) |
 | B4 | Turnitin exibe valor estático (não é API real) — usuário pode interpretar como dado real | `TccSidebar.tsx` | Média — precisa disclaimer mais claro ou remoção para beta |
 | B5 | `getDailyCount` usa `localStorage` — já **corrigido** em 06/05 via `/api/quota/me` | `tcc/[id]/page.tsx` | ~~Média~~ Resolvido |
-| B6 | Sem proteção de rota no workspace — usuário pode acessar `/tcc/[id]` de outro usuário se souber o ID | `api/tcc/[id]/route.ts` | Alta — verificar se `userId` é checado em todos os métodos |
+| B6 | (resolvido) Sem proteção de rota no workspace — usuário podia acessar `/tcc/[id]` de outro usuário se soubesse o ID. Auditoria + hardening em 2026-05-18, ver `docs/security/b6-authorization-smoke.md` | `api/tcc/[id]/route.ts` | ~~Alta~~ Resolvido |
 
 ### Melhorias (não é bug, mas agrega valor)
 
@@ -203,7 +203,6 @@ Tudo que está marcado como **concluído** acima está apto para beta. Resumindo
 
 ## ⚠️ Atenção antes de abrir para mais usuários (pós-beta)
 
-1. **Bug B6 — Autorização no workspace**: confirmar que todas as rotas `/api/tcc/[id]/*` verificam que o TCC pertence ao usuário autenticado antes de expor dados ou aceitar mutações.
-2. **Turnitin (B4)**: o valor exibido é estimado. Adicionar disclaimer explícito ou remover o componente antes de escalar.
-3. **Rate limiting amplo**: estender quota/rate limit server-side para endpoints fora de `/api/chat` nas fases 5/6.
-4. **Rate limiting**: implementar antes de abrir cadastro público.
+1. **Turnitin (B4)**: o valor exibido é estimado. Adicionar disclaimer explícito ou remover o componente antes de escalar.
+2. **Rate limiting amplo**: estender quota/rate limit server-side para endpoints fora de `/api/chat` nas fases 5/6.
+3. **Rate limiting**: implementar antes de abrir cadastro público.
