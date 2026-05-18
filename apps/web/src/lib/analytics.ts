@@ -6,8 +6,8 @@
  *
  * Beta instrumentation:
  *   - Events log to console in dev.
- *   - Events log as JSON in production (ready for Sentry RUM / Datadog / PostHog ingest).
- *   - Replace the production branch below to wire up Amplitude, Mixpanel, or PostHog.
+ *   - Events are sent to PostHog in production when initialized.
+ *   - Events log as JSON in production when PostHog is unavailable.
  */
 type EventName =
   // ── Onboarding & creation ───────────────────────────────────────────────
@@ -51,9 +51,14 @@ export const trackEvent = (eventName: EventName, properties?: Record<string, unk
   if (process.env.NODE_ENV === 'development') {
     console.debug(`[Teseo Analytics] ${eventName}`, payload.properties)
   } else {
-    // Production: structured log — consumed by Sentry RUM / Datadog / PostHog
-    // TODO: replace with provider SDK call, e.g.:
-    //   posthog.capture(eventName, payload.properties)
-    console.info(JSON.stringify(payload))
+    const ph = typeof window !== 'undefined'
+      ? (window as unknown as { posthog?: { capture: (event: string, properties?: Record<string, unknown>) => void } }).posthog
+      : undefined
+
+    if (ph) {
+      ph.capture(eventName, payload.properties)
+    } else {
+      console.info(JSON.stringify(payload))
+    }
   }
 }
