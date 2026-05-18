@@ -1,5 +1,5 @@
 # Teseo — Status do Projeto
-> Atualizado em: 2026-05-17 · Branch: `main`
+> Atualizado em: 2026-05-18 · Branch: `main`
 
 ---
 
@@ -82,7 +82,7 @@ Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md
 - AI Actions: `AI_ACTION_CLICK`, `AI_ACTION_BLOCK_PLAN`, `AI_ACTION_SUCCESS`, `AI_ACTION_ERROR`, `AI_PANEL_TOGGLE_NEXT_STEP`
 - Monetização: `UPGRADE_MODAL_SHOWN`, `UPGRADE_CTA_CLICK`, `LIMIT_MODAL_SHOWN`, `EXPORT_CLICK`
 - Engagement: `TURNITIN_INFO_HOVER`
-- Pronto para conectar Amplitude / Mixpanel / PostHog (substituir branch de produção)
+- PostHog conectado em produção: `posthog-js` inicializado em `PostHogProvider` (client component), `$pageview` em mudança de rota, `identify`/`reset` no login/logout, `trackEvent` envia via `window.posthog.capture` com fallback `console.info` quando SDK ausente. Smoke validado em 2026-05-18 (pageview + identify chegaram no dashboard).
 
 ### UX / Qualidade
 - Todos os `alert()` removidos — substituídos por mensagens inline no chat ou erros contextuais
@@ -123,7 +123,6 @@ Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md
 ## 🔲 Falta fazer
 
 ### Alta prioridade (pré-beta ou primeiras semanas)
-- [ ] **Conectar analytics a um provider real** — PostHog ou Mixpanel; hoje só vai para `console.info` em produção
 - [ ] **Recuperação de senha** — fluxo de "esqueci minha senha" não está implementado
 - [ ] **Confirmação de e-mail** — novos cadastros não recebem e-mail de verificação
 - [ ] **Rate limiting nas APIs** — sem proteção contra abuso nas rotas de chat e AI actions
@@ -195,7 +194,6 @@ Tudo que está marcado como **concluído** acima está apto para beta. Resumindo
 | Recuperação de senha | Não bloqueia o beta com usuários convidados |
 | Confirmação de e-mail | Usuários do beta serão cadastrados manualmente |
 | Rate limiting | Volume baixo no beta controlado |
-| Analytics provider real | `console.info` é suficiente para observar via logs no beta |
 | Progresso real do TCC | Estimativa atual serve para o beta |
 | Histórico de versões | Autosave cobre a necessidade imediata |
 | Modo escuro refinado | Beta provavelmente em modo claro |
