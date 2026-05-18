@@ -1,5 +1,5 @@
 # Teseo — Status do Projeto
-> Atualizado em: 2026-05-13 · Branch: `main`
+> Atualizado em: 2026-05-17 · Branch: `main`
 
 ---
 
@@ -90,6 +90,7 @@ Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md
 - TccSidebar: contador de anexos corrigido ("0 de 5" em vez de "0/5 FREE")
 - Workspace: fallback de curso corrigido ("—" em vez de "Curso Superior")
 - Design system Teseo aplicado: tokens brand-* em toda a entrada do produto
+- Páginas de erro customizadas 404 / 500 / global-error no padrão Teseo (BL-104)
 
 ### Planos e monetização
 - Lógica FREE / PRO / VIP centralizada em `src/lib/plan.ts`
@@ -123,7 +124,6 @@ Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md
 
 ### Alta prioridade (pré-beta ou primeiras semanas)
 - [ ] **Conectar analytics a um provider real** — PostHog ou Mixpanel; hoje só vai para `console.info` em produção
-- [ ] **Página de erro 404 e 500** — rotas desconhecidas exibem erro genérico do Next.js
 - [ ] **Recuperação de senha** — fluxo de "esqueci minha senha" não está implementado
 - [ ] **Confirmação de e-mail** — novos cadastros não recebem e-mail de verificação
 - [ ] **Rate limiting nas APIs** — sem proteção contra abuso nas rotas de chat e AI actions
