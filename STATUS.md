@@ -10,7 +10,7 @@ toda lógica de IA (chat, geração, ações, RAG) migra para um serviço FastAP
 Decisão fixada em [ADR-0001](./docs/adr/0001-fastapi-rag-split.md).
 
 **Princípios desta fase:**
-- Cut-over endpoint a endpoint, com feature flag `USE_FASTAPI_AI` no Next.
+- Cut-over endpoint a endpoint, removendo fallback legado depois de rollout estável.
 - Nada novo entra no Next em `src/lib/agents/` ou `src/lib/gemini.ts` — esses arquivos vão sumir.
 - Toda nova feature de IA é desenhada primeiro como contrato HTTP (rota FastAPI).
 - Quota e rate limit migram para Redis no FastAPI (encerra B3 e B4).
@@ -23,7 +23,7 @@ Decisão fixada em [ADR-0001](./docs/adr/0001-fastapi-rag-split.md).
 | 0.5 | Migração para monorepo (apps/web + services/ai) — ADR-0007 | concluído |
 | 1 | Bootstrap repositório `tcc-assist-ai` (FastAPI + CI + healthcheck) | concluído |
 | 2 | Quota server-side em Redis + endpoint `/v1/quota/me` + BFF Next | concluído |
-| 3 | Cut-over `/api/chat` → `POST /v1/chat` (paridade) | rollout em produção, monitoramento 1–3 dias |
+| 3 | Cut-over `/api/chat` → `POST /v1/chat` (paridade) | ✅ concluído |
 | 4 | Pipeline RAG: ingestão (PDFs + OpenAlex) + pgvector | 🔲 |
 | 5 | Cut-over `/api/gerar-tcc` → `POST /v1/generate` (com retrieval) | 🔲 |
 | 6 | Cut-over `/api/tcc/[id]/ai-action` → `POST /v1/actions/{action}` | 🔲 |
@@ -105,18 +105,19 @@ Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md
 - BFF Next `GET /api/quota/me` assina JWT interno e normaliza resposta para a UI
 - Workspace lê quota diária via BFF `GET /api/quota/me`; gate em `localStorage` removido da UI
 
-### Migração FastAPI — fase 3 (rollout em produção, monitoramento 1–3 dias)
+### Migração FastAPI — fase 3 (concluída em 2026-05-19)
 - Cliente Postgres async read-only no FastAPI (`app/db/`) — ADR-0001
 - Provider Gemini portado pra Python (`app/providers/gemini.py`) — ADR-0003
 - Templates de prompt versionados em código (`app/prompts/chat.py`)
 - Orchestrator `run_chat` + endpoint `POST /v1/chat` protegido por JWT scope=chat
-- Next BFF `/api/chat` bifurca por flag `USE_FASTAPI_AI`: ON chama FastAPI e salva bot message em Prisma; OFF mantém `runTccWorkflow` legado pra rollback
+- Next BFF `/api/chat` chama FastAPI e salva bot message em Prisma
 - Mapeamento de erros 401/403/404/422/429/502/503 com mensagens pt-BR
 - `runChat`/`getQuotaState` no Next tratam falha de rede como `ai_provider_unavailable` / `quota_unavailable` (503)
 - UI defende contra resposta de erro do BFF sem quebrar (`page.tsx:589-606`)
 - Smoke local validado: 7 cenários passaram (FREE 3/3 → 4ª bloqueada antes de `/api/chat`, F5/Redis persiste, VIP ilimitado, FastAPI down → 503, Redis down → 503, flag off comportamento legado)
 - Rollout produção ativado em 2026-05-13: `USE_FASTAPI_AI=true` na Vercel, FastAPI no Fly.io (`teseo-ai`), Redis Upstash, Postgres Prisma remoto.
 - Smoke produção validado em 2026-05-13: `/api/quota/me` 200, `/api/chat` 200, FREE bloqueia envio após limite via LimitModal.
+- T-E5 cleanup: branch legado removido, USE_FASTAPI_AI eliminado, aiox-integration.ts/.codex/agents/redator-*.md deletados.
 
 ---
 

@@ -45,7 +45,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   const { role, content, agent } = body
 
   // Only allow clients to create 'user' messages.
-  // 'bot' messages are created exclusively by server-side workflow (aiox-integration).
+  // 'bot' messages are created exclusively by the server-side chat workflow.
   if (role !== "user") {
     return NextResponse.json({ error: "Somente mensagens de usuário podem ser criadas por esta rota." }, { status: 403 })
   }
