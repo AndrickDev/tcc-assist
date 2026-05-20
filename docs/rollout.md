@@ -172,12 +172,10 @@ Investigar root cause em logs antes de tentar de novo.
 
 ## 8. Pós-validação (após 1–3 dias estáveis)
 
-Próxima tarefa: **T-E5 cleanup**.
+Concluído em **T-E5 cleanup**.
 
 Remover:
 - `apps/web/src/lib/agents/aiox-integration.ts`
-- `apps/web/src/lib/gemini.ts`
-- `apps/web/src/lib/ai/provider.ts`
 - `.codex/agents/redator-{free,pro,vip}.md`
 - Branch legado em `apps/web/src/app/api/chat/route.ts`
 - Variável `USE_FASTAPI_AI` (sempre on, sem fallback)
@@ -194,3 +192,12 @@ Atualizar `STATUS.md` fase 3 → `concluído` e fechar BL-010 / Issue #14.
 - Upstash: free tier (até 10k req/dia). Migrar para `pay-as-you-go` quando ultrapassar.
 - Vercel: plano atual sem custo adicional.
 - Gemini API: uso já existente, sem mudança.
+
+## 2026-05-19 — T-E5 cleanup
+
+Pós-rollout estável. Removido:
+- Flag `USE_FASTAPI_AI` (Vercel pode remover a env var; FastAPI continua único provedor de chat)
+- `apps/web/src/lib/agents/aiox-integration.ts`, `apps/web/src/lib/feature-flags.ts`
+- Agentes Markdown `.codex/agents/redator-{free,pro,vip}.md`
+
+Rollback agora exige redeploy da versão anterior — não há mais bifurcação por flag.
