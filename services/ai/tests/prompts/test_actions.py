@@ -70,4 +70,4 @@ def test_build_action_prompt_unknown_action_raises_value_error() -> None:
 
 def test_action_prompt_input_action_invalida_falha_validacao() -> None:
     with pytest.raises(ValidationError):
-        ActionPromptInput(action="desconhecida", plan="PRO", text="x")
+        ActionPromptInput(action="desconhecida", plan="PRO", text="x")  # type: ignore[arg-type]
