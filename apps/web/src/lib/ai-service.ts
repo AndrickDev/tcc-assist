@@ -21,6 +21,22 @@ type RunChatInput = {
   message: string
 }
 
+const ALLOWED_ACTIONS = ["revisar", "abnt", "citacoes", "proximopasso"] as const
+export type Action = (typeof ALLOWED_ACTIONS)[number]
+
+export function isAllowedAction(value: unknown): value is Action {
+  return typeof value === "string" && (ALLOWED_ACTIONS as readonly string[]).includes(value)
+}
+
+type RunActionInput = {
+  userId: string
+  plan: Plan
+  tccId: string
+  action: Action
+  text: string
+  context: string | null
+}
+
 type QuotaMeWire = {
   used: number
   limit: number
@@ -38,6 +54,10 @@ type ChatWire = {
   }
 }
 
+type ActionWire = {
+  result: string
+}
+
 export type ChatResult = {
   content: string
   agentId: string
@@ -46,6 +66,10 @@ export type ChatResult = {
     remaining: number
     resetAt: string
   }
+}
+
+export type ActionResult = {
+  result: string
 }
 
 export class QuotaExceededError extends Error {
@@ -131,6 +155,17 @@ function parseChat(payload: unknown): ChatWire {
       reset_at: quota.reset_at,
     },
   }
+}
+
+function parseAction(payload: unknown): ActionWire {
+  if (!payload || typeof payload !== "object") {
+    throw new Error("upstream_invalid_shape")
+  }
+  const candidate = payload as Partial<Record<keyof ActionWire, unknown>>
+  if (typeof candidate.result !== "string") {
+    throw new Error("upstream_invalid_shape")
+  }
+  return { result: candidate.result }
 }
 
 async function readUpstreamError(response: Response): Promise<string | null> {
@@ -258,6 +293,66 @@ export async function runChat({ userId, plan, tccId, message }: RunChatInput): P
   }
   if (response.status === 503 && upstreamError === "quota_backend_unavailable") {
     throw new Error("quota_unavailable")
+  }
+  throw new Error(`upstream_error_${response.status}`)
+}
+
+export async function runAction({
+  userId,
+  plan,
+  tccId,
+  action,
+  text,
+  context,
+}: RunActionInput): Promise<ActionResult> {
+  const token = await signInternalJwt({ sub: userId, plan, scope: "action", tccId })
+  let response: Response
+  try {
+    response = await fetch(`${getAiServiceUrl()}/v1/actions/${action}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ tcc_id: tccId, text, context }),
+      cache: "no-store",
+    })
+  } catch {
+    throw new Error("ai_provider_unavailable")
+  }
+
+  const payload = await readUpstreamPayload(response)
+  const payloadObject = isObject(payload) ? payload : null
+  if (response.status === 200) {
+    const parsed = parseAction(payload)
+    return { result: parsed.result }
+  }
+
+  const upstreamError =
+    payloadObject && typeof payloadObject.error === "string" ? payloadObject.error : null
+  if (
+    response.status === 401 &&
+    (upstreamError === "invalid_token" || upstreamError === "missing_token")
+  ) {
+    throw new Error("upstream_auth_failure")
+  }
+  if (response.status === 403 && upstreamError === "tcc_id_mismatch") {
+    throw new Error("tcc_id_mismatch")
+  }
+  if (response.status === 403 && upstreamError === "free_plan_forbidden") {
+    throw new Error("free_plan_forbidden")
+  }
+  if (response.status === 404 && upstreamError === "tcc_not_found") {
+    throw new Error("tcc_not_found")
+  }
+  if (response.status === 422) {
+    throw new Error("upstream_invalid_request")
+  }
+  if (response.status === 502 && upstreamError === "ai_provider_bad_response") {
+    throw new Error("ai_provider_bad_response")
+  }
+  if (response.status === 503 && upstreamError === "ai_provider_unavailable") {
+    throw new Error("ai_provider_unavailable")
   }
   throw new Error(`upstream_error_${response.status}`)
 }

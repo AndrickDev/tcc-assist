@@ -22,7 +22,11 @@ Status implícito por seção: itens em "Em andamento" estão sendo executados; 
 
 ## 🚧 Em andamento
 
-Nenhum item ativo no momento.
+### BL-014 — Cut-over `/api/tcc/[id]/ai-action` para `POST /v1/actions/{action}`
+- **Origem:** ADR-0001, fase 6 do roadmap.
+- **Tamanho:** M
+- **Status:** T-F1 mergeado (PR #26). T-F2 (BFF cut-over com flag) em andamento.
+- **Próximos passos:** smoke local com `USE_FASTAPI_ACTIONS=true`, depois rollout prod via Vercel env, T-F3 cleanup.
 
 ## ✅ Concluído recentemente
 

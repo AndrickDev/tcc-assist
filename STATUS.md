@@ -119,6 +119,11 @@ Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md
 - Smoke produção validado em 2026-05-13: `/api/quota/me` 200, `/api/chat` 200, FREE bloqueia envio após limite via LimitModal.
 - T-E5 cleanup: branch legado removido, USE_FASTAPI_AI eliminado, aiox-integration.ts/.codex/agents/redator-*.md deletados.
 
+### Migração FastAPI — fase 6 (em andamento)
+- T-F1: endpoint `POST /v1/actions/{action}` portado para FastAPI (concluído).
+- T-F2: Next BFF `/api/tcc/[id]/ai-action` bifurca por `USE_FASTAPI_ACTIONS` (esta task).
+- T-F3: cleanup pós-rollout (pendente).
+
 ---
 
 ## 🔲 Falta fazer
