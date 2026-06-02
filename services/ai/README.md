@@ -23,6 +23,17 @@ uv run mypy .
 uv run pytest -q
 ```
 
+## Migrations (RAG schema)
+
+Alembic owns the RAG tables (`chunks`, `embeddings`, `ingestion_jobs`). Prisma owns the product schema and is not touched by these migrations.
+
+```bash
+POSTGRES_URL=postgres://... uv run alembic upgrade head
+POSTGRES_URL=postgres://... uv run alembic downgrade base
+```
+
+Requires `pgvector` available on the target Postgres instance. The migration enables the extension if absent.
+
 ## Estrutura
 
 ```text
@@ -35,4 +46,3 @@ app/
 ├── quota/
 └── observability/
 ```
-
