@@ -25,8 +25,15 @@ Status implícito por seção: itens em "Em andamento" estão sendo executados; 
 ### BL-014 — Cut-over `/api/tcc/[id]/ai-action` para `POST /v1/actions/{action}`
 - **Origem:** ADR-0001, fase 6 do roadmap.
 - **Tamanho:** M
-- **Status:** T-F1 mergeado (PR #26). T-F2 (BFF cut-over com flag) em andamento.
-- **Próximos passos:** smoke local com `USE_FASTAPI_ACTIONS=true`, depois rollout prod via Vercel env, T-F3 cleanup.
+- **Status:** T-F1 (PR #26) e T-F2 (PR #27) mergeados em 2026-05-20. Falta flip `USE_FASTAPI_ACTIONS=true` em prod + T-F3 cleanup do legado `aiox-action`.
+- **Próximos passos:** smoke prod pós-flip, T-F3 remove `apps/web/src/lib/gemini.ts` callsites de action + flag.
+
+### BL-015 — Bootstrap Alembic + schema pgvector (fase 4 RAG)
+- **Origem:** ADR-0001, ADR-0002, fase 4 do roadmap.
+- **Tamanho:** S
+- **Status:** T-G1 brief escrito em `docs/briefs/T-G1-alembic-pgvector.md`, codex pendente.
+- **Critério de pronto:** Alembic inicializado em `services/ai/alembic/` lendo `POSTGRES_URL`. Migration `0001_rag_bootstrap.py` cria extensions `vector`+`pgcrypto`, tabelas `ingestion_jobs`/`chunks`/`embeddings`, índice IVFFlat `lists=100` cosine, dim 1024. `alembic upgrade head` + `downgrade base` validados. Sem ingestion/embedding/retrieval nesta task.
+- **Próximos passos:** T-G2 embedding provider bge-m3, T-G3 PDF ingestion, T-G4 OpenAlex ingestion, T-G5 retrieve endpoint, T-G6 hook em chat/generate.
 
 ## ✅ Concluído recentemente
 
