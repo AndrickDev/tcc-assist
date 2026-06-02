@@ -34,6 +34,19 @@ POSTGRES_URL=postgres://... uv run alembic downgrade base
 
 Requires `pgvector` available on the target Postgres instance. The migration enables the extension if absent.
 
+## Embedding provider
+
+Embeddings vao via `EmbeddingProvider` (Protocol em `app/providers/embedding.py`). Default:
+Google `text-embedding-004` (dim 768) -- ver [ADR-0008](../../docs/adr/0008-embedding-provider-mvp.md).
+
+Variaveis de ambiente:
+
+- `EMBEDDING_PROVIDER` -- `google` (default).
+- `GOOGLE_API_KEY` -- reuso da chave ja usada pelo provider Gemini.
+
+Cache em Redis (`embed:{model}:{sha256(text)}`, TTL 30 dias) amortiza embeds repetidos durante
+ingestao e retrieval. Trocar de provider invalida apenas a parte do namespace daquele modelo.
+
 ## Estrutura
 
 ```text
