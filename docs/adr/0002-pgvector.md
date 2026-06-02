@@ -1,9 +1,16 @@
 # ADR-0002 — pgvector como vector store
 
-- **Status:** Aceito
+- **Status:** Aceito (emendado em 2026-06-02)
 - **Data:** 2026-05-01
 - **Decisor:** Andrick (solo dev)
 - **Tags:** arquitetura, ia, rag, banco
+
+> **Emenda 2026-06-02 — dimensão do embedding:**
+> Dimensão original era `1024` (bge-m3 local). Para o MVP, [ADR-0008](./0008-embedding-provider-mvp.md)
+> escolheu Google `text-embedding-004` (free tier, hosted), que produz vetores de **dim 768**.
+> Migration `0001_rag_bootstrap` foi atualizada para `Vector(768)` antes do primeiro deploy.
+> Caminho de migração para dim maior (quando bge-m3 viável) descrito em ADR-0008 §"Migration path".
+> Demais parâmetros (cosine, IVFFlat lists=100, tabelas, índices) permanecem inalterados.
 
 ---
 

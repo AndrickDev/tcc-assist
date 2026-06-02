@@ -4,7 +4,10 @@ Revision ID: 0001_rag_bootstrap
 Revises:
 Create Date: 2026-06-01
 
-ADR-0002: cosine distance, dim 1024 (bge-m3), IVFFlat lists=100.
+ADR-0002 (amended 2026-06-02): cosine distance, dim 768 (Google
+text-embedding-004 for MVP), IVFFlat lists=100. Original ADR-0002 specified
+dim 1024 (bge-m3 local); see ADR-0008 for the MVP provider decision and the
+documented migration path to a higher-dim model when budget permits.
 """
 from __future__ import annotations
 
@@ -124,7 +127,7 @@ def upgrade() -> None:
         ),
         sa.Column("model", sa.Text(), nullable=False),
         sa.Column("dim", sa.Integer(), nullable=False),
-        sa.Column("vector", Vector(1024), nullable=False),
+        sa.Column("vector", Vector(768), nullable=False),
         sa.Column(
             "created_at",
             sa.TIMESTAMP(timezone=True),
