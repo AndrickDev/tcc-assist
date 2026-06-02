@@ -18,7 +18,7 @@ Estado atual do projeto:
 - Fase 4 (RAG) é a primeira em que o serviço FastAPI passa a fazer trabalho não-trivial
   além de orchestrar o Gemini.
 - ADR-0007 fixou a VM Fly atual em 256 MB (US$5/mês). Aumentar agora consome runway sem retorno.
-- Já existe `GEMINI_API_KEY` em produção (chat funcional desde 2026-05-13). Google
+- Já existe `GOOGLE_API_KEY` em produção (chat funcional desde 2026-05-13). Google
   Generative AI API oferece `text-embedding-004` no mesmo billing/account.
 
 A pergunta: gastar US$15–30/mês adicional agora para honrar a escolha ideal de modelo,
@@ -27,7 +27,7 @@ ou ajustar a escolha ao orçamento e re-avaliar quando houver receita?
 ## Decisão
 
 Adotar **Google `text-embedding-004`** como provider de embeddings do MVP, acessado via HTTP
-com a mesma `GEMINI_API_KEY` já configurada.
+com a mesma `GOOGLE_API_KEY` já configurada.
 
 - **Modelo:** `models/text-embedding-004` (Google Generative AI API).
 - **Dimensão:** 768 (fixa). ADR-0002 emendado para `Vector(768)` antes do primeiro deploy.
@@ -41,7 +41,7 @@ com a mesma `GEMINI_API_KEY` já configurada.
 ### Positivas
 - **US$0/mês adicional até bater free tier.** Mantém runway pra outras fases.
 - **Zero infra extra.** VM Fly 256 MB continua suficiente — nada de modelo residente.
-- **Reuso de credencial.** `GEMINI_API_KEY` já gerenciada, monitorada e rotacionável.
+- **Reuso de credencial.** `GOOGLE_API_KEY` já gerenciada, monitorada e rotacionável.
 - **Latência aceitável.** ~150 ms p95 por chamada de embed; somado a ~20 ms de pgvector
   e ~2–5 s de geração Gemini, o retrieval some no ruído do LLM.
 - **Cache Redis amortiza burst.** T-G2 inclui cache `embed:{model}:{sha256(text)}` com TTL
