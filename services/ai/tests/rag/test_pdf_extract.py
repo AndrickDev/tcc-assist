@@ -1,3 +1,5 @@
+import io
+
 import pytest
 import respx
 
@@ -5,43 +7,15 @@ from app.rag import pdf_extract
 
 
 def _pdf_bytes(pages: list[str]) -> bytes:
-    kids = " ".join(f"{3 + index * 2} 0 R" for index in range(len(pages)))
-    objects: list[bytes] = [
-        b"<< /Type /Catalog /Pages 2 0 R >>",
-        f"<< /Type /Pages /Kids {kids} /Count {len(pages)} >>".encode(),
-    ]
-    for index, text in enumerate(pages):
-        page_obj = 3 + index * 2
-        content_obj = page_obj + 1
-        escaped = text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
-        stream = f"BT /F1 24 Tf 72 720 Td ({escaped}) Tj ET".encode()
-        objects.append(
-            f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] "
-            f"/Resources << /Font << /F1 << /Type /Font /Subtype /Type1 "
-            f"/BaseFont /Helvetica >> >> >> "
-            f"/Contents {content_obj} 0 R >>".encode()
-        )
-        objects.append(
-            b"<< /Length "
-            + str(len(stream)).encode()
-            + b" >>\nstream\n"
-            + stream
-            + b"\nendstream"
-        )
-
-    body = b"%PDF-1.4\n"
-    offsets = [0]
-    for number, payload in enumerate(objects, start=1):
-        offsets.append(len(body))
-        body += f"{number} 0 obj\n".encode() + payload + b"\nendobj\n"
-    xref_at = len(body)
-    xref = f"xref\n0 {len(objects) + 1}\n0000000000 65535 f \n".encode()
-    xref += b"".join(f"{offset:010d} 00000 n \n".encode() for offset in offsets[1:])
-    trailer = (
-        f"trailer\n<< /Size {len(objects) + 1} /Root 1 0 R >>\n"
-        f"startxref\n{xref_at}\n%%EOF\n"
-    ).encode()
-    return body + xref + trailer
+    """Generate a valid PDF using reportlab. Test-only dependency."""
+    reportlab_canvas = pytest.importorskip("reportlab.pdfgen.canvas")
+    buffer = io.BytesIO()
+    pdf = reportlab_canvas.Canvas(buffer)
+    for text in pages:
+        pdf.drawString(72, 720, text)
+        pdf.showPage()
+    pdf.save()
+    return buffer.getvalue()
 
 
 @respx.mock
