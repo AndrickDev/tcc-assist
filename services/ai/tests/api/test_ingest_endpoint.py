@@ -173,6 +173,157 @@ def test_post_pdf_mime_nao_pdf_retorna_415(monkeypatch: pytest.MonkeyPatch) -> N
     assert response.json() == {"detail": "unsupported_mime_type"}
 
 
+def test_post_reference_202(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("INTERNAL_JWT_SECRET", SECRET)
+    job_id = uuid4()
+
+    async def fetch_reference_for_ingest(
+        pool: asyncpg.Pool,
+        *,
+        reference_id: str,
+        tcc_id: str,
+    ) -> dict[str, str] | None:
+        return {
+            "id": reference_id,
+            "title": "Titulo",
+            "abstract": "Resumo",
+            "external_id": "W123",
+            "source": "openalex",
+        }
+
+    async def create_ingestion_job(
+        pool: asyncpg.Pool,
+        *,
+        tcc_id: str,
+        source_type: repository.SourceType,
+        source_ref: str,
+    ) -> UUID:
+        assert tcc_id == "tcc-1"
+        assert source_type == "openalex"
+        assert source_ref == "ref-1"
+        return job_id
+
+    async def run_reference_ingestion(**kwargs: object) -> None:
+        return None
+
+    monkeypatch.setattr(repository, "fetch_reference_for_ingest", fetch_reference_for_ingest)
+    monkeypatch.setattr(repository, "create_ingestion_job", create_ingestion_job)
+    monkeypatch.setattr(ingest, "run_reference_ingestion", run_reference_ingestion)
+
+    response = _client().post(
+        "/v1/ingest/reference",
+        json={"reference_id": "ref-1"},
+        headers={"Authorization": f"Bearer {_make_token()}"},
+    )
+
+    assert response.status_code == 202
+    assert response.json() == {"job_id": str(job_id), "status": "pending"}
+
+
+def test_post_reference_404_quando_reference_nao_existe(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("INTERNAL_JWT_SECRET", SECRET)
+
+    async def fetch_reference_for_ingest(
+        pool: asyncpg.Pool,
+        *,
+        reference_id: str,
+        tcc_id: str,
+    ) -> dict[str, str] | None:
+        return None
+
+    monkeypatch.setattr(repository, "fetch_reference_for_ingest", fetch_reference_for_ingest)
+
+    response = _client().post(
+        "/v1/ingest/reference",
+        json={"reference_id": "ref-missing"},
+        headers={"Authorization": f"Bearer {_make_token()}"},
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "reference_not_found"}
+
+
+def test_post_reference_404_quando_tcc_diferente(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("INTERNAL_JWT_SECRET", SECRET)
+
+    async def fetch_reference_for_ingest(
+        pool: asyncpg.Pool,
+        *,
+        reference_id: str,
+        tcc_id: str,
+    ) -> dict[str, str] | None:
+        assert tcc_id == "tcc-2"
+        return None
+
+    monkeypatch.setattr(repository, "fetch_reference_for_ingest", fetch_reference_for_ingest)
+
+    response = _client().post(
+        "/v1/ingest/reference",
+        json={"reference_id": "ref-1"},
+        headers={"Authorization": f"Bearer {_make_token(tcc_id='tcc-2')}"},
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "reference_not_found"}
+
+
+def test_post_reference_422_quando_abstract_null(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("INTERNAL_JWT_SECRET", SECRET)
+
+    async def fetch_reference_for_ingest(
+        pool: asyncpg.Pool,
+        *,
+        reference_id: str,
+        tcc_id: str,
+    ) -> dict[str, str] | None:
+        return {
+            "id": reference_id,
+            "title": "Titulo",
+            "abstract": "",
+            "external_id": "W123",
+            "source": "openalex",
+        }
+
+    monkeypatch.setattr(repository, "fetch_reference_for_ingest", fetch_reference_for_ingest)
+
+    response = _client().post(
+        "/v1/ingest/reference",
+        json={"reference_id": "ref-1"},
+        headers={"Authorization": f"Bearer {_make_token()}"},
+    )
+
+    assert response.status_code == 422
+    assert response.json() == {"detail": "reference_abstract_missing"}
+
+
+def test_post_reference_sem_tcc_id_retorna_401(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("INTERNAL_JWT_SECRET", SECRET)
+
+    response = _client().post(
+        "/v1/ingest/reference",
+        json={"reference_id": "ref-1"},
+        headers={"Authorization": f"Bearer {_make_token(tcc_id=None)}"},
+    )
+
+    assert response.status_code == 401
+    assert response.json() == {"error": "invalid_token", "detail": "missing_tcc_id"}
+
+
+def test_post_reference_401_quando_scope_errado(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("INTERNAL_JWT_SECRET", SECRET)
+
+    response = _client().post(
+        "/v1/ingest/reference",
+        json={"reference_id": "ref-1"},
+        headers={"Authorization": f"Bearer {_make_token(scope='chat')}"},
+    )
+
+    assert response.status_code == 401
+    assert response.json() == {"error": "invalid_token", "detail": "scope_mismatch"}
+
+
 def test_get_status_happy(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("INTERNAL_JWT_SECRET", SECRET)
     job_id = uuid4()

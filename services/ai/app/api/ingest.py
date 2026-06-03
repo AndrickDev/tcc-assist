@@ -26,9 +26,16 @@ class IngestPdfRequest(BaseModel):
     attachment_id: str
 
 
-class IngestPdfResponse(BaseModel):
+class IngestReferenceRequest(BaseModel):
+    reference_id: str
+
+
+class IngestJobResponse(BaseModel):
     job_id: str
     status: str
+
+
+IngestPdfResponse = IngestJobResponse
 
 
 class IngestStatusResponse(BaseModel):
@@ -43,7 +50,7 @@ class IngestStatusResponse(BaseModel):
 
 @router.post(
     "/pdf",
-    response_model=IngestPdfResponse,
+    response_model=IngestJobResponse,
     status_code=status.HTTP_202_ACCEPTED,
 )
 async def post_pdf(
@@ -52,7 +59,7 @@ async def post_pdf(
     pool: Annotated[asyncpg.Pool, Depends(get_pool_dep)],
     redis: Annotated[Redis, Depends(get_redis_dep)],
     provider: Annotated[EmbeddingProvider, Depends(get_embedding_provider)],
-) -> IngestPdfResponse:
+) -> IngestJobResponse:
     if not claims.tcc_id:
         raise HTTPException(status_code=400, detail="tcc_id_missing")
     attachment = await repository.fetch_attachment_url(
@@ -79,7 +86,50 @@ async def post_pdf(
             file_url=attachment["file_url"],
         )
     )
-    return IngestPdfResponse(job_id=str(job_id), status="pending")
+    return IngestJobResponse(job_id=str(job_id), status="pending")
+
+
+@router.post(
+    "/reference",
+    response_model=IngestJobResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def post_reference(
+    body: IngestReferenceRequest,
+    claims: Annotated[InternalClaims, Depends(require_scope("ingest"))],
+    pool: Annotated[asyncpg.Pool, Depends(get_pool_dep)],
+    redis: Annotated[Redis, Depends(get_redis_dep)],
+    provider: Annotated[EmbeddingProvider, Depends(get_embedding_provider)],
+) -> IngestJobResponse:
+    if not claims.tcc_id:
+        raise HTTPException(status_code=400, detail="tcc_id_missing")
+    reference = await repository.fetch_reference_for_ingest(
+        pool, reference_id=body.reference_id, tcc_id=claims.tcc_id
+    )
+    if not reference:
+        raise HTTPException(status_code=404, detail="reference_not_found")
+    if not reference["abstract"]:
+        raise HTTPException(status_code=422, detail="reference_abstract_missing")
+
+    job_id = await repository.create_ingestion_job(
+        pool,
+        tcc_id=claims.tcc_id,
+        source_type="openalex",
+        source_ref=body.reference_id,
+    )
+    asyncio.create_task(
+        ingest.run_reference_ingestion(
+            pool=pool,
+            redis=redis,
+            provider=provider,
+            job_id=job_id,
+            tcc_id=claims.tcc_id,
+            reference_id=body.reference_id,
+            title=reference["title"],
+            abstract=reference["abstract"],
+        )
+    )
+    return IngestJobResponse(job_id=str(job_id), status="pending")
 
 
 @router.get("/{job_id}", response_model=IngestStatusResponse)
