@@ -70,6 +70,18 @@ def test_decode_ingest_token_com_tcc_id_retorna_claims(monkeypatch: pytest.Monke
     assert claims.tcc_id == "tcc-1"
 
 
+def test_decode_retrieve_token_com_tcc_id_retorna_claims(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("INTERNAL_JWT_SECRET", SECRET)
+    token = _make_token(scope="retrieve", tccId="tcc-1")
+
+    claims = decode_internal_jwt(token, expected_scope="retrieve")
+
+    assert claims.scope == "retrieve"
+    assert claims.tcc_id == "tcc-1"
+
+
 def test_decode_assinatura_errada_levanta_bad_signature(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -136,6 +148,18 @@ def test_decode_chat_sem_tcc_id_levanta_missing_tcc_id(
 
     with pytest.raises(InvalidToken) as exc_info:
         decode_internal_jwt(token, expected_scope="chat")
+
+    assert exc_info.value.detail == "missing_tcc_id"
+
+
+def test_decode_retrieve_sem_tcc_id_levanta_missing_tcc_id(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("INTERNAL_JWT_SECRET", SECRET)
+    token = _make_token(scope="retrieve")
+
+    with pytest.raises(InvalidToken) as exc_info:
+        decode_internal_jwt(token, expected_scope="retrieve")
 
     assert exc_info.value.detail == "missing_tcc_id"
 

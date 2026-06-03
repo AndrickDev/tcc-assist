@@ -1,3 +1,4 @@
+from typing import cast
 from uuid import uuid4
 
 import asyncpg
@@ -56,6 +57,39 @@ async def _ensure_rag_schema(pool: asyncpg.Pool) -> None:
         );
         TRUNCATE embeddings, chunks, ingestion_jobs, "Attachment" RESTART IDENTITY CASCADE;
         """
+    )
+
+
+def _vector(cosine: float) -> list[float]:
+    sine = (1.0 - cosine * cosine) ** 0.5
+    return [cosine, sine, *([0.0] * 766)]
+
+
+async def _seed_chunks(
+    pool: asyncpg.Pool,
+    *,
+    tcc_id: str,
+    source_type: repository.SourceType,
+    source_ref: str,
+    vectors: list[list[float]],
+) -> None:
+    job_id = await repository.create_ingestion_job(
+        pool,
+        tcc_id=tcc_id,
+        source_type=source_type,
+        source_ref=source_ref,
+    )
+    await repository.insert_chunks_with_embeddings(
+        pool,
+        job_id=job_id,
+        tcc_id=tcc_id,
+        source_type=source_type,
+        source_ref=source_ref,
+        chunks=[f"{source_type}-{index}" for index, _ in enumerate(vectors)],
+        vectors=vectors,
+        model="test-model",
+        dim=768,
+        token_counts=[1 for _ in vectors],
     )
 
 
@@ -205,3 +239,124 @@ async def test_fetch_reference_for_ingest_null_abstract(postgres_pool: asyncpg.P
 
     assert row is not None
     assert row["abstract"] == ""
+
+
+async def test_search_similar_chunks_top_k_e_ordenacao(
+    postgres_pool: asyncpg.Pool,
+) -> None:
+    await _ensure_rag_schema(postgres_pool)
+    await _seed_chunks(
+        postgres_pool,
+        tcc_id="tcc-1",
+        source_type="pdf",
+        source_ref="att-1",
+        vectors=[_vector(0.95), _vector(0.80), _vector(0.60), _vector(0.40), _vector(0.20)],
+    )
+
+    rows = await repository.search_similar_chunks(
+        postgres_pool,
+        tcc_id="tcc-1",
+        query_vector=_vector(1.0),
+        top_k=3,
+    )
+    scores = [float(cast(float, row["score"])) for row in rows]
+
+    assert len(rows) == 3
+    assert scores == sorted(scores, reverse=True)
+    assert all(0.0 < score <= 1.0 for score in scores)
+
+
+async def test_search_similar_chunks_filtra_por_source_type(
+    postgres_pool: asyncpg.Pool,
+) -> None:
+    await _ensure_rag_schema(postgres_pool)
+    await _seed_chunks(
+        postgres_pool,
+        tcc_id="tcc-1",
+        source_type="pdf",
+        source_ref="att-1",
+        vectors=[_vector(0.95), _vector(0.85), _vector(0.75)],
+    )
+    await _seed_chunks(
+        postgres_pool,
+        tcc_id="tcc-1",
+        source_type="openalex",
+        source_ref="ref-1",
+        vectors=[_vector(0.99), _vector(0.98), _vector(0.97)],
+    )
+
+    rows = await repository.search_similar_chunks(
+        postgres_pool,
+        tcc_id="tcc-1",
+        query_vector=_vector(1.0),
+        top_k=6,
+        source_types=["pdf"],
+    )
+
+    assert len(rows) == 3
+    assert {row["source_type"] for row in rows} == {"pdf"}
+
+
+async def test_search_similar_chunks_isola_por_tcc(postgres_pool: asyncpg.Pool) -> None:
+    await _ensure_rag_schema(postgres_pool)
+    await _seed_chunks(
+        postgres_pool,
+        tcc_id="tcc-A",
+        source_type="pdf",
+        source_ref="att-A",
+        vectors=[_vector(0.80), _vector(0.70)],
+    )
+    await _seed_chunks(
+        postgres_pool,
+        tcc_id="tcc-B",
+        source_type="pdf",
+        source_ref="att-B",
+        vectors=[_vector(0.99), _vector(0.98)],
+    )
+
+    rows = await repository.search_similar_chunks(
+        postgres_pool,
+        tcc_id="tcc-A",
+        query_vector=_vector(1.0),
+        top_k=4,
+    )
+
+    assert len(rows) == 2
+    assert {row["tcc_id"] for row in rows} == {"tcc-A"}
+
+
+async def test_search_similar_chunks_sem_dados_retorna_vazio(
+    postgres_pool: asyncpg.Pool,
+) -> None:
+    await _ensure_rag_schema(postgres_pool)
+
+    rows = await repository.search_similar_chunks(
+        postgres_pool,
+        tcc_id="tcc-empty",
+        query_vector=_vector(1.0),
+        top_k=3,
+    )
+
+    assert rows == []
+
+
+async def test_search_similar_chunks_top_k_zero_ou_negativo_retorna_vazio(
+    postgres_pool: asyncpg.Pool,
+) -> None:
+    await _ensure_rag_schema(postgres_pool)
+
+    zero = await repository.search_similar_chunks(
+        postgres_pool,
+        tcc_id="tcc-1",
+        query_vector=_vector(1.0),
+        top_k=0,
+    )
+    negative = await repository.search_similar_chunks(
+        postgres_pool,
+        tcc_id="tcc-1",
+        query_vector=_vector(1.0),
+        top_k=-1,
+    )
+
+    assert zero == []
+    assert negative == []
