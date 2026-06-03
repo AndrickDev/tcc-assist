@@ -24,7 +24,7 @@ Decisão fixada em [ADR-0001](./docs/adr/0001-fastapi-rag-split.md).
 | 1 | Bootstrap repositório `tcc-assist-ai` (FastAPI + CI + healthcheck) | concluído |
 | 2 | Quota server-side em Redis + endpoint `/v1/quota/me` + BFF Next | concluído |
 | 3 | Cut-over `/api/chat` → `POST /v1/chat` (paridade) | ✅ concluído |
-| 4 | Pipeline RAG: ingestão (PDFs + OpenAlex) + pgvector | 🔲 |
+| 4 | Pipeline RAG: ingestão (PDFs + OpenAlex) + pgvector | concluído |
 | 5 | Cut-over `/api/gerar-tcc` → `POST /v1/generate` (com retrieval) | 🔲 |
 | 6 | Cut-over `/api/tcc/[id]/ai-action` → `POST /v1/actions/{action}` | 🔲 |
 | 7 | Stripe `subscription` + idempotência do webhook | 🔲 |
@@ -120,9 +120,18 @@ Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md
 - T-E5 cleanup: branch legado removido, USE_FASTAPI_AI eliminado, aiox-integration.ts/.codex/agents/redator-*.md deletados.
 
 ### Migração FastAPI — fase 6 (em andamento)
-- T-F1: endpoint `POST /v1/actions/{action}` portado para FastAPI (concluído).
-- T-F2: Next BFF `/api/tcc/[id]/ai-action` bifurca por `USE_FASTAPI_ACTIONS` (esta task).
-- T-F3: cleanup pós-rollout (pendente).
+- T-F1: endpoint `POST /v1/actions/{action}` portado para FastAPI (concluído, PR #26).
+- T-F2: Next BFF `/api/tcc/[id]/ai-action` bifurca por `USE_FASTAPI_ACTIONS` (concluído, PR #27).
+- T-F3: cleanup pós-rollout (pendente — depende de flip `USE_FASTAPI_ACTIONS=true` em prod).
+
+### Migração FastAPI — fase 4 RAG (concluída em 2026-06-03)
+- T-G1: Alembic + extension pgvector + tabelas `chunks`/`embeddings`/`ingestion_jobs`, IVFFlat cosine `lists=100`, dim 768 (PR #28).
+- T-G2/T-G2.1: `EmbeddingProvider` Protocol + `GoogleEmbeddingProvider` (modelo `gemini-embedding-001`, dim 768 via Matryoshka `outputDimensionality`, L2 norm client-side), cache Redis `embed:{model}:{sha256}` TTL 30d, factory env-driven, backoff exponencial 4 tentativas com jitter (PRs #30, #31).
+- T-G3/T-G3.1: pipeline de ingestão PDF (download Vercel Blob 25MB cap, pypdf lazy import, chunker char-based 1500/150 overlap, repository raw asyncpg + `::vector` cast, ingest orchestrator com status `pending→running→done|failed`, endpoint `POST /v1/ingest/pdf` 202 + `GET /v1/ingest/{job_id}`, scope JWT `ingest`). Fixture PDF via `reportlab` (PRs #32, #33).
+- T-G4: ingestão de OpenAlex abstracts (`POST /v1/ingest/reference` lendo `Reference.title` + `Reference.abstract`, `source_type='openalex'`, 422 quando abstract null) (PR #34).
+- T-G5: `POST /v1/retrieve` com pgvector cosine `<=>`, score `1 - distance`, top_k default 8 / max 50, filtro opcional `source_types`, scope JWT `retrieve` (PR #35).
+- T-G6: hook RAG no orchestrator do chat — `retrieve_for_chat` em paralelo com refs/messages, threshold 0.5, top_k 5, char budget 6000, bloco `CONTEXTO RECUPERADO` injetado entre references e conversation, `ChatResult.citations`. Falha de retrieval silenciada (warning + lista vazia) — chat segue sem RAG (PR #36).
+- T-G7/T-G7.1: docker-compose dev com `pgvector/pgvector:pg16` + smoke E2E (`services/ai/dev/smoke_e2e.py` cobre ingest → retrieve → chat com citações) validado contra Gemini real em 2026-06-03 (PRs #37, #38).
 
 ---
 
