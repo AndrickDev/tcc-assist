@@ -68,6 +68,15 @@ concatena, chunka e embeda. Sem download HTTP. Polling de status segue o mesmo
 `GET /v1/ingest/{job_id}`. `source_type` registrado em `ingestion_jobs` e `chunks` eh
 `openalex` para todos os abstracts, independente do `Reference.source` upstream.
 
+## RAG retrieval
+
+Query top-k via `POST /v1/retrieve` com body `{"query": "...", "top_k": 8,
+"source_types": ["pdf", "openalex"]}`. Auth JWT interno, `scope=retrieve` + `tcc_id`.
+Embedding da query passa pelo mesmo cache Redis (T-G2). Busca usa pgvector com cosine
+distance (operator `<=>`); score = `1 - distance` em [0, 1] porque os vetores sao
+normalizados L2 client-side. `source_types` opcional filtra por origem (`pdf` ou
+`openalex`). Sem `source_types`, busca em ambos.
+
 ## Estrutura
 
 ```text

@@ -69,6 +69,44 @@ def _format_vector(vector: Sequence[float]) -> str:
     return "[" + ",".join(f"{v:.8f}" for v in vector) + "]"
 
 
+async def search_similar_chunks(
+    pool: asyncpg.Pool,
+    *,
+    tcc_id: str,
+    query_vector: Sequence[float],
+    top_k: int,
+    source_types: Sequence[str] | None = None,
+) -> list[dict[str, object]]:
+    """Top-k chunks by cosine similarity for the given tcc.
+
+    Vetores armazenados sao normalizados (T-G2.1), portanto
+    1 - cosine_distance fica em [0, 1], com 1 = match perfeito.
+    """
+    if top_k <= 0:
+        return []
+    vector_str = _format_vector(query_vector)
+    types_filter = list(source_types) if source_types else None
+    query = """
+        SELECT
+            c.id AS chunk_id,
+            c.tcc_id,
+            c.source_type,
+            c.source_ref,
+            c.ordinal,
+            c.content,
+            c.metadata,
+            1 - (e.vector <=> $1::vector) AS score
+        FROM embeddings e
+        JOIN chunks c ON c.id = e.chunk_id
+        WHERE c.tcc_id = $2
+          AND ($3::text[] IS NULL OR c.source_type = ANY($3::text[]))
+        ORDER BY e.vector <=> $1::vector
+        LIMIT $4
+    """
+    rows = await pool.fetch(query, vector_str, tcc_id, types_filter, top_k)
+    return [dict(row) for row in rows]
+
+
 async def insert_chunks_with_embeddings(
     pool: asyncpg.Pool,
     *,

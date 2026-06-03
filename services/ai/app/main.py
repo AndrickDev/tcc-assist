@@ -10,6 +10,7 @@ from app.api.chat import router as chat_router
 from app.api.health import router as health_router
 from app.api.ingest import router as ingest_router
 from app.api.quota import router as quota_router
+from app.api.retrieve import router as retrieve_router
 from app.auth.exceptions import InvalidToken, MissingToken
 from app.db.pool import close_pool
 from app.observability.logging import configure_logging
@@ -97,6 +98,7 @@ def create_app() -> FastAPI:
     app.include_router(chat_router, prefix="/v1")
     app.include_router(actions_router, prefix="/v1")
     app.include_router(ingest_router)
+    app.include_router(retrieve_router)
     return app
 
 

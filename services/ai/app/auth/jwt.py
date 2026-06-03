@@ -7,12 +7,14 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from app.auth.exceptions import InvalidToken
 
-Scope: TypeAlias = Literal["chat", "generate", "action", "quota", "ingest"]
+Scope: TypeAlias = Literal["chat", "generate", "action", "quota", "ingest", "retrieve"]
 Plan: TypeAlias = Literal["FREE", "PRO", "VIP"]
 
 _ISSUER = "tcc-assist-web"
 _AUDIENCE = "tcc-assist-ai"
-_SCOPES_WITH_TCC_ID: frozenset[Scope] = frozenset({"chat", "generate", "action", "ingest"})
+_SCOPES_WITH_TCC_ID: frozenset[Scope] = frozenset(
+    {"chat", "generate", "action", "ingest", "retrieve"}
+)
 
 
 class InternalClaims(BaseModel):
