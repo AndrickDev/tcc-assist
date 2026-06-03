@@ -52,6 +52,15 @@ Variaveis de ambiente:
 Cache em Redis (`embed:{model}:{sha256(text)}`, TTL 30 dias) amortiza embeds repetidos durante
 ingestao e retrieval. Trocar de provider invalida apenas a parte do namespace daquele modelo.
 
+## RAG ingestion
+
+PDFs are ingested via `POST /v1/ingest/pdf` with body `{"attachment_id": "..."}`. Auth uses
+the internal JWT with `scope=ingest` and the target `tcc_id`. Endpoint returns 202 + job_id;
+work runs as a background task and the client polls `GET /v1/ingest/{job_id}` for status
+(`pending` -> `running` -> `done`/`failed`). Chunks are 1500 chars (aprox. 375 tokens) with
+150 char overlap. Embeddings go through the configured `EmbeddingProvider` and are stored in
+`chunks` + `embeddings` (RAG schema, ADR-0002).
+
 ## Estrutura
 
 ```text

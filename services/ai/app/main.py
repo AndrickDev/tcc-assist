@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from app.api.actions import router as actions_router
 from app.api.chat import router as chat_router
 from app.api.health import router as health_router
+from app.api.ingest import router as ingest_router
 from app.api.quota import router as quota_router
 from app.auth.exceptions import InvalidToken, MissingToken
 from app.db.pool import close_pool
@@ -95,6 +96,7 @@ def create_app() -> FastAPI:
     app.include_router(quota_router, prefix="/v1")
     app.include_router(chat_router, prefix="/v1")
     app.include_router(actions_router, prefix="/v1")
+    app.include_router(ingest_router)
     return app
 
 

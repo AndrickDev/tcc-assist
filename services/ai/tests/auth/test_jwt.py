@@ -60,6 +60,16 @@ def test_decode_chat_token_com_tcc_id_retorna_claims(monkeypatch: pytest.MonkeyP
     assert claims.tcc_id == "tcc-1"
 
 
+def test_decode_ingest_token_com_tcc_id_retorna_claims(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("INTERNAL_JWT_SECRET", SECRET)
+    token = _make_token(scope="ingest", tccId="tcc-1")
+
+    claims = decode_internal_jwt(token, expected_scope="ingest")
+
+    assert claims.scope == "ingest"
+    assert claims.tcc_id == "tcc-1"
+
+
 def test_decode_assinatura_errada_levanta_bad_signature(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
