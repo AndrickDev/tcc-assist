@@ -28,17 +28,15 @@ Status implícito por seção: itens em "Em andamento" estão sendo executados; 
 - **Status:** T-F1 (PR #26) e T-F2 (PR #27) mergeados em 2026-05-20. Falta flip `USE_FASTAPI_ACTIONS=true` em prod + T-F3 cleanup do legado `aiox-action`.
 - **Próximos passos:** smoke prod pós-flip, T-F3 remove `apps/web/src/lib/gemini.ts` callsites de action + flag.
 
-### BL-015 — Bootstrap Alembic + schema pgvector (fase 4 RAG)
-- **Origem:** ADR-0001, ADR-0002, fase 4 do roadmap.
-- **Tamanho:** S
-- **Status:** T-G1 brief escrito em `docs/briefs/T-G1-alembic-pgvector.md`, codex pendente.
-- **Critério de pronto:** Alembic inicializado em `services/ai/alembic/` lendo `POSTGRES_URL`. Migration `0001_rag_bootstrap.py` cria extensions `vector`+`pgcrypto`, tabelas `ingestion_jobs`/`chunks`/`embeddings`, índice IVFFlat `lists=100` cosine, dim 1024. `alembic upgrade head` + `downgrade base` validados. Sem ingestion/embedding/retrieval nesta task.
-- **Próximos passos:** T-G2 embedding provider bge-m3, T-G3 PDF ingestion, T-G4 OpenAlex ingestion, T-G5 retrieve endpoint, T-G6 hook em chat/generate.
-
 ## ✅ Concluído recentemente
 
+### BL-015 — Pipeline RAG completo (fase 4 do roadmap)
+- **Status:** concluído em 2026-06-03. T-G1 (schema pgvector dim 768, PR #28) + T-G2/T-G2.1 (`EmbeddingProvider` com `gemini-embedding-001`, MRL 768, L2 norm, cache Redis, PRs #30/#31) + T-G3/T-G3.1 (PDF ingestion, scope JWT `ingest`, fixture `reportlab`, PRs #32/#33) + T-G4 (OpenAlex abstract ingestion, PR #34) + T-G5 (`POST /v1/retrieve` com pgvector cosine top-k, scope `retrieve`, PR #35) + T-G6 (hook RAG no `run_chat` com `ChatResult.citations`, PR #36) + T-G7/T-G7.1 (docker-compose dev + smoke E2E real, PRs #37/#38).
+- **Decisão de provider:** `bge-m3` local trocado por Google `gemini-embedding-001` MRL 768 (ADR-0008) — runway zero adicional, free tier 1500 RPM, latência ~150-400ms p95.
+- **Smoke E2E validado:** ingest reference → retrieve score 0.77 → chat FREE com citações `[1]` referenciando o chunk recuperado.
+
 ### BL-010 — Cut-over `/api/chat` para `POST /v1/chat` no FastAPI
-- **Status:** ✅ concluído em 2026-05-19. Rollout prod ativado 2026-05-13, monitoramento sem incidentes. T-E5 removeu flag USE_FASTAPI_AI, branch legado em /api/chat, aiox-integration.ts, agentes .codex/agents/*.md.
+- **Status:** concluído em 2026-05-19. Rollout prod ativado 2026-05-13, monitoramento sem incidentes. T-E5 removeu flag USE_FASTAPI_AI, branch legado em /api/chat, aiox-integration.ts, agentes .codex/agents/*.md.
 
 ---
 
