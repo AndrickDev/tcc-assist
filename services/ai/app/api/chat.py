@@ -11,7 +11,8 @@ from app.api.quota import get_redis_dep
 from app.auth.deps import require_scope
 from app.auth.jwt import InternalClaims
 from app.db.deps import get_pool_dep
-from app.orchestrator.chat import ChatQuotaState, run_chat
+from app.orchestrator.chat import ChatCitation, ChatQuotaState, run_chat
+from app.providers.embedding import EmbeddingProvider, get_embedding_provider
 
 router = APIRouter(tags=["chat"])
 
@@ -29,6 +30,7 @@ class ChatResponse(BaseModel):
     content: str
     agent_id: str
     quota: ChatQuotaState
+    citations: list[ChatCitation] = Field(default_factory=list)
 
     @field_serializer("quota")
     def serialize_quota(self, quota: ChatQuotaState) -> dict[str, int | str]:
@@ -45,6 +47,7 @@ async def chat(
     claims: Annotated[InternalClaims, Depends(require_scope("chat"))],
     pool: Annotated[asyncpg.Pool, Depends(get_pool_dep)],
     redis_client: Annotated[Redis, Depends(get_redis_dep)],
+    provider: Annotated[EmbeddingProvider, Depends(get_embedding_provider)],
 ) -> ChatResponse | JSONResponse:
     if claims.tcc_id != request.tcc_id:
         return JSONResponse(status_code=403, content={"error": "tcc_id_mismatch"})
@@ -52,12 +55,18 @@ async def chat(
     result = await run_chat(
         pool=pool,
         redis_client=redis_client,
+        provider=provider,
         user_id=claims.sub,
         plan=claims.plan,
         tcc_id=request.tcc_id,
         message=request.message,
     )
-    return ChatResponse(content=result.content, agent_id=result.agent_id, quota=result.quota)
+    return ChatResponse(
+        content=result.content,
+        agent_id=result.agent_id,
+        quota=result.quota,
+        citations=result.citations,
+    )
 
 
 def _format_datetime(value: datetime) -> str:

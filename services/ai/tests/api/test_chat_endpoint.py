@@ -1,4 +1,4 @@
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
 from datetime import UTC, datetime, timedelta
 from typing import cast
 
@@ -14,9 +14,18 @@ from redis.asyncio import Redis
 from app.api.quota import get_redis_dep
 from app.db.deps import get_pool_dep
 from app.main import create_app
+from app.providers.embedding import EmbeddingProvider, EmbedResult, get_embedding_provider
 from app.providers.gemini import GEMINI_BASE_URL, GEMINI_MODEL
 
 SECRET = "test-secret-with-at-least-32-bytes"
+
+
+class FakeEmbeddingProvider:
+    model = "test-model"
+    dim = 3
+
+    async def embed(self, texts: Sequence[str]) -> EmbedResult:
+        return EmbedResult(model=self.model, dim=self.dim, vectors=[[1.0, 0.0, 0.0]])
 
 
 @pytest.fixture
@@ -60,6 +69,10 @@ def _client_with_deps(pool: asyncpg.Pool, redis_client: Redis) -> TestClient:
     app = create_app()
     app.dependency_overrides[get_pool_dep] = lambda: pool
     app.dependency_overrides[get_redis_dep] = lambda: redis_client
+    app.dependency_overrides[get_embedding_provider] = lambda: cast(
+        EmbeddingProvider,
+        FakeEmbeddingProvider(),
+    )
     return TestClient(app)
 
 
@@ -67,6 +80,10 @@ def _client_with_dummy_deps() -> TestClient:
     app = create_app()
     app.dependency_overrides[get_pool_dep] = lambda: cast(asyncpg.Pool, object())
     app.dependency_overrides[get_redis_dep] = lambda: cast(Redis, object())
+    app.dependency_overrides[get_embedding_provider] = lambda: cast(
+        EmbeddingProvider,
+        FakeEmbeddingProvider(),
+    )
     return TestClient(app)
 
 
@@ -148,6 +165,7 @@ async def test_chat_happy_200(
     assert response.json()["content"] == "<p>ok</p>"
     assert response.json()["agent_id"] == "redator-pro"
     assert response.json()["quota"]["remaining"] == 49
+    assert response.json()["citations"] == []
 
 
 async def test_chat_quota_excedida_retorna_429(

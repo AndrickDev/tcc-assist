@@ -88,6 +88,7 @@ def build_chat_prompt(
     references_block: str,
     conversation_block: str,
     user_message: str,
+    rag_context_block: str = "",
 ) -> str:
     tcc_metadata_block = _build_tcc_metadata_block(tcc_metadata)
     quality_directive = get_quality_directive(plan)
@@ -95,6 +96,7 @@ def build_chat_prompt(
         f"{get_writer_system_prompt(plan)}"
         f"{tcc_metadata_block}"
         f"{references_block}"
+        f"{rag_context_block}"
         f"{conversation_block}"
         f"\n\nREQUISITO DO USUÁRIO: {user_message}"
         f"{quality_directive}"
