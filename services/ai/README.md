@@ -61,6 +61,13 @@ work runs as a background task and the client polls `GET /v1/ingest/{job_id}` fo
 150 char overlap. Embeddings go through the configured `EmbeddingProvider` and are stored in
 `chunks` + `embeddings` (RAG schema, ADR-0002).
 
+References (abstracts) sao ingeridas via `POST /v1/ingest/reference` com body
+`{"reference_id": "..."}`. Mesma autenticacao (JWT interno, `scope=ingest`, `tcc_id`
+no claim). O servico le `Reference.title` + `Reference.abstract` do Postgres do produto,
+concatena, chunka e embeda. Sem download HTTP. Polling de status segue o mesmo
+`GET /v1/ingest/{job_id}`. `source_type` registrado em `ingestion_jobs` e `chunks` eh
+`openalex` para todos os abstracts, independente do `Reference.source` upstream.
+
 ## Estrutura
 
 ```text

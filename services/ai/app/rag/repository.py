@@ -133,3 +133,26 @@ async def fetch_attachment_url(
     """
     row = await pool.fetchrow(query, attachment_id, tcc_id)
     return {key: str(value) for key, value in dict(row).items()} if row else None
+
+
+async def fetch_reference_for_ingest(
+    pool: asyncpg.Pool,
+    *,
+    reference_id: str,
+    tcc_id: str,
+) -> dict[str, str] | None:
+    query = """
+        SELECT id, title, abstract, "externalId" AS external_id, source
+        FROM "Reference"
+        WHERE id = $1 AND "tccId" = $2
+    """
+    row = await pool.fetchrow(query, reference_id, tcc_id)
+    if row is None:
+        return None
+    return {
+        "id": str(row["id"]),
+        "title": str(row["title"]),
+        "abstract": "" if row["abstract"] is None else str(row["abstract"]),
+        "external_id": str(row["external_id"]),
+        "source": str(row["source"]),
+    }

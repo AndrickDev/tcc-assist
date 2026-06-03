@@ -162,3 +162,46 @@ async def test_fetch_attachment_url_filtra_por_tcc(postgres_pool: asyncpg.Pool) 
         "mime_type": "application/pdf",
     }
     assert missing is None
+
+
+async def test_fetch_reference_for_ingest_round_trip(postgres_pool: asyncpg.Pool) -> None:
+    await _ensure_rag_schema(postgres_pool)
+
+    row = await repository.fetch_reference_for_ingest(
+        postgres_pool,
+        reference_id="ref-1",
+        tcc_id="tcc-1",
+    )
+
+    assert row == {
+        "id": "ref-1",
+        "title": "Ref baixa",
+        "abstract": "Resumo baixo",
+        "external_id": "ext-1",
+        "source": "semantic-scholar",
+    }
+
+
+async def test_fetch_reference_for_ingest_not_owned(postgres_pool: asyncpg.Pool) -> None:
+    await _ensure_rag_schema(postgres_pool)
+
+    row = await repository.fetch_reference_for_ingest(
+        postgres_pool,
+        reference_id="ref-1",
+        tcc_id="tcc-empty",
+    )
+
+    assert row is None
+
+
+async def test_fetch_reference_for_ingest_null_abstract(postgres_pool: asyncpg.Pool) -> None:
+    await _ensure_rag_schema(postgres_pool)
+
+    row = await repository.fetch_reference_for_ingest(
+        postgres_pool,
+        reference_id="ref-4",
+        tcc_id="tcc-1",
+    )
+
+    assert row is not None
+    assert row["abstract"] == ""
