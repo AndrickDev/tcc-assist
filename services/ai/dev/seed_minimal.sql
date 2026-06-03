@@ -1,8 +1,8 @@
 -- Minimal seed for E2E smoke. Assumes Prisma migrations already applied.
 -- Idempotent via ON CONFLICT DO NOTHING.
 
-INSERT INTO "User" (id, email, name, plan)
-VALUES ('smoke-user-1', 'smoke@example.com', 'Smoke User', 'VIP')
+INSERT INTO "User" (id, email, name, plan, "updatedAt")
+VALUES ('smoke-user-1', 'smoke@example.com', 'Smoke User', 'FREE', now())
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO "Tcc" (id, "userId", title, course, institution, status, norma, objective, "updatedAt")
