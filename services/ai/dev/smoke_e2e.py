@@ -35,7 +35,7 @@ import jwt
 FASTAPI_URL = os.environ.get("FASTAPI_URL", "http://localhost:8000")
 TCC_ID = "smoke-tcc-1"
 USER_ID = "smoke-user-1"
-PLAN = "VIP"
+PLAN = "FREE"
 REFERENCE_ID = "smoke-ref-1"
 
 ISSUER = "tcc-assist-web"

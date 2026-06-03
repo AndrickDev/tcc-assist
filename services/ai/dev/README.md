@@ -14,24 +14,20 @@ Roteiro pra validar o caminho completo localmente:
 ## Setup uma vez
 
 ```bash
-cd services/ai
-
-# Sobe Postgres com pgvector + Redis
-docker-compose up -d
-
-# Aguarda healthy
-docker-compose ps
+# Sobe Postgres com pgvector + Redis (compose vive na raiz do repo)
+docker compose -f docker-compose.dev.yml up -d
+docker compose -f docker-compose.dev.yml ps
 
 # Aplica migrations Prisma (cria User/Tcc/Reference/Attachment/Message etc.)
-cd ../../apps/web
-DATABASE_URL=postgresql://tcc:tcc@localhost:5432/tcc npx prisma migrate deploy
-cd -
+DATABASE_URL=postgresql://tcc:tcc@localhost:5432/tcc \
+  npx prisma migrate deploy --schema=apps/web/prisma/schema.prisma
 
 # Aplica Alembic RAG schema (chunks/embeddings/ingestion_jobs + extensions)
+cd services/ai
 POSTGRES_URL=postgresql://tcc:tcc@localhost:5432/tcc uv run alembic upgrade head
 
 # Seed mínimo (User + Tcc + 2 References com abstracts)
-psql postgresql://tcc:tcc@localhost:5432/tcc -f dev/seed_minimal.sql
+docker exec -i tcc-postgres-dev psql -U tcc -d tcc < dev/seed_minimal.sql
 ```
 
 ## Rodar smoke
