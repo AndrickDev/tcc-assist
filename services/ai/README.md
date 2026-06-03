@@ -37,7 +37,12 @@ Requires `pgvector` available on the target Postgres instance. The migration ena
 ## Embedding provider
 
 Embeddings vao via `EmbeddingProvider` (Protocol em `app/providers/embedding.py`). Default:
-Google `text-embedding-004` (dim 768) -- ver [ADR-0008](../../docs/adr/0008-embedding-provider-mvp.md).
+Google `gemini-embedding-001` (dim 768) -- ver [ADR-0008](../../docs/adr/0008-embedding-provider-mvp.md).
+
+Modelo: `gemini-embedding-001` (Google Generative AI). Dimensao reduzida via Matryoshka
+Representation Learning (`outputDimensionality: 768`) -- o modelo nativamente produz 3072
+floats e a API entrega o prefixo de 768 dimensoes. Vetores sao normalizados (L2) no cliente
+antes de ir para cache/Postgres para o `vector_cosine_ops` operar corretamente.
 
 Variaveis de ambiente:
 

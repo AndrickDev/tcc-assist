@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import math
 import os
 import random
 from collections.abc import Sequence
@@ -18,9 +19,9 @@ from app.providers.exceptions import (
 )
 
 GOOGLE_EMBED_BASE_URL: Final[str] = "https://generativelanguage.googleapis.com/v1beta"
-GOOGLE_EMBED_MODEL: Final[str] = "text-embedding-004"
+GOOGLE_EMBED_MODEL: Final[str] = "gemini-embedding-001"
 GOOGLE_EMBED_DIM: Final[int] = 768
-GOOGLE_EMBED_MAX_BATCH: Final[int] = 100
+GOOGLE_EMBED_CONCURRENCY: Final[int] = 10
 
 DEFAULT_TIMEOUT_S: Final[float] = 10.0
 DEFAULT_MAX_RETRIES: Final[int] = 4
@@ -47,7 +48,7 @@ class EmbeddingProvider(Protocol):
 
 
 class GoogleEmbeddingProvider:
-    """Embeddings via Google Generative AI text-embedding-004."""
+    """Embeddings via Google Generative AI gemini-embedding-001."""
 
     model: str = GOOGLE_EMBED_MODEL
     dim: int = GOOGLE_EMBED_DIM
@@ -75,13 +76,19 @@ class GoogleEmbeddingProvider:
         if not texts:
             return EmbedResult(model=self.model, dim=self.dim, vectors=[])
 
-        batches = [
-            list(texts[i : i + GOOGLE_EMBED_MAX_BATCH])
-            for i in range(0, len(texts), GOOGLE_EMBED_MAX_BATCH)
-        ]
-        vectors: list[list[float]] = []
-        for batch in batches:
-            vectors.extend(await self._embed_batch(batch))
+        client = self._client or httpx.AsyncClient(timeout=self._timeout_s)
+        owns_client = self._client is None
+        try:
+            sem = asyncio.Semaphore(GOOGLE_EMBED_CONCURRENCY)
+
+            async def one(text: str) -> list[float]:
+                async with sem:
+                    return await self._embed_one(client, text)
+
+            vectors = await asyncio.gather(*(one(text) for text in texts))
+        finally:
+            if owns_client:
+                await client.aclose()
 
         if any(len(vector) != self.dim for vector in vectors):
             raise EmbeddingBadResponse(
@@ -90,34 +97,25 @@ class GoogleEmbeddingProvider:
             )
         return EmbedResult(model=self.model, dim=self.dim, vectors=vectors)
 
-    async def _embed_batch(self, batch: list[str]) -> list[list[float]]:
+    async def _embed_one(self, client: httpx.AsyncClient, text: str) -> list[float]:
         url = (
-            f"{GOOGLE_EMBED_BASE_URL}/models/{self.model}:batchEmbedContents"
+            f"{GOOGLE_EMBED_BASE_URL}/models/{self.model}:embedContent"
             f"?key={self._api_key}"
         )
         payload: dict[str, object] = {
-            "requests": [
-                {
-                    "model": f"models/{self.model}",
-                    "content": {"parts": [{"text": text}]},
-                }
-                for text in batch
-            ]
+            "model": f"models/{self.model}",
+            "content": {"parts": [{"text": text}]},
+            "outputDimensionality": self.dim,
         }
-        client = self._client or httpx.AsyncClient(timeout=self._timeout_s)
-        owns_client = self._client is None
-        try:
-            response = await self._post_with_retry(client, url, payload)
-        finally:
-            if owns_client:
-                await client.aclose()
+        response = await self._post_with_retry(client, url, payload)
 
         try:
             data = response.json()
-            embeddings = data["embeddings"]
-            return [list(map(float, item["values"])) for item in embeddings]
+            values = data["embedding"]["values"]
+            raw = [float(value) for value in values]
         except (KeyError, ValueError, TypeError) as exc:
             raise EmbeddingBadResponse(f"payload Google invalido: {exc}") from exc
+        return _l2_normalize(raw)
 
     async def _post_with_retry(
         self,
@@ -172,3 +170,10 @@ def get_embedding_provider() -> EmbeddingProvider:
     if name == "google":
         return GoogleEmbeddingProvider()
     raise EmbeddingUnavailable(f"EMBEDDING_PROVIDER desconhecido: {name!r}")
+
+
+def _l2_normalize(vector: list[float]) -> list[float]:
+    norm = math.sqrt(sum(value * value for value in vector))
+    if norm == 0.0:
+        return vector
+    return [value / norm for value in vector]

@@ -1,9 +1,19 @@
-# ADR-0008 — Provider de embedding para o MVP: Google text-embedding-004
+# ADR-0008 — Provider de embedding para o MVP: Google gemini-embedding-001
 
 - **Status:** Aceito
 - **Data:** 2026-06-02
 - **Decisor:** Andrick (solo dev)
 - **Tags:** arquitetura, ia, rag, custo
+
+> **Emenda 2026-06-02 — correção do nome do modelo e do endpoint:**
+> O texto original deste ADR citava modelo e endpoint antigos. A API ao
+> vivo (probe em 2026-06-02) lista apenas `gemini-embedding-001`, `gemini-embedding-2` e
+> `gemini-embedding-2-preview`, com métodos `:embedContent` (sync single) e
+> `:asyncBatchEmbedContent` (assíncrono file-based). Não existe batch síncrono.
+> O modelo `gemini-embedding-001` produz 3072 dimensões por padrão; mantemos `dim=768`
+> via parâmetro `outputDimensionality` da própria API (Matryoshka Representation Learning).
+> A escolha de provider, free tier, abstração e migration path documentados abaixo
+> permanecem válidos.
 
 ---
 
@@ -19,19 +29,21 @@ Estado atual do projeto:
   além de orchestrar o Gemini.
 - ADR-0007 fixou a VM Fly atual em 256 MB (US$5/mês). Aumentar agora consome runway sem retorno.
 - Já existe `GOOGLE_API_KEY` em produção (chat funcional desde 2026-05-13). Google
-  Generative AI API oferece `text-embedding-004` no mesmo billing/account.
+  Generative AI API oferece `gemini-embedding-001` no mesmo billing/account.
 
 A pergunta: gastar US$15–30/mês adicional agora para honrar a escolha ideal de modelo,
 ou ajustar a escolha ao orçamento e re-avaliar quando houver receita?
 
 ## Decisão
 
-Adotar **Google `text-embedding-004`** como provider de embeddings do MVP, acessado via HTTP
+Adotar **Google `gemini-embedding-001`** como provider de embeddings do MVP, acessado via HTTP
 com a mesma `GOOGLE_API_KEY` já configurada.
 
-- **Modelo:** `models/text-embedding-004` (Google Generative AI API).
+- **Modelo:** `models/gemini-embedding-001` (Google Generative AI API).
 - **Dimensão:** 768 (fixa). ADR-0002 emendado para `Vector(768)` antes do primeiro deploy.
-- **Métrica:** cosine (inalterada — modelo produz vetores normalizados).
+- **Parâmetro:** `outputDimensionality: 768` nas requisições.
+- **Normalização:** L2 client-side antes de cache/persistência.
+- **Métrica:** cosine (inalterada).
 - **Free tier (2026-06):** 1500 requests/min, sem custo até atingir.
 - **Onde mora:** novo módulo `services/ai/app/providers/embedding.py`, atrás da Protocol
   `EmbeddingProvider`, registrado por factory `get_embedding_provider()`.
@@ -48,7 +60,7 @@ com a mesma `GOOGLE_API_KEY` já configurada.
   configurável; reembed do mesmo chunk não conta no quota.
 
 ### Negativas
-- **Qualidade multilíngue inferior a bge-m3.** `text-embedding-004` é multilíngue mas não
+- **Qualidade multilíngue inferior a bge-m3.** `gemini-embedding-001` é multilíngue mas não
   state-of-the-art em PT-BR comparado a bge-m3. Aceitável para abstracts OpenAlex (90%+ em
   inglês) e PDFs de TCC (PT-BR) na fase de validação.
 - **Vendor lock leve.** Resolvido por `EmbeddingProvider` Protocol e factory env-driven.
