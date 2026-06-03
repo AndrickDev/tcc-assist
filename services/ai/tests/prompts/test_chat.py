@@ -84,3 +84,28 @@ def test_build_chat_prompt_user_message_apos_requisito_usuario() -> None:
     )
 
     assert "REQUISITO DO USUÁRIO: Escreva a introdução" in prompt
+
+
+def test_build_chat_prompt_rag_block_default_vazio_nao_aparece() -> None:
+    prompt = build_chat_prompt(
+        plan="FREE",
+        tcc_metadata=None,
+        references_block="",
+        conversation_block="",
+        user_message="Escreva a introdução",
+    )
+
+    assert "CONTEXTO RECUPERADO" not in prompt
+
+
+def test_build_chat_prompt_inclui_rag_block_quando_passado() -> None:
+    prompt = build_chat_prompt(
+        plan="FREE",
+        tcc_metadata=None,
+        references_block="REFERENCIAS",
+        conversation_block="CONVERSA",
+        rag_context_block="\n\nCONTEXTO RECUPERADO\n[1] trecho",
+        user_message="Escreva a introdução",
+    )
+
+    assert "REFERENCIAS\n\nCONTEXTO RECUPERADO\n[1] trechoCONVERSA" in prompt

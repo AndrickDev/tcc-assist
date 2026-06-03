@@ -77,6 +77,14 @@ distance (operator `<=>`); score = `1 - distance` em [0, 1] porque os vetores sa
 normalizados L2 client-side. `source_types` opcional filtra por origem (`pdf` ou
 `openalex`). Sem `source_types`, busca em ambos.
 
+## Chat com RAG
+
+`run_chat` faz uma busca top-5 antes de chamar o Gemini. Chunks com score >= 0.5 sao
+injetados em `CONTEXTO RECUPERADO (cite com [N]...)` no prompt e devolvidos como
+`citations` no `ChatResult`. Budget de 6000 chars no contexto. Falha de retrieval
+(embed ou DB) e silenciada para warning: o chat continua sem RAG. Threshold, top_k e
+char budget sao constantes em `app/rag/chat_retrieval.py` (Phase 4 MVP).
+
 ## Estrutura
 
 ```text
