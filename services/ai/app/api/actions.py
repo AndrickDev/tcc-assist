@@ -18,8 +18,8 @@ class ActionRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     tcc_id: str
-    text: str = Field(min_length=1, max_length=20000)
-    context: str | None = Field(default=None, max_length=2000)
+    text: str = Field(min_length=1, max_length=200000)
+    context: str | None = Field(default=None, max_length=8000)
 
 
 class ActionResponse(BaseModel):
