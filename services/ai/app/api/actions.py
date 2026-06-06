@@ -19,7 +19,7 @@ class ActionRequest(BaseModel):
 
     tcc_id: str
     text: str = Field(min_length=1, max_length=200000)
-    context: str | None = Field(default=None, max_length=8000)
+    context: str | None = Field(default=None, max_length=200000)
 
 
 class ActionResponse(BaseModel):
