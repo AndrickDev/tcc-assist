@@ -7,6 +7,8 @@ import { generateAIContent } from '@/lib/ai/provider'
 import { getGeminiConfigForPlan } from '@/lib/gemini'
 import { isAllowedAction, runAction } from '@/lib/ai-service'
 
+export const maxDuration = 120
+
 type Params = { params: Promise<{ id: string }> }
 
 function isFastApiActionsEnabled(): boolean {
