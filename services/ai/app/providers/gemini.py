@@ -56,7 +56,7 @@ async def generate(
     if client is not None:
         return await _generate_with_client(client=client, url=url, body=body, config=config)
 
-    async with httpx.AsyncClient(timeout=30) as owned_client:
+    async with httpx.AsyncClient(timeout=90) as owned_client:
         return await _generate_with_client(client=owned_client, url=url, body=body, config=config)
 
 
