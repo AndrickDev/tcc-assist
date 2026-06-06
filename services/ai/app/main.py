@@ -2,7 +2,9 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import cast
 
+import structlog
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app.api.actions import router as actions_router
@@ -76,6 +78,27 @@ async def gemini_bad_response_handler(_request: Request, _exc: Exception) -> JSO
     return JSONResponse(status_code=502, content={"error": "ai_provider_bad_response"})
 
 
+_validation_log = structlog.get_logger("app.validation")
+
+
+async def request_validation_handler(request: Request, exc: Exception) -> JSONResponse:
+    errors = cast(RequestValidationError, exc).errors()
+    safe_errors = [
+        {"loc": err.get("loc"), "type": err.get("type"), "msg": err.get("msg")}
+        for err in errors
+    ]
+    _validation_log.warning(
+        "request_validation_failed",
+        path=str(request.url.path),
+        method=request.method,
+        errors=safe_errors,
+    )
+    return JSONResponse(
+        status_code=422,
+        content={"error": "upstream_invalid_request", "detail": safe_errors},
+    )
+
+
 def create_app() -> FastAPI:
     app = FastAPI(
         title="TCC-Assist AI",
@@ -93,6 +116,7 @@ def create_app() -> FastAPI:
     app.add_exception_handler(FreePlanForbidden, free_plan_forbidden_handler)
     app.add_exception_handler(GeminiUnavailable, gemini_unavailable_handler)
     app.add_exception_handler(GeminiBadResponse, gemini_bad_response_handler)
+    app.add_exception_handler(RequestValidationError, request_validation_handler)
     app.include_router(health_router, prefix="/v1")
     app.include_router(quota_router, prefix="/v1")
     app.include_router(chat_router, prefix="/v1")
