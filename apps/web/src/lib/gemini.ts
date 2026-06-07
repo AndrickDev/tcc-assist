@@ -53,17 +53,6 @@ export interface GeminiConfig {
   maxOutputTokens?: number
 }
 
-/** Default per-plan output limits and temperature. */
-const PLAN_CONFIGS: Record<string, GeminiConfig> = {
-  FREE: { temperature: 0.1, maxOutputTokens: 2000 },   // ~1 pg ABNT
-  PRO:  { temperature: 0.15, maxOutputTokens: 6000 },   // ~3 pg ABNT
-  VIP:  { temperature: 0.2, maxOutputTokens: 16000 },   // ~8 pg ABNT, full chapter
-}
-
-export function getGeminiConfigForPlan(plan: string): GeminiConfig {
-  return PLAN_CONFIGS[plan] ?? PLAN_CONFIGS.FREE
-}
-
 async function _callGeminiAPI(
   parts: object[],
   model: string,
