@@ -175,8 +175,8 @@ docs/
 
 | ID | Descrição | Local |
 |---|---|---|
-| B1 | CORS `*` + `Allow-Credentials: true` | `apps/web/next.config.ts:9-21` |
-| B2 | `GOOGLE_API_KEY` exposto em `env: {}` | `apps/web/next.config.ts:6-8` |
+| ~~B1~~ | ~~CORS `*` + `Allow-Credentials: true`~~ resolvido 2026-06-07 (headers removidos; same-origin only) | `apps/web/next.config.ts` |
+| ~~B2~~ | ~~`GOOGLE_API_KEY` exposto em `env: {}`~~ resolvido 2026-06-07 (env block removido; chave fica server-only) | `apps/web/next.config.ts` |
 | B3 | Limite diário em `localStorage` (bypass) (endereçado por ADR-0005; remover após cut-over) | `apps/web/src/app/tcc/[id]/page.tsx:68` |
 | B4 | `/api/chat`, `/api/gerar-tcc`, `/api/tcc/[id]/ai-action` sem rate limit (endereçado por ADR-0005; remover após cut-over) | `apps/web/src/app/api/*` |
 | B5 | Webhook Stripe sem idempotência (endereçado por ADR-0004; remover após cut-over) | `apps/web/src/app/api/stripe/webhook/route.ts` |
