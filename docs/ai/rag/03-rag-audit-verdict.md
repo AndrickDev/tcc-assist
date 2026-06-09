@@ -7,6 +7,20 @@
 
 ---
 
+## ⚠️ Correção de escopo (2026-06-09)
+
+> Este veredito vale **apenas para a camada web (`apps/web` / Next.js)**, que foi o escopo
+> efetivamente varrido (`package.json`, `src/lib/`, rotas de API web, `schema.prisma`, `.codex/`).
+>
+> **O serviço FastAPI `services/ai/` NÃO foi auditado aqui e implementa RAG de verdade** (Phase 4,
+> concluída): embeddings Gemini, pgvector, ingestão de PDFs e OpenAlex, retrieve endpoint
+> `POST /v1/retrieve` (T-G5) e hook de retrieval no chat orchestrator com citações (T-G6).
+>
+> Ou seja: a conclusão "não usa RAG" é correta para o BFF, mas **desatualizada para o sistema
+> como um todo**. Leia o restante deste documento com esse recorte em mente.
+
+---
+
 ## Nível de confiança
 
 **Alto.** A auditoria varreu 100% dos arquivos relevantes:
