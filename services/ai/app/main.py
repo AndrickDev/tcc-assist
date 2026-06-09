@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.actions import router as actions_router
 from app.api.chat import router as chat_router
+from app.api.generate import router as generate_router
 from app.api.health import router as health_router
 from app.api.ingest import router as ingest_router
 from app.api.quota import router as quota_router
@@ -16,6 +17,7 @@ from app.db.pool import close_pool
 from app.observability.logging import configure_logging
 from app.orchestrator.actions import FreePlanForbidden
 from app.orchestrator.exceptions import QuotaExceeded, TccNotFoundOrForbidden
+from app.orchestrator.generate import InsufficientSources
 from app.providers.exceptions import GeminiBadResponse, GeminiUnavailable
 from app.quota.exceptions import QuotaBackendUnavailable, QuotaInvalidPlan
 from app.quota.redis_client import close_redis
@@ -68,6 +70,10 @@ async def free_plan_forbidden_handler(_request: Request, _exc: Exception) -> JSO
     return JSONResponse(status_code=403, content={"error": "free_plan_forbidden"})
 
 
+async def insufficient_sources_handler(_request: Request, _exc: Exception) -> JSONResponse:
+    return JSONResponse(status_code=422, content={"error": "insufficient_sources"})
+
+
 async def gemini_unavailable_handler(_request: Request, _exc: Exception) -> JSONResponse:
     return JSONResponse(status_code=503, content={"error": "ai_provider_unavailable"})
 
@@ -91,12 +97,14 @@ def create_app() -> FastAPI:
     app.add_exception_handler(TccNotFoundOrForbidden, tcc_not_found_handler)
     app.add_exception_handler(QuotaExceeded, quota_exceeded_handler)
     app.add_exception_handler(FreePlanForbidden, free_plan_forbidden_handler)
+    app.add_exception_handler(InsufficientSources, insufficient_sources_handler)
     app.add_exception_handler(GeminiUnavailable, gemini_unavailable_handler)
     app.add_exception_handler(GeminiBadResponse, gemini_bad_response_handler)
     app.include_router(health_router, prefix="/v1")
     app.include_router(quota_router, prefix="/v1")
     app.include_router(chat_router, prefix="/v1")
     app.include_router(actions_router, prefix="/v1")
+    app.include_router(generate_router, prefix="/v1")
     app.include_router(ingest_router)
     app.include_router(retrieve_router)
     return app

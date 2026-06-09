@@ -104,6 +104,10 @@ def build_chat_prompt(
     )
 
 
+def build_tcc_metadata_block(tcc_metadata: TccMetadataInput | None) -> str:
+    return _build_tcc_metadata_block(tcc_metadata)
+
+
 def _build_tcc_metadata_block(tcc_metadata: TccMetadataInput | None) -> str:
     if tcc_metadata is None:
         return ""
