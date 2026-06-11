@@ -3,11 +3,20 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { callGemini, callGeminiWithFiles } from '@/lib/gemini'
 import { buildReferencesContext } from '@/lib/references'
+import { resolvePlan } from '@/lib/plan'
+import { QuotaExceededError, runGenerate } from '@/lib/ai-service'
+
+export const maxDuration = 120
+
+function isFastApiGenerateEnabled(): boolean {
+  return process.env.USE_FASTAPI_GENERATE === 'true'
+}
 
 export async function POST(request: Request) {
   try {
     const session = await auth()
-    const userId = (session?.user as { id?: string } | undefined)?.id
+    const sessionUser = session?.user as { id?: string; plan?: string } | undefined
+    const userId = sessionUser?.id
     if (!userId) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 
     const body = await request.json()
@@ -23,6 +32,36 @@ export async function POST(request: Request) {
     // Verificar que o TCC pertence ao usuário autenticado
     const tcc = await prisma.tcc.findFirst({ where: { id: tccId, userId }, select: { id: true } })
     if (!tcc) return NextResponse.json({ error: 'TCC não encontrado.' }, { status: 404 })
+
+    if (isFastApiGenerateEnabled()) {
+      try {
+        const userPlan = resolvePlan(sessionUser.plan)
+        const result = await runGenerate({
+          userId,
+          plan: userPlan,
+          tccId,
+          chapter: capitulo,
+          previousContext:
+            typeof contextoAnterior === 'string' && contextoAnterior.length > 0
+              ? contextoAnterior
+              : null,
+          requireSources: typeof body.requireSources === 'boolean' ? body.requireSources : false,
+        })
+        return NextResponse.json({
+          sucesso: true,
+          capitulo: result.chapter,
+          texto: result.content,
+          referenciasUsadas: result.references_used,
+          citations: result.citations,
+        })
+      } catch (error) {
+        console.error('[api/gerar-tcc] fastapi failure', {
+          tccId,
+          error: error instanceof Error ? error.message : String(error),
+        })
+        return mapFastApiGenerateError(error)
+      }
+    }
 
     // Buscar referências selecionadas pelo aluno (maior prioridade de embasamento)
     const selectedRefs = await prisma.reference.findMany({
@@ -106,4 +145,38 @@ Construa a nova seção como continuação lógica. NÃO REPITA o que já foi di
     console.error('Erro ao gerar TCC:', error)
     return NextResponse.json({ error: 'Falha na geração pela IA' }, { status: 500 })
   }
+}
+
+function mapFastApiGenerateError(error: unknown): NextResponse {
+  if (error instanceof QuotaExceededError) {
+    return NextResponse.json(
+      {
+        error: 'Limite diário atingido',
+        remaining: error.remaining,
+        resetAt: error.resetAt,
+      },
+      { status: 429 }
+    )
+  }
+
+  const message = error instanceof Error ? error.message : String(error)
+  if (message === 'tcc_id_mismatch') {
+    return NextResponse.json({ error: 'Recurso não autorizado' }, { status: 403 })
+  }
+  if (message === 'tcc_not_found') {
+    return NextResponse.json({ error: 'TCC não encontrado' }, { status: 404 })
+  }
+  if (message === 'upstream_invalid_request') {
+    return NextResponse.json({ error: 'Requisição inválida' }, { status: 422 })
+  }
+  if (message === 'ai_provider_unavailable' || message === 'ai_provider_bad_response') {
+    return NextResponse.json({ error: 'IA temporariamente indisponível' }, { status: 503 })
+  }
+  if (message === 'upstream_auth_failure') {
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
+  }
+  if (message === 'quota_unavailable') {
+    return NextResponse.json({ error: 'Quota indisponível' }, { status: 503 })
+  }
+  return NextResponse.json({ error: 'Erro inesperado da IA' }, { status: 502 })
 }

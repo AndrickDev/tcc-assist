@@ -22,6 +22,13 @@ Status implícito por seção: itens em "Em andamento" estão sendo executados; 
 
 ## 🚧 Em andamento
 
+### BL-016 — Cut-over `/api/gerar-tcc` para `POST /v1/generate`
+- **Origem:** T-H2, ADR-0001, ADR-0006 e PR #50 do FastAPI.
+- **Tamanho:** M
+- **Status:** BFF bifurcado por `USE_FASTAPI_GENERATE` com default off. Quando ligado, `/api/gerar-tcc` delega ao FastAPI `POST /v1/generate`; quando desligado, preserva o caminho legacy com Gemini direto e PDFs anexados.
+- **Trade-offs:** FastAPI depende da ingestão RAG para usar fontes (`require_sources=true`) e não processa PDFs anexados em tempo de geração. Usuários com attachments perdem esse contexto quando a flag for ligada até o fluxo de ingestão cobrir esse caso.
+- **Próximos passos:** canary controlado em produção, smoke com TCCs sem e com referências ingeridas, depois T-H3 remove legado `callGemini`/`callGeminiWithFiles` da rota.
+
 ### BL-014 — Cut-over `/api/tcc/[id]/ai-action` para `POST /v1/actions/{action}`
 - **Origem:** ADR-0001, fase 6 do roadmap.
 - **Tamanho:** M

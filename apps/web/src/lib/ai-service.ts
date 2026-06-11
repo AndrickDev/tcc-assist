@@ -37,6 +37,24 @@ type RunActionInput = {
   context: string | null
 }
 
+type RunGenerateInput = {
+  userId: string
+  plan: Plan
+  tccId: string
+  chapter: string
+  previousContext: string | null
+  requireSources: boolean
+}
+
+type GenerateCitation = {
+  n: number
+  source_type: string
+  source_ref: string
+  ordinal: number
+  score: number
+  excerpt: string
+}
+
 type QuotaMeWire = {
   used: number
   limit: number
@@ -70,6 +88,13 @@ export type ChatResult = {
 
 export type ActionResult = {
   result: string
+}
+
+export type GenerateResult = {
+  content: string
+  chapter: string
+  references_used: number
+  citations: GenerateCitation[]
 }
 
 export class QuotaExceededError extends Error {
@@ -166,6 +191,23 @@ function parseAction(payload: unknown): ActionWire {
     throw new Error("upstream_invalid_shape")
   }
   return { result: candidate.result }
+}
+
+function parseGenerate(payload: unknown): GenerateResult {
+  if (!isObject(payload)) {
+    throw new Error("upstream_invalid_request")
+  }
+  const content = typeof payload.content === "string" ? payload.content : null
+  const chapter = typeof payload.chapter === "string" ? payload.chapter : null
+  const referencesUsed =
+    typeof payload.references_used === "number" ? payload.references_used : 0
+  const citations = Array.isArray(payload.citations)
+    ? (payload.citations as GenerateCitation[])
+    : []
+  if (content === null || chapter === null) {
+    throw new Error("upstream_invalid_request")
+  }
+  return { content, chapter, references_used: referencesUsed, citations }
 }
 
 async function readUpstreamError(response: Response): Promise<string | null> {
@@ -353,6 +395,79 @@ export async function runAction({
   }
   if (response.status === 503 && upstreamError === "ai_provider_unavailable") {
     throw new Error("ai_provider_unavailable")
+  }
+  throw new Error(`upstream_error_${response.status}`)
+}
+
+export async function runGenerate({
+  userId,
+  plan,
+  tccId,
+  chapter,
+  previousContext,
+  requireSources,
+}: RunGenerateInput): Promise<GenerateResult> {
+  const token = await signInternalJwt({ sub: userId, plan, scope: "generate", tccId })
+  let response: Response
+  try {
+    response = await fetch(`${getAiServiceUrl()}/v1/generate`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        tcc_id: tccId,
+        chapter,
+        previous_context: previousContext,
+        require_sources: requireSources,
+      }),
+      cache: "no-store",
+    })
+  } catch {
+    throw new Error("ai_provider_unavailable")
+  }
+
+  const payload = await readUpstreamPayload(response)
+  const payloadObject = isObject(payload) ? payload : null
+
+  if (response.status === 200) {
+    return parseGenerate(payload)
+  }
+
+  const upstreamError =
+    payloadObject && typeof payloadObject.error === "string" ? payloadObject.error : null
+  if (
+    response.status === 401 &&
+    (upstreamError === "invalid_token" || upstreamError === "missing_token")
+  ) {
+    throw new Error("upstream_auth_failure")
+  }
+  if (response.status === 403 && upstreamError === "tcc_id_mismatch") {
+    throw new Error("tcc_id_mismatch")
+  }
+  if (response.status === 404 && upstreamError === "tcc_not_found") {
+    throw new Error("tcc_not_found")
+  }
+  if (response.status === 422) {
+    throw new Error("upstream_invalid_request")
+  }
+  if (response.status === 429 && upstreamError === "quota_exceeded") {
+    throw new QuotaExceededError({
+      remaining:
+        payloadObject && typeof payloadObject.remaining === "number" ? payloadObject.remaining : null,
+      resetAt:
+        payloadObject && typeof payloadObject.reset_at === "string" ? payloadObject.reset_at : null,
+    })
+  }
+  if (response.status === 502 && upstreamError === "ai_provider_bad_response") {
+    throw new Error("ai_provider_bad_response")
+  }
+  if (response.status === 503 && upstreamError === "ai_provider_unavailable") {
+    throw new Error("ai_provider_unavailable")
+  }
+  if (response.status === 503 && upstreamError === "quota_backend_unavailable") {
+    throw new Error("quota_unavailable")
   }
   throw new Error(`upstream_error_${response.status}`)
 }
