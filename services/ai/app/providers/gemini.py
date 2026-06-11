@@ -1,3 +1,4 @@
+import asyncio
 import os
 from time import perf_counter
 from typing import Final, Literal, cast
@@ -10,6 +11,9 @@ from app.providers.exceptions import GeminiBadResponse, GeminiUnavailable
 
 GEMINI_MODEL: Final[str] = "gemini-flash-latest"
 GEMINI_BASE_URL: Final[str] = "https://generativelanguage.googleapis.com/v1beta"
+MAX_GENERATE_ATTEMPTS: Final[int] = 3
+GENERATE_RETRY_BACKOFFS: Final[tuple[float, ...]] = (0.8, 1.6)
+RETRYABLE_GENERATE_STATUS_CODES: Final[frozenset[int]] = frozenset({429, 500, 502, 503, 504})
 
 Plan = Literal["FREE", "PRO", "VIP"]
 
@@ -67,18 +71,29 @@ async def _generate_with_client(
     body: dict[str, object],
     config: GeminiConfig,
 ) -> str:
-    started = perf_counter()
-    status = "network"
-    try:
-        response = await client.post(url, json=body)
-        status = str(response.status_code)
-    except httpx.HTTPError as exc:
-        _log_call(started=started, status=status, config=config)
-        raise GeminiUnavailable("network") from exc
+    for attempt in range(1, MAX_GENERATE_ATTEMPTS + 1):
+        started = perf_counter()
+        status = "network"
+        try:
+            response = await client.post(url, json=body)
+            status = str(response.status_code)
+        except httpx.HTTPError as exc:
+            _log_call(started=started, status=status, config=config, attempt=attempt)
+            if attempt == MAX_GENERATE_ATTEMPTS:
+                raise GeminiUnavailable("network") from exc
+            await asyncio.sleep(GENERATE_RETRY_BACKOFFS[attempt - 1])
+            continue
 
-    _log_call(started=started, status=status, config=config)
-    if not 200 <= response.status_code < 300:
-        raise GeminiUnavailable(f"http_{response.status_code}")
+        _log_call(started=started, status=status, config=config, attempt=attempt)
+        if not 200 <= response.status_code < 300:
+            if (
+                response.status_code in RETRYABLE_GENERATE_STATUS_CODES
+                and attempt < MAX_GENERATE_ATTEMPTS
+            ):
+                await asyncio.sleep(GENERATE_RETRY_BACKOFFS[attempt - 1])
+                continue
+            raise GeminiUnavailable(f"http_{response.status_code}")
+        break
 
     try:
         payload = cast(object, response.json())
@@ -118,10 +133,11 @@ def _extract_text(payload: object) -> str:
     return text
 
 
-def _log_call(*, started: float, status: str, config: GeminiConfig) -> None:
+def _log_call(*, started: float, status: str, config: GeminiConfig, attempt: int) -> None:
     latency_ms = round((perf_counter() - started) * 1000, 3)
     log.info(
         "gemini_call",
+        attempt=attempt,
         latency_ms=latency_ms,
         status=status,
         tokens_max=config.max_output_tokens,
