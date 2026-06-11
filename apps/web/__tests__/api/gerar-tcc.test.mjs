@@ -55,6 +55,12 @@ test("flag on maps upstream unavailable to 503", () => {
   assert.match(routeSource, /status: 503/)
 })
 
+test("flag on maps quota exceeded to 429", () => {
+  assert.match(routeSource, /error instanceof QuotaExceededError/)
+  assert.match(routeSource, /Limite diário atingido/)
+  assert.match(routeSource, /status: 429/)
+})
+
 test("missing tccId and non-owner cases remain before both provider paths", () => {
   assert.match(routeSource, /if \(!tccId \|\| !tema\)/)
   assert.match(routeSource, /tccId e tema são obrigatórios/)
