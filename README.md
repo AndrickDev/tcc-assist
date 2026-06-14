@@ -30,6 +30,7 @@ Decisões arquiteturais documentadas em [`docs/adr/`](./docs/adr/):
 - ADR-0005 — Quota e rate limit em Redis
 - ADR-0006 — JWT HS256 interno Next ↔ FastAPI
 - ADR-0007 — Migração para monorepo
+- ADR-0008 — Criar serviço de apenas correção
 
 Status atual em [`STATUS.md`](./STATUS.md). Backlog em [`docs/BACKLOG.md`](./docs/BACKLOG.md).
 
