@@ -7,10 +7,10 @@ Plataforma de assistência à escrita de Trabalhos de Conclusão de Curso (TCC) 
 Teseo (anteriormente TCC-Assist) auxilia estudantes brasileiros na elaboração de TCCs com:
 
 - Editor rico (Tiptap) com autosave e exportação PDF.
-- Chat assistente que gera, revisa e refina conteúdo acadêmico.
+- Chat assistente que gera, revisa e refina conteúdo acadêmico, com RAG integrado: o chat recupera trechos das referências do usuário (pgvector) e responde com citações.
 - Busca de referências reais via OpenAlex com filtros e citação ABNT.
-- Limites diários por plano (FREE, PRO, VIP) com quota server-side.
-- Integração Stripe para assinatura recorrente.
+- Limites diários por plano (FREE, PRO, VIP) com quota server-side em Redis.
+- Pagamento dos planos PRO e VIP via Stripe Checkout, com webhook de assinatura verificada que atualiza o plano do usuário.
 
 ## Arquitetura
 
@@ -19,19 +19,25 @@ Monorepo com dois serviços que se comunicam via HTTP autenticado por JWT intern
 | Serviço | Diretório | Responsabilidade |
 |---|---|---|
 | Next.js | `apps/web` | UI, autenticação (NextAuth), Stripe, BFF, persistência via Prisma |
-| FastAPI | `services/ai` | Orquestração de IA, prompts, providers (Gemini), quota Redis, RAG (em construção) |
+| FastAPI | `services/ai` | Orquestração de IA, prompts, providers (Gemini), quota Redis, pipeline RAG (ingestão, retrieval e citações no chat) |
 
 Decisões arquiteturais documentadas em [`docs/adr/`](./docs/adr/):
 
 - ADR-0001 — Separação do serviço de IA em FastAPI com RAG
 - ADR-0002 — pgvector como vector store
 - ADR-0003 — Gemini API como gerador (sem LLM local)
-- ADR-0004 — Stripe `subscription` ao invés de `payment`
+- ADR-0004 — Stripe `subscription` ao invés de `payment` (decidido; hoje o checkout ainda usa `payment`, ver Pendências conhecidas)
 - ADR-0005 — Quota e rate limit em Redis
 - ADR-0006 — JWT HS256 interno Next ↔ FastAPI
 - ADR-0007 — Migração para monorepo
 
 Status atual em [`STATUS.md`](./STATUS.md). Backlog em [`docs/BACKLOG.md`](./docs/BACKLOG.md).
+
+## Pendências conhecidas
+
+- Stripe: o checkout usa `mode: 'payment'` (pagamento único, plano válido por 12 meses). Migração para `subscription` recorrente e idempotência do webhook (ADR-0004) seguem no backlog.
+- Rate limit por janela de tempo nas rotas de IA ainda não existe; hoje há apenas a cota diária por plano em Redis.
+- Cut-over de `/api/gerar-tcc` para o FastAPI (`POST /v1/generate`) ainda não concluído (fase 5 do roadmap em `STATUS.md`).
 
 ## Stack
 
@@ -50,8 +56,9 @@ Status atual em [`STATUS.md`](./STATUS.md). Backlog em [`docs/BACKLOG.md`](./doc
 - `structlog` · `ruff` · `mypy --strict` · `pytest`
 
 ### Infra
-- PostgreSQL (Prisma owner) + pgvector (Alembic, em construção)
-- Redis (quota/rate limit) — Upstash em produção
+- PostgreSQL (Prisma owner) + pgvector (Alembic): embeddings de 768 dimensões, índice IVFFlat por cosseno
+- Redis (quota diária por plano) — Upstash em produção
+- CI no GitHub Actions (web e IA) e deploy do FastAPI no Fly.io
 - Hospedagem: Vercel (Next) + Fly.io (FastAPI)
 
 ## Setup local
@@ -108,12 +115,13 @@ tcc-assist/
 │   └── prisma/                # schema + migrations
 ├── services/ai/               # FastAPI
 │   ├── app/
-│   │   ├── api/               # rotas HTTP (chat, quota, health)
+│   │   ├── api/               # rotas HTTP (chat, generate, actions, ingest, retrieve, quota, health)
 │   │   ├── auth/              # JWT verifier
 │   │   ├── db/                # repositórios read-only
 │   │   ├── orchestrator/      # workflows (chat, generate, action)
 │   │   ├── prompts/           # templates versionados
-│   │   ├── providers/         # Gemini, embeddings (futuro)
+│   │   ├── providers/         # Gemini (geração e embeddings)
+│   │   ├── rag/               # ingestão, chunking, embeddings, retrieval
 │   │   └── quota/             # Redis quota
 │   └── tests/                 # mirror de app/
 ├── docs/
