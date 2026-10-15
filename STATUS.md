@@ -1,9 +1,9 @@
 # Teseo — Status do Projeto
-> Atualizado em: 2026-05-18 · Branch: `main`
+> Atualizado em: 2026-10-15 · Branch: `main`
 
 ---
 
-## 📍 Fase atual — Migração arquitetural (IA → FastAPI + RAG)
+## Fase atual — Migração arquitetural (IA → FastAPI + RAG)
 
 O produto entrou em fase de reescrita da camada de IA. UI/auth/Stripe permanecem em Next.js;
 toda lógica de IA (chat, geração, ações, RAG) migra para um serviço FastAPI dedicado.
@@ -19,22 +19,22 @@ Decisão fixada em [ADR-0001](./docs/adr/0001-fastapi-rag-split.md).
 
 | Fase | Escopo | Estado |
 |---|---|---|
-| 0 | Documentação base (AGENTS.md, ADR-0001, BACKLOG.md, STATUS.md) | ✅ feito |
+| 0 | Documentação base (AGENTS.md, ADR-0001, BACKLOG.md, STATUS.md) | concluído |
 | 0.5 | Migração para monorepo (apps/web + services/ai) — ADR-0007 | concluído |
 | 1 | Bootstrap repositório `tcc-assist-ai` (FastAPI + CI + healthcheck) | concluído |
 | 2 | Quota server-side em Redis + endpoint `/v1/quota/me` + BFF Next | concluído |
-| 3 | Cut-over `/api/chat` → `POST /v1/chat` (paridade) | ✅ concluído |
+| 3 | Cut-over `/api/chat` → `POST /v1/chat` (paridade) | concluído |
 | 4 | Pipeline RAG: ingestão (PDFs + OpenAlex) + pgvector | concluído |
-| 5 | Cut-over `/api/gerar-tcc` → `POST /v1/generate` (com retrieval) | 🔲 |
-| 6 | Cut-over `/api/tcc/[id]/ai-action` → `POST /v1/actions/{action}` | 🔲 |
-| 7 | Stripe `subscription` + idempotência do webhook | 🔲 |
-| 8 | Observabilidade (langfuse/phoenix) + métricas de qualidade do RAG | 🔲 |
+| 5 | Cut-over `/api/gerar-tcc` → `POST /v1/generate` (com retrieval) | pendente |
+| 6 | Cut-over `/api/tcc/[id]/ai-action` → `POST /v1/actions/{action}` | em andamento |
+| 7 | Stripe `subscription` + idempotência do webhook | pendente |
+| 8 | Observabilidade (langfuse/phoenix) + métricas de qualidade do RAG | pendente |
 
 Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md §7`.
 
 ---
 
-## ✅ Concluído
+## Concluído
 
 ### Workspace (editor principal)
 - Documento central com editor rico (Tiptap) — bold, italic, headings, listas, citações, undo/redo
@@ -96,7 +96,7 @@ Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md
 - Lógica FREE / PRO / VIP centralizada em `src/lib/plan.ts`
 - Slot limits: FREE = 1 TCC, PRO = 1 TCC, VIP = 2 TCCs
 - Dev plan switcher para testes locais
-- Stripe checkout + webhook estruturados
+- Stripe Checkout em modo pagamento único (12 meses), com webhook de assinatura verificada que atualiza o plano
 - Admin panel para gerenciar planos de usuários
 
 ### Migração FastAPI — fase 2
@@ -105,7 +105,7 @@ Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md
 - BFF Next `GET /api/quota/me` assina JWT interno e normaliza resposta para a UI
 - Workspace lê quota diária via BFF `GET /api/quota/me`; gate em `localStorage` removido da UI
 
-### Migração FastAPI — fase 3 (concluída em 2026-05-19)
+### Migração FastAPI — fase 3 (concluída; rollout em produção em 2026-05-13, limpeza T-E5 em 2026-05-19)
 - Cliente Postgres async read-only no FastAPI (`app/db/`) — ADR-0001
 - Provider Gemini portado pra Python (`app/providers/gemini.py`) — ADR-0003
 - Templates de prompt versionados em código (`app/prompts/chat.py`)
@@ -133,9 +133,14 @@ Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md
 - T-G6: hook RAG no orchestrator do chat — `retrieve_for_chat` em paralelo com refs/messages, threshold 0.5, top_k 5, char budget 6000, bloco `CONTEXTO RECUPERADO` injetado entre references e conversation, `ChatResult.citations`. Falha de retrieval silenciada (warning + lista vazia) — chat segue sem RAG (PR #36).
 - T-G7/T-G7.1: docker-compose dev com `pgvector/pgvector:pg16` + smoke E2E (`services/ai/dev/smoke_e2e.py` cobre ingest → retrieve → chat com citações) validado contra Gemini real em 2026-06-03 (PRs #37, #38).
 
+### Decisões e infraestrutura
+- ADR-0008 (concluído, aceito em 2026-06-02): provedor de embeddings do MVP é Google `gemini-embedding-001` com dimensão 768 via `outputDimensionality`, sem modelo local. Ver [ADR-0008](./docs/adr/0008-embedding-provider-mvp.md).
+- ADR-0009 (concluído, aceito em 2026-06-07): deploy do FastAPI no Fly.io automatizado via GitHub Actions. Ver [ADR-0009](./docs/adr/0009-fly-auto-deploy.md).
+- Workflow `fly-deploy.yml` (concluído): em push na `main` com mudanças em `services/ai/**` (ou disparo manual) executa `flyctl deploy --remote-only` em `services/ai`; requer o secret `FLY_API_TOKEN`.
+
 ---
 
-## 🔲 Falta fazer
+## Falta fazer
 
 ### Alta prioridade (pré-beta ou primeiras semanas)
 - [ ] **Recuperação de senha** — fluxo de "esqueci minha senha" não está implementado
@@ -160,7 +165,7 @@ Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md
 
 ---
 
-## 🐛 Bugs conhecidos vs 💡 Melhorias
+## Bugs conhecidos e melhorias
 
 ### Bugs (comportamento incorreto)
 
@@ -186,7 +191,7 @@ Tarefas detalhadas em [BACKLOG.md](./docs/BACKLOG.md). Bugs ativos em `AGENTS.md
 
 ---
 
-## 🚀 Entra no beta controlado
+## Entra no beta controlado
 
 Tudo que está marcado como **concluído** acima está apto para beta. Resumindo o scope do beta:
 
@@ -202,7 +207,7 @@ Tudo que está marcado como **concluído** acima está apto para beta. Resumindo
 
 ---
 
-## ⏳ Fica para depois do beta
+## Fica para depois do beta
 
 | Item | Motivo |
 |---|---|
@@ -216,7 +221,7 @@ Tudo que está marcado como **concluído** acima está apto para beta. Resumindo
 
 ---
 
-## ⚠️ Atenção antes de abrir para mais usuários (pós-beta)
+## Atenção antes de abrir para mais usuários (pós-beta)
 
 1. **Turnitin (B4)**: o valor exibido é estimado. Adicionar disclaimer explícito ou remover o componente antes de escalar.
 2. **Rate limiting amplo**: estender quota/rate limit server-side para endpoints fora de `/api/chat` nas fases 5/6.

@@ -30,8 +30,44 @@ Decisões arquiteturais documentadas em [`docs/adr/`](./docs/adr/):
 - ADR-0005 — Quota e rate limit em Redis
 - ADR-0006 — JWT HS256 interno Next ↔ FastAPI
 - ADR-0007 — Migração para monorepo
+- ADR-0008 — Provedor de embeddings do MVP: Google `gemini-embedding-001`
+- ADR-0009 — Deploy automático do FastAPI no Fly.io via GitHub Actions
 
 Status atual em [`STATUS.md`](./STATUS.md). Backlog em [`docs/BACKLOG.md`](./docs/BACKLOG.md).
+
+## Pipeline RAG
+
+Implementado em `services/ai/app/rag/` e `services/ai/app/providers/embedding.py`. O schema RAG é gerenciado por Alembic (`services/ai/alembic/`); o schema de produto, por Prisma.
+
+| Etapa | Parâmetro |
+|---|---|
+| Ingestão | PDF (`POST /v1/ingest/pdf`, download com limite de 25 MB) e abstracts do OpenAlex (`POST /v1/ingest/reference`); acompanhamento por `GET /v1/ingest/{job_id}` |
+| Chunking | Por caracteres: 1500 por chunk, 150 de sobreposição |
+| Embeddings | `gemini-embedding-001`, 768 dimensões (`outputDimensionality`), normalização L2 no cliente |
+| Cache de embeddings | Redis, chave `embed:{model}:{sha256}`, TTL de 30 dias |
+| Falha do provedor de embeddings | Até 4 retentativas com backoff exponencial e jitter (teto de 8 s por espera) |
+| Armazenamento | Tabelas `chunks`, `embeddings` e `ingestion_jobs` no PostgreSQL com pgvector |
+| Índice | IVFFlat, `vector_cosine_ops`, `lists = 100` |
+| Retrieval (`POST /v1/retrieve`) | Distância de cosseno (`<=>`), score `1 - distância`, `top_k` padrão 8 e máximo 50, filtro opcional por `source_types` |
+| Retrieval no chat | `top_k` 5, limiar de score 0,5, orçamento de contexto de 6000 caracteres; trechos injetados no bloco `CONTEXTO RECUPERADO` e retornados como citações |
+| Comportamento em falha | Se o retrieval falhar no chat, o erro é registrado em log (warning) e o chat segue sem contexto recuperado |
+| Smoke end-to-end | `services/ai/dev/smoke_e2e.py` cobre ingestão, retrieval e chat com citações; pré-requisitos no cabeçalho do script e em [`docs/dev-smoke.md`](./docs/dev-smoke.md) |
+
+## Testes e qualidade
+
+| Workspace | Verificação | Comando |
+|---|---|---|
+| `services/ai` | Testes (pytest) | `uv run pytest -q` |
+| `services/ai` | Lint (ruff) | `uv run ruff check .` |
+| `services/ai` | Tipos (mypy, modo strict) | `uv run mypy .` |
+| `apps/web` | Lint (ESLint) | `npm run lint` |
+| `apps/web` | Typecheck (TypeScript) | `npm run typecheck` |
+
+Workflows em `.github/workflows/`:
+
+- `ci-web.yml` (CI Web): em PR e push na `main` com mudanças em `apps/web/**`; executa `npm ci`, `prisma generate`, `npm run typecheck` e `npm run lint`.
+- `ci-ai.yml` (CI AI): em PR e push na `main` com mudanças em `services/ai/**`; executa `uv sync --extra dev`, `ruff check`, `mypy` e `pytest -q`.
+- `fly-deploy.yml` (Fly deploy AI): em push na `main` com mudanças em `services/ai/**` (ou disparo manual); executa `flyctl deploy --remote-only` no diretório `services/ai`. Decisão em ADR-0009.
 
 ## Pendências conhecidas
 
